@@ -1,4 +1,5 @@
 import commands.CommandHandler;
+import commands.CommandLoader;
 import events.OnGuildJoinEvent;
 import events.OnGuildLeaveEvent;
 import net.dv8tion.jda.api.JDA;
@@ -17,6 +18,7 @@ public class Main {
     public static JDA bot;
 
     public static void main(String[] args) throws LoginException, InterruptedException {
+        CommandLoader.loadAllCommands();
         bot = JDABuilder.createDefault(BOT_TOKEN)
                 .setActivity(Activity.playing("IdleAway!"))
                 .addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent())

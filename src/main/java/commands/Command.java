@@ -45,7 +45,7 @@ public abstract class Command {
      * @param event - MessageReceivedEvent
      * @param args - The arguments provided as a String[]
      */
-    public void execute(MessageReceivedEvent event, List<String> args) {
+    public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage("This command has not yet been implemented!").queue();
     }
@@ -56,8 +56,8 @@ public abstract class Command {
      * @param args - The arguments provided as a String[]
      * @return true if a flag was present, false if no flag was present.
      */
-    public boolean checkForFlags(MessageReceivedEvent event, List<String> args, String commandName,
-                                        String commandDescription, String[] commandArgs, String[] flags) {
+    public boolean checkForFlags(MessageReceivedEvent event, @NotNull List<String> args, String commandName,
+                                 String commandDescription, String[] commandArgs, String[] flags) {
         // checks if --help flag is present as an argument
         if(args.contains("--help")) {
             generateHelp(event, commandName, commandDescription, commandArgs, flags);
@@ -70,8 +70,8 @@ public abstract class Command {
      * Generates a standard help message for when the command is called with the --help flag.
      * @param event - - MessageReceivedEvent
      */
-    public void generateHelp(MessageReceivedEvent event, String COMMAND_NAME, String COMMAND_DESCRIPTION,
-                                    String[] COMMAND_ARGS, String[] FLAGS) {
+    public void generateHelp(@NotNull MessageReceivedEvent event, String COMMAND_NAME, String COMMAND_DESCRIPTION,
+                             String @NotNull [] COMMAND_ARGS, String[] FLAGS) {
         String consumerName = event.getAuthor().getName();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
