@@ -3,19 +3,31 @@ package commands.utility;
 import commands.Command;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class InviteCommand extends Command {
+/**
+ * The invite command.
+ * Sends the user an invite link, so they can invite the bot to their own server.
+ * @author Ruben Eekhof - rubeneekhof@gmail.com
+ */
+public class InviteCommand extends Command implements UtilityCommand{
 
-    public String commandName = "invite";
-    public String commandDescription = "Creates an invite for the bot.";
+    public InviteCommand() {
+        this.commandName = "invite";
+        this.commandDescription = "Creates an invite for the bot.";
+        this.aliases = new String[]{"inv"};
+    }
 
     @Override
-    public void execute(MessageReceivedEvent event, List<String> args) {
-        if(checkForFlags(event, args, commandName, commandDescription, commandArgs, flags)) {return;}
+    public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
+        if (checkForFlags(event, args, commandName, commandDescription, commandArgs, aliases, flags, cooldown)) {
+            return;
+        }
 
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(event.getJDA().getInviteUrl(Permission.ADMINISTRATOR)).queue();
     }
 }
+

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -21,11 +22,13 @@ public class CommandHandler extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         List<String> receivedMessage = Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
                 .map(String::toLowerCase).collect(Collectors.toList());
+        AtomicBoolean commandFound = new AtomicBoolean(false);
         if(receivedMessage.get(0).startsWith(prefix)) {
-            CommandLoader.commandList.keySet().stream().takeWhile(i -> receivedMessage.size() > 0).forEach(strings -> {
+            CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
                 if(strings.contains(receivedMessage.get(0).toLowerCase(Locale.ROOT).replace(prefix, ""))) {
                     receivedMessage.remove(0);
                     CommandLoader.commandList.get(strings).execute(event, receivedMessage);
+                    commandFound.set(true);
                 }
             });
         }

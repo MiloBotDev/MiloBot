@@ -2,17 +2,16 @@ package commands;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
+import utility.EmbedUtils;
 
 import java.awt.*;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Basic implementation of a command.
@@ -41,6 +40,16 @@ public abstract class Command {
     public String[] flags = {"--help"};
 
     /**
+     * The aliases this command has.
+     */
+    public String[] aliases = {};
+
+    /**
+     * The time needed to call the command again in seconds.
+     */
+    public int cooldown = 0;
+
+    /**
      * The default implementation for every command.
      * @param event - MessageReceivedEvent
      * @param args - The arguments provided as a String[]
@@ -57,38 +66,64 @@ public abstract class Command {
      * @return true if a flag was present, false if no flag was present.
      */
     public boolean checkForFlags(MessageReceivedEvent event, @NotNull List<String> args, String commandName,
-                                 String commandDescription, String[] commandArgs, String[] flags) {
+                                 String commandDescription, String[] commandArgs, String[] aliases, String[] flags,
+                                 int cooldown) {
         // checks if --help flag is present as an argument
         if(args.contains("--help")) {
-            generateHelp(event, commandName, commandDescription, commandArgs, flags);
+            generateHelp(event, commandName, commandDescription, commandArgs, aliases, flags, cooldown);
             return true;
         }
         return false;
     }
 
     /**
-     * Generates a standard help message for when the command is called with the --help flag.
-     * @param event - - MessageReceivedEvent
+     * Checks if the user is using the command again before the cooldown is over.
+     * @param event - MessageReceivedEvent
+     * @param cooldownMap - A HashMap containing the usernames and the times when they can use the command again.
+     * @return true if the command is on cooldown, false if otherwise
      */
-    public void generateHelp(@NotNull MessageReceivedEvent event, String COMMAND_NAME, String COMMAND_DESCRIPTION,
-                             String @NotNull [] COMMAND_ARGS, String[] FLAGS) {
+    public boolean checkCooldown(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> cooldownMap) {
+        OffsetDateTime currentTime = event.getMessage().getTimeCreated();
+        String authorId = event.getAuthor().getId();
+        OffsetDateTime newAvailableTime = event.getMessage().getTimeCreated().plusSeconds(cooldown);
+        if(cooldownMap.containsKey(authorId)) {
+            OffsetDateTime availableTime = cooldownMap.get(authorId);
+            if(currentTime.isBefore(availableTime)) {
+                long waitTime = availableTime.toEpochSecond() - currentTime.toEpochSecond();
+                event.getChannel().sendTyping().queue();
+                event.getChannel().sendMessage(String.format("You can use this command again in %d seconds.", waitTime))
+                        .queue();
+                return true;
+            } else {
+                cooldownMap.replace(authorId, availableTime, newAvailableTime);
+            }
+        } else {
+            cooldownMap.put(authorId, newAvailableTime);
+        }
+        return false;
+    }
+
+    /**
+     * Generates a standard help message for when the command is called with the --help flag.
+     * @param event - MessageReceivedEvent
+     */
+    public void generateHelp(@NotNull MessageReceivedEvent event, String commandName, String commandDescription,
+                             String @NotNull [] commandArgs, String[] aliases, String[] flags, int cooldown) {
         String consumerName = event.getAuthor().getName();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
         EmbedBuilder info = new EmbedBuilder();
-        info.setColor(Color.BLUE);
-        info.setTitle(COMMAND_NAME);
-        info.setAuthor(event.getAuthor().getName());
-        info.setDescription(COMMAND_DESCRIPTION);
+        EmbedUtils.styleEmbed(event, info);
+        info.setTitle(commandName);
+        info.setDescription(commandDescription);
 
         StringBuilder argumentsText = new StringBuilder();
-        if(COMMAND_ARGS.length == 0) {
-            argumentsText.append("`!").append(COMMAND_NAME).append("`");
+        if(commandArgs.length == 0) {
+            argumentsText.append("`!").append(commandName).append("`");
         } else {
-            argumentsText.append("`!").append(COMMAND_NAME).append(" ");
-            for(int i = 0; i < COMMAND_ARGS.length; i++) {
-                argumentsText.append("{").append(COMMAND_ARGS[i]).append("}");
-                if(!(i + 1 == COMMAND_ARGS.length)) {
+            argumentsText.append("`!").append(commandName).append(" ");
+            for(int i = 0; i < commandArgs.length; i++) {
+                argumentsText.append("{").append(commandArgs[i]).append("}");
+                if(!(i + 1 == commandArgs.length)) {
                     argumentsText.append(" ");
                 }
             }
@@ -101,44 +136,37 @@ public abstract class Command {
                 argumentsText.toString(),
                 false
         );
+        
 
-        StringBuilder flagsText = new StringBuilder();
-        if(FLAGS.length == 0) {
-            flagsText.append("None.");
-        } else {
-            for(int i = 0; i < FLAGS.length; i++) {
-                flagsText.append('`').append(FLAGS[i]).append('`');
-                if(!(i + 1 == FLAGS.length)) {
+        if(!(aliases.length == 0)) {
+            StringBuilder aliasesText = new StringBuilder();
+            for(int i = 0; i < aliases.length; i++) {
+                aliasesText.append('`').append(aliases[i]).append('`');
+                if(!(i + 1 == flags.length)) {
+                    aliasesText.append(", ");
+                }
+            }
+            info.addField("Aliases", aliasesText.toString(),false);
+        }
+
+        if(!(flags.length == 0)) {
+            StringBuilder flagsText = new StringBuilder();
+            for(int i = 0; i < flags.length; i++) {
+                flagsText.append('`').append(flags[i]).append('`');
+                if(!(i + 1 == flags.length)) {
                     argumentsText.append(", ");
                 }
             }
+            info.addField("Flags", flagsText.toString(),false);
         }
-        info.addField(
-                "Flags",
-                flagsText.toString(),
-                false
-                );
 
-        info.setFooter(dtf.format(LocalDateTime.now()));
+        if(cooldown > 0) {
+            info.addField("Cooldown", String.format("%d seconds.", cooldown), false);
+        }
 
         event.getChannel().sendTyping().queue();
         MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());
-        messageAction.queue((message) ->  {
-            message.addReaction("❌").queue();
-            ListenerAdapter listener = new ListenerAdapter() {
-                @Override
-                public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
-                    String messageId = event.getMessageId();
-                    if (Objects.requireNonNull(event.getUser()).getName().equals(consumerName) &&
-                            event.getReactionEmote().getAsReactionCode().equals("❌") && message.getId().equals(messageId)) {
-                        event.getChannel().deleteMessageById(messageId).queue();
-                        event.getJDA().removeEventListener(this);
-                    }
-                }
-            };
-            message.getJDA().getRateLimitPool().schedule(() -> event.getJDA().removeEventListener(listener), 1, TimeUnit.MINUTES);
-            message.getJDA().addEventListener(listener);
-        });
+        messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerName));
     }
 
 }
