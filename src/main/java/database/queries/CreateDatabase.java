@@ -1,4 +1,4 @@
-package database;
+package database.queries;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,11 +12,10 @@ public class CreateDatabase {
 
     /**
      * Creates a new database with a given filename.
-     * @param fileName - the name of the database as a String
      */
-    public static void createNewDatabase(String fileName) {
+    private static void createNewDatabase() {
 
-        String url = "jdbc:sqlite:C:/sqlite/" + fileName;
+        String url = "jdbc:sqlite:C:/sqlite/" + "IdleAway.db";
 
         try {
             Connection conn = DriverManager.getConnection(url);
@@ -31,7 +30,7 @@ public class CreateDatabase {
 
 
     public static void main(String[] args) {
-        createNewDatabase("IdleAway.db");
+        createNewDatabase();
     }
 
 }

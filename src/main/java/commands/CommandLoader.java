@@ -1,5 +1,7 @@
 package commands;
 
+import commands.fun.FunCommand;
+import commands.fun.UserCommand;
 import commands.utility.HelpCommand;
 import commands.utility.InviteCommand;
 import commands.utility.StatusCommand;
@@ -30,6 +32,12 @@ public class CommandLoader {
         ArrayList<String> statusCommandKeys = new ArrayList<>(List.of(statusCommand.aliases));
         statusCommandKeys.add(statusCommand.commandName);
         commandList.put(statusCommandKeys, statusCommand);
+
+        // fun commands
+        UserCommand userCommand = new UserCommand();
+        ArrayList<String> userCommandKeys = new ArrayList<>(List.of(userCommand.aliases));
+        userCommandKeys.add(userCommand.commandName);
+        commandList.put(userCommandKeys, userCommand);
     }
 
 }

@@ -2,8 +2,8 @@ package commands.utility;
 
 import commands.Command;
 import commands.CommandLoader;
+import commands.fun.FunCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -12,7 +12,6 @@ import utility.EmbedUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * The Help command.
@@ -24,8 +23,7 @@ public class HelpCommand extends Command implements UtilityCommand {
     public HelpCommand() {
         this.commandName = "help";
         this.commandDescription = "Shows the user a list of available commands.";
-        this.commandArgs = new String[]{"*command"};
-        this.aliases = new String[]{"info"};
+        this.commandArgs = new String[]{"*command"};  
     }
 
     @Override
@@ -47,24 +45,35 @@ public class HelpCommand extends Command implements UtilityCommand {
             categoryEmbed.setTitle("Categories 📝");
             categoryEmbed.setDescription("Click each categories respective emoji to see their commands.");
             categoryEmbed.addField("Utility 🔨", UtilityCommand.description, true);
+            categoryEmbed.addField("Fun 🎉", FunCommand.description, true);
 
             EmbedBuilder utilityEmbed = new EmbedBuilder();
             EmbedUtils.styleEmbed(event, utilityEmbed);
             utilityEmbed.setTitle("Utility Commands 🔨");
+
+            EmbedBuilder funEmbed = new EmbedBuilder();
+            EmbedUtils.styleEmbed(event, funEmbed);
+            funEmbed.setTitle("Fun Commands 🎉");
+
             CommandLoader.commandList.forEach((key, value) -> {
                 if(value instanceof UtilityCommand) {
                     utilityEmbed.addField(String.format("!%s", value.commandName), value.commandDescription, true);
+                } else if(value instanceof FunCommand) {
+                    funEmbed.addField(String.format("!%s", value.commandName), value.commandDescription, true);
                 }
             });
+
             Map<String, EmbedBuilder> embedAsEmoji = new HashMap<>();
             embedAsEmoji.put("📝", categoryEmbed);
             embedAsEmoji.put("🔨", utilityEmbed);
+            embedAsEmoji.put("🎉", funEmbed);
 
             event.getChannel().sendTyping().queue();
             event.getChannel().sendMessageEmbeds(categoryEmbed.build()).queue(
                     message -> {
                         message.addReaction("📝").queue();
                         message.addReaction("🔨").queue();
+                        message.addReaction("🎉").queue();
                         message.addReaction("❌").queue();
                         ListenerAdapter listener = new ListenerAdapter() {
                             @Override
