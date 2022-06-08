@@ -32,45 +32,60 @@ public class UserCommand extends Command implements FunCommand {
             return;
         }
 
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        EmbedBuilder userEmbed = new EmbedBuilder();
+        EmbedUtils.styleEmbed(event, userEmbed);
+
+        User author;
+        User.Profile userProfile;
+        Member member;
+
         if(args.size() == 0) {
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-
-            EmbedBuilder userEmbed = new EmbedBuilder();
-            EmbedUtils.styleEmbed(event, userEmbed);
-
-            User author = event.getAuthor();
-            User.Profile userProfile = author.retrieveProfile().complete();
-            Member member = Objects.requireNonNull(event.getGuild().getMemberById(author.getId()));
-
-            userEmbed.setTitle(author.getName());
-            userEmbed.setImage(userProfile.getBannerUrl());
-            userEmbed.setThumbnail(author.getAvatarUrl());
-
-            userEmbed.addField("Nickname", Objects.equals(member.getNickname(), null) ? "None" :
-                    member.getNickname(), false);
-            userEmbed.addField("Account Created", author.getTimeCreated().format(dtf), false);
-            userEmbed.addField("Joined Server", member.getTimeJoined().format(dtf), false);
-            userEmbed.addField("Mutual Servers", "You guys are together in every server, " +
-                    "anything romantic going on?", false);
-
-            StringBuilder roles = new StringBuilder();
-            List<Role> memberRoles = member.getRoles();
-            if(memberRoles.size() == 0) {
-                roles.append("None");
+            author = event.getAuthor();
+            userProfile = author.retrieveProfile().complete();
+        } else {
+            List<Member> usersByName = event.getGuild().getMembersByName(args.get(0), true);
+            if(usersByName.size() == 0) {
+                event.getChannel().sendTyping().queue();
+                event.getChannel().sendMessage(String.format("User `%s` not found.", args.get(0))).queue();
+                return;
             } else {
-                for(int i = 0; i < memberRoles.size(); i++) {
-                    if(i + 1 == memberRoles.size()) {
-                       roles.append(memberRoles.get(i).getName()).append(".");
-                    } else {
-                        roles.append(memberRoles.get(i).getName()).append(", ");
-                    }
+                author = usersByName.get(0).getUser();
+                userProfile = author.retrieveProfile().complete();
+            }
+        }
+
+        member = Objects.requireNonNull(event.getGuild().getMemberById(author.getId()));
+
+        userEmbed.setTitle(author.getName());
+        userEmbed.setImage(userProfile.getBannerUrl());
+        userEmbed.setThumbnail(author.getAvatarUrl());
+
+        userEmbed.addField("Nickname", Objects.equals(member.getNickname(), null) ? "None" :
+                member.getNickname(), false);
+        userEmbed.addField("Account Created", author.getTimeCreated().format(dtf), false);
+        userEmbed.addField("Joined Server", member.getTimeJoined().format(dtf), false);
+        userEmbed.addField("Mutual Servers", "You guys are together in every server, " +
+                "anything romantic going on?", false);
+
+        StringBuilder roles = new StringBuilder();
+        List<Role> memberRoles = member.getRoles();
+        if(memberRoles.size() == 0) {
+            roles.append("None");
+        } else {
+            for(int i = 0; i < memberRoles.size(); i++) {
+                if(i + 1 == memberRoles.size()) {
+                    roles.append(memberRoles.get(i).getName()).append(".");
+                } else {
+                    roles.append(memberRoles.get(i).getName()).append(", ");
                 }
             }
-            userEmbed.addField("Roles", roles.toString(), false);
-
-            event.getChannel().sendTyping().queue();
-            event.getChannel().sendMessageEmbeds(userEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
-                    event.getAuthor().getName()));
         }
+        userEmbed.addField("Roles", roles.toString(), false);
+
+        event.getChannel().sendTyping().queue();
+        event.getChannel().sendMessageEmbeds(userEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
+                event.getAuthor().getName()));
+
     }
 }
