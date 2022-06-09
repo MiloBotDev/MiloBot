@@ -16,8 +16,11 @@ public class DatabaseManager {
 
     private final String connectionUrl = "jdbc:sqlite:C:/sqlite/IdleAway.db";
 
-    public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (CommandName " +
-            "varchar(255), amount int);";
+    public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (commandName varchar(255), amount varchar(255));";
+    public final String checkIfCommandTracked = "SELECT CommandName FROM command_usage WHERE commandName = ?;";
+    public final String addCommandToTracker = "INSERT INTO command_usage(commandName, amount) VALUES(?, ?);";
+    public final String checkCommandUsageAmount = "SELECT amount FROM command_usage WHERE commandName = ?";
+    public final String updateCommandUsageAmount = "UPDATE command_usage SET amount = ? WHERE commandName = ?";
 
     /**
      * The type of query you want to send.
@@ -71,7 +74,10 @@ public class DatabaseManager {
             Connection conn = connect();
             Statement stmt;
             if(types.equals(QueryTypes.RETURN)) {
-                stmt = conn.prepareStatement(query, args);
+                stmt = conn.prepareStatement(query);
+                for(int i=0; i < args.length; i++) {
+                    ((PreparedStatement) stmt).setString(i+1, args[i]);
+                }
                 ResultSet results = ((PreparedStatement) stmt).executeQuery();
 
                 ResultSetMetaData rsmd = results.getMetaData();
@@ -89,7 +95,11 @@ public class DatabaseManager {
                 if(args.length == 0) {
                     stmt.executeUpdate(query);
                 } else {
-                    stmt.executeUpdate(query, args);
+                    stmt = conn.prepareStatement(query);
+                    for(int i=0; i < args.length; i++) {
+                        ((PreparedStatement) stmt).setString(i+1, args[i]);
+                    }
+                    ((PreparedStatement) stmt).executeUpdate();
                 }
             }
             stmt.close();
