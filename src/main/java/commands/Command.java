@@ -6,10 +6,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
-import java.awt.*;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 
@@ -48,6 +45,13 @@ public abstract class Command {
      * The time needed to call the command again in seconds.
      */
     public int cooldown = 0;
+
+    /**
+     * The default constructor for a command.
+     */
+    public Command() {
+
+    }
 
     /**
      * The default implementation for every command.

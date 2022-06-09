@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class HelpCommand extends Command implements UtilityCommand {
 
     public HelpCommand() {
+        super();
         this.commandName = "help";
         this.commandDescription = "Shows the user a list of available commands.";
         this.commandArgs = new String[]{"*command"};  
