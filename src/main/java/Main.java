@@ -21,8 +21,6 @@ public class Main {
     public static JDA bot;
 
     public static void main(String[] args) throws LoginException, InterruptedException, SQLException {
-        CommandLoader.loadAllCommands();
-
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         Connection connect = databaseManager.connect();
         // checks if the database exists and creates a new one if needed
@@ -30,6 +28,8 @@ public class Main {
             databaseManager.createNewDatabase();
         }
         databaseManager.createAndFillAllTables();
+
+        CommandLoader.loadAllCommands();
 
         bot = JDABuilder.createDefault(BOT_TOKEN)
                 .setActivity(Activity.playing("IdleAway!"))

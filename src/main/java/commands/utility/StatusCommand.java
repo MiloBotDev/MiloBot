@@ -19,22 +19,15 @@ import java.util.List;
  */
 public class StatusCommand extends Command implements UtilityCommand {
 
-    private final HashMap<String, OffsetDateTime> cooldownMap = new HashMap<>();
-
     public StatusCommand() {
         this.commandName = "status";
         this.commandDescription = "The status of the bot.";
         this.cooldown = 60;
+        this.cooldownMap = new HashMap<>();
     }
 
     @Override
     public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
-        if (checkForFlags(event, args, commandName, commandDescription, commandArgs, aliases, flags, cooldown)) {
-            return;
-        }
-
-        if (checkCooldown(event, this.cooldownMap)) return;
-
         EmbedBuilder embed = new EmbedBuilder();
         embed.setDescription("Insert some information that nobody cares about.....");
         EmbedUtils.styleEmbed(event, embed);

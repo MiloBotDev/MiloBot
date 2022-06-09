@@ -28,10 +28,6 @@ public class UserCommand extends Command implements FunCommand {
 
     @Override
     public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        if (checkForFlags(event, args, commandName, commandDescription, commandArgs, aliases, flags, cooldown)) {
-            return;
-        }
-
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         EmbedBuilder userEmbed = new EmbedBuilder();
         EmbedUtils.styleEmbed(event, userEmbed);
@@ -86,6 +82,5 @@ public class UserCommand extends Command implements FunCommand {
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessageEmbeds(userEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
                 event.getAuthor().getName()));
-
     }
 }

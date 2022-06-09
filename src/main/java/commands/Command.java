@@ -1,5 +1,6 @@
 package commands;
 
+import database.DatabaseManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
@@ -7,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -34,7 +36,7 @@ public abstract class Command {
     /**
      * The different flags the command can be flagged with.
      */
-    public String[] flags = {"--help"};
+    public String[] flags = {"--help", "--stats"};
 
     /**
      * The aliases this command has.
@@ -45,6 +47,11 @@ public abstract class Command {
      * The time needed to call the command again in seconds.
      */
     public int cooldown = 0;
+
+    /**
+     * A map that maps a users name to time when they can use the command again.
+     */
+    public HashMap<String, OffsetDateTime> cooldownMap = new HashMap<>();
 
     /**
      * The default constructor for a command.
@@ -67,17 +74,29 @@ public abstract class Command {
      * The default implementation for checking if a flag is present.
      * @param event - MessageReceivedEvent
      * @param args - The arguments provided as a String[]
+     * @param commandName - The name of the command
+     * @param commandDescription - The description of the command
+     * @param commandArgs - The arguments of the command
+     * @param aliases - The different aliases for the command
+     * @param flags - The flags for the command
+     * @param cooldown - The cooldown for the command
      * @return true if a flag was present, false if no flag was present.
      */
     public boolean checkForFlags(MessageReceivedEvent event, @NotNull List<String> args, String commandName,
                                  String commandDescription, String[] commandArgs, String[] aliases, String[] flags,
                                  int cooldown) {
+        boolean flagPresent = false;
         // checks if --help flag is present as an argument
         if(args.contains("--help")) {
             generateHelp(event, commandName, commandDescription, commandArgs, aliases, flags, cooldown);
-            return true;
+            flagPresent = true;
         }
-        return false;
+        // checks if the --stats flag is present as an argument
+        if(args.contains("--stats")) {
+            generateStats(event, commandName);
+            flagPresent = true;
+        }
+        return flagPresent;
     }
 
     /**
@@ -108,8 +127,48 @@ public abstract class Command {
     }
 
     /**
+     * Updates the command tracker for the given command name.
+     * @param commandName - The name of the command
+     */
+    public void updateCommandTracker(String commandName) {
+        DatabaseManager manager = DatabaseManager.getInstance();
+        ArrayList<String> query = manager.query(manager.checkIfCommandTracked, DatabaseManager.QueryTypes.RETURN, commandName);
+        if(query.size() == 0) {
+            manager.query(manager.addCommandToTracker, DatabaseManager.QueryTypes.UPDATE, commandName, "1");
+        } else {
+            ArrayList<String> result = manager.query(manager.checkCommandUsageAmount, DatabaseManager.QueryTypes.RETURN, commandName);
+            String newAmount = Integer.toString(Integer.parseInt(result.get(0)) + 1);
+            manager.query(manager.updateCommandUsageAmount, DatabaseManager.QueryTypes.UPDATE, newAmount, commandName);
+        }
+    }
+
+    /**
+     * Generates a message with the stats of that specific command.
+     * @param event - MessageReceivedEvent
+     * @param commandName - The name of the command
+     */
+    public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
+        DatabaseManager manager = DatabaseManager.getInstance();
+        ArrayList<String> amount = manager.query(manager.checkCommandUsageAmount, DatabaseManager.QueryTypes.RETURN, commandName);
+
+        EmbedBuilder stats = new EmbedBuilder();
+        EmbedUtils.styleEmbed(event, stats);
+        stats.setTitle(String.format("Stats for %s", commandName));
+        stats.addField("Usages", String.format("This command has been used %d times.", Integer.parseInt(amount.get(0))), false);
+
+        event.getChannel().sendTyping().queue();
+        event.getChannel().sendMessageEmbeds(stats.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getName()));
+    }
+
+    /**
      * Generates a standard help message for when the command is called with the --help flag.
      * @param event - MessageReceivedEvent
+     * @param commandName - The name of the command
+     * @param commandDescription - The description of the command
+     * @param commandArgs - The arguments of the command
+     * @param aliases - The different aliases for the command
+     * @param flags - The flags for the command
+     * @param cooldown - The cooldown for the command
      */
     public void generateHelp(@NotNull MessageReceivedEvent event, String commandName, String commandDescription,
                              String @NotNull [] commandArgs, String[] aliases, String[] flags, int cooldown) {
@@ -158,7 +217,7 @@ public abstract class Command {
             for(int i = 0; i < flags.length; i++) {
                 flagsText.append('`').append(flags[i]).append('`');
                 if(!(i + 1 == flags.length)) {
-                    argumentsText.append(", ");
+                    flagsText.append(", ");
                 }
             }
             info.addField("Flags", flagsText.toString(),false);

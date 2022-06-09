@@ -1,12 +1,14 @@
 package commands;
 
-import commands.fun.FunCommand;
 import commands.fun.UserCommand;
 import commands.utility.HelpCommand;
 import commands.utility.InviteCommand;
 import commands.utility.StatusCommand;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Loads in every command to a static map.

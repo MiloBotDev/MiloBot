@@ -21,16 +21,13 @@ import java.util.concurrent.TimeUnit;
 public class HelpCommand extends Command implements UtilityCommand {
 
     public HelpCommand() {
-        super();
         this.commandName = "help";
         this.commandDescription = "Shows the user a list of available commands.";
-        this.commandArgs = new String[]{"*command"};  
+        this.commandArgs = new String[]{"*command"};
     }
 
     @Override
     public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
-        if(checkForFlags(event, args, commandName, commandDescription, commandArgs, aliases, flags, cooldown)) {return;}
-
         if(args.size() > 0) {
             CommandLoader.commandList.forEach((key, value) -> {
                 if (key.contains(args.get(0).toLowerCase(Locale.ROOT))) {

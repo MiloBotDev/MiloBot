@@ -22,10 +22,6 @@ public class InviteCommand extends Command implements UtilityCommand{
 
     @Override
     public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
-        if (checkForFlags(event, args, commandName, commandDescription, commandArgs, aliases, flags, cooldown)) {
-            return;
-        }
-
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessage(event.getJDA().getInviteUrl(Permission.ADMINISTRATOR)).queue();
     }

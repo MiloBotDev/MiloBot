@@ -27,7 +27,25 @@ public class CommandHandler extends ListenerAdapter {
             CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
                 if(strings.contains(receivedMessage.get(0).toLowerCase(Locale.ROOT).replace(prefix, ""))) {
                     receivedMessage.remove(0);
-                    CommandLoader.commandList.get(strings).execute(event, receivedMessage);
+                    Command command = CommandLoader.commandList.get(strings);
+                    // check for potential cooldown
+                    if(command.cooldown > 0) {
+                        boolean onCooldown = command.checkCooldown(event, command.cooldownMap);
+                        if(onCooldown) {
+                            return;
+                        }
+                    }
+                    // check for flags if one or multiple arguments are present
+                    if(receivedMessage.size() > 0) {
+                        if(command.checkForFlags(event, receivedMessage, command.commandName, command.commandDescription,
+                                command.commandArgs, command.aliases, command.flags, command.cooldown)){
+                            return;
+                        }
+                    }
+                    // execute the command
+                    command.execute(event, receivedMessage);
+                    // update the tracker
+                    command.updateCommandTracker(command.commandName);
                     commandFound.set(true);
                 }
             });
