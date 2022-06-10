@@ -73,3 +73,4 @@ nb-configuration.xml
 ##############################
 .DS_Store
 /.idea/
+config.yml
