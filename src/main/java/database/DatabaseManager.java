@@ -1,6 +1,8 @@
 package database;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.ArrayList;
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class DatabaseManager {
+
+    final static Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 
     private static DatabaseManager instance;
 
@@ -79,6 +83,7 @@ public class DatabaseManager {
                     ((PreparedStatement) stmt).setString(i+1, args[i]);
                 }
                 ResultSet results = ((PreparedStatement) stmt).executeQuery();
+                logger.info(String.format("Executed query: %s", stmt));
 
                 ResultSetMetaData rsmd = results.getMetaData();
                 int columnCount = rsmd.getColumnCount();
@@ -100,6 +105,7 @@ public class DatabaseManager {
                         ((PreparedStatement) stmt).setString(i+1, args[i]);
                     }
                     ((PreparedStatement) stmt).executeUpdate();
+                    logger.info(String.format("Executed query: %s", stmt));
                 }
             }
             stmt.close();

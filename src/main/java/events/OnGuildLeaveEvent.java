@@ -4,6 +4,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -12,6 +14,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class OnGuildLeaveEvent extends ListenerAdapter {
+
+    final static Logger logger = LoggerFactory.getLogger(OnGuildLeaveEvent.class);
 
     @Override
     public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
@@ -37,6 +41,8 @@ public class OnGuildLeaveEvent extends ListenerAdapter {
 
         logs.sendTyping().queue();
         logs.sendMessageEmbeds(embed.build()).queue();
+
+        logger.info(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
     }
 
 }

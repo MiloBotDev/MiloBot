@@ -7,11 +7,21 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+/**
+ * Holds the configuration data for the bot.
+ * This class is a singleton.
+ * @author Ruben Eekhof - rubeneekhof@gmail.com
+ */
 public class Config {
 
     public static Config instance;
+
     public final String botToken ;
 
+    /**
+     * Instantiates all the
+     * @throws FileNotFoundException thrown when the file can't be found
+     */
     private Config() throws FileNotFoundException {
         InputStream inputStream = new FileInputStream("config.yml");
 
@@ -21,6 +31,11 @@ public class Config {
         botToken = (String) data.get("token");
     }
 
+    /**
+     * Returns the only existing instance of Config or creates a new one if no instance exists.
+     * @return the Config instance
+     * @throws FileNotFoundException thrown when the file can't be found in the constructor
+     */
     public static Config getInstance() throws FileNotFoundException {
         if(instance == null) {
             instance = new Config();

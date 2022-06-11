@@ -6,12 +6,12 @@ import events.OnGuildLeaveEvent;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import utility.Config;
 
 import javax.security.auth.login.LoginException;
 import java.io.FileNotFoundException;
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * The Main class from where the bot is ran.
@@ -19,9 +19,7 @@ import java.sql.SQLException;
  */
 public class Main {
 
-    public static JDA bot;
-
-    public static void main(String[] args) throws LoginException, InterruptedException, FileNotFoundException {
+    public static void main(String[] args) throws LoginException, FileNotFoundException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         Connection connect = databaseManager.connect();
         // checks if the database exists and creates a new one if needed
@@ -32,10 +30,12 @@ public class Main {
 
         CommandLoader.loadAllCommands();
 
-        bot = JDABuilder.createDefault(Config.getInstance().botToken)
+        JDA bot = JDABuilder.createDefault(Config.getInstance().botToken,
+                        GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_EMOJIS, GatewayIntent.GUILD_VOICE_STATES,
+                        GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_TYPING,
+                        GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS)
                 .setActivity(Activity.playing("IdleAway!"))
                 .addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent())
-                .build()
-                .awaitReady();
+                .build();
     }
 }

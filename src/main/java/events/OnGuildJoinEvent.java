@@ -5,6 +5,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.time.LocalDateTime;
@@ -15,6 +17,8 @@ import java.util.Objects;
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class OnGuildJoinEvent extends ListenerAdapter {
+
+    final static Logger logger = LoggerFactory.getLogger(OnGuildJoinEvent.class);
 
     /**
      * Triggered when the bot joins a new discord server (guild).
@@ -44,6 +48,8 @@ public class OnGuildJoinEvent extends ListenerAdapter {
 
         logs.sendTyping().queue();
         logs.sendMessageEmbeds(embed.build()).queue();
+
+        logger.info(String.format("Bot has been added to: %s.", event.getGuild().getName()));
     }
 
 }

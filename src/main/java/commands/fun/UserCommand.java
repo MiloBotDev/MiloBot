@@ -10,7 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -32,54 +34,71 @@ public class UserCommand extends Command implements FunCommand {
         EmbedBuilder userEmbed = new EmbedBuilder();
         EmbedUtils.styleEmbed(event, userEmbed);
 
-        User author;
-        User.Profile userProfile;
-        Member member;
+        final User[] user = new User[1];
+        final User.Profile[] userProfile = new User.Profile[1];
+        final Member[] member = new Member[1];
 
         if(args.size() == 0) {
-            author = event.getAuthor();
-            userProfile = author.retrieveProfile().complete();
+            user[0] = event.getAuthor();
+            userProfile[0] = user[0].retrieveProfile().complete();
+            member[0] = event.getMember();
+            makeEmbed(event, args, dtf, userEmbed, user[0], userProfile[0], member[0]);
         } else {
-            List<Member> usersByName = event.getGuild().getMembersByName(args.get(0), true);
-            if(usersByName.size() == 0) {
+            String findUser = String.join(" ", args);
+            try {
+                List<Member>  usersByName = new ArrayList<>();
+                event.getGuild().findMembers(e -> e.getUser().getName().toLowerCase(Locale.ROOT).equals(findUser))
+                        .onSuccess(members -> {
+                            usersByName.addAll(members);
+                            if (usersByName.size() == 0) {
+                                event.getChannel().sendTyping().queue();
+                                event.getChannel().sendMessage(String.format("User `%s` not found.", findUser)).queue();
+                            } else {
+                                event.getChannel().sendTyping().queue();
+                                user[0] = usersByName.get(0).getUser();
+                                userProfile[0] = user[0].retrieveProfile().complete();
+                                member[0] = usersByName.get(0);
+                                makeEmbed(event, args, dtf, userEmbed, user[0], userProfile[0]
+                                        , member[0]);
+                            }
+                        });
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
                 event.getChannel().sendTyping().queue();
-                event.getChannel().sendMessage(String.format("User `%s` not found.", args.get(0))).queue();
-                return;
-            } else {
-                author = usersByName.get(0).getUser();
-                userProfile = author.retrieveProfile().complete();
+                event.getChannel().sendMessage("You can only look up other users in a server.").queue();
             }
         }
+    }
 
-        member = Objects.requireNonNull(event.getGuild().getMemberById(author.getId()));
+    private void makeEmbed(@NotNull MessageReceivedEvent event, @NotNull List<String> args, DateTimeFormatter dtf,
+                           @NotNull EmbedBuilder userEmbed, @NotNull User user, User.@NotNull Profile profile, Member member) {
+        userEmbed.setTitle(user.getName());
+        userEmbed.setImage(profile.getBannerUrl());
+        userEmbed.setThumbnail(user.getAvatarUrl());
 
-        userEmbed.setTitle(author.getName());
-        userEmbed.setImage(userProfile.getBannerUrl());
-        userEmbed.setThumbnail(author.getAvatarUrl());
-
-        userEmbed.addField("Nickname", Objects.equals(member.getNickname(), null) ? "None" :
-                member.getNickname(), false);
-        userEmbed.addField("Account Created", author.getTimeCreated().format(dtf), false);
-        userEmbed.addField("Joined Server", member.getTimeJoined().format(dtf), false);
-        userEmbed.addField("Mutual Servers", "You guys are together in every server, " +
-                "anything romantic going on?", false);
-
-        StringBuilder roles = new StringBuilder();
-        List<Role> memberRoles = member.getRoles();
-        if(memberRoles.size() == 0) {
-            roles.append("None");
-        } else {
-            for(int i = 0; i < memberRoles.size(); i++) {
-                if(i + 1 == memberRoles.size()) {
-                    roles.append(memberRoles.get(i).getName()).append(".");
-                } else {
-                    roles.append(memberRoles.get(i).getName()).append(", ");
+        if(member != null) {
+            userEmbed.addField("Nickname", Objects.equals(member.getNickname(), null) ? "None" :
+                    member.getNickname(), false);
+            userEmbed.addField("Joined Server", member.getTimeJoined().format(dtf), false);
+            StringBuilder roles = new StringBuilder();
+            List<Role> memberRoles = member.getRoles();
+            if(memberRoles.size() == 0) {
+                roles.append("None.");
+            } else {
+                for(int i = 0; i < memberRoles.size(); i++) {
+                    if(i + 1 == memberRoles.size()) {
+                        roles.append("`").append(memberRoles.get(i).getName()).append("`").append(".");
+                    } else {
+                        roles.append("`").append(memberRoles.get(i).getName()).append("`").append(", ");
+                    }
                 }
             }
+            userEmbed.addField("Roles", roles.toString(), false);
         }
-        userEmbed.addField("Roles", roles.toString(), false);
 
-        event.getChannel().sendTyping().queue();
+        userEmbed.addField("Account Created", user.getTimeCreated().format(dtf), false);
+
+
         event.getChannel().sendMessageEmbeds(userEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
                 event.getAuthor().getName()));
     }
