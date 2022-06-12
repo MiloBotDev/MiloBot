@@ -8,8 +8,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
-import java.time.OffsetDateTime;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -23,7 +21,6 @@ public class StatusCommand extends Command implements UtilityCommand {
         this.commandName = "status";
         this.commandDescription = "The status of the bot.";
         this.cooldown = 60;
-        this.cooldownMap = new HashMap<>();
     }
 
     @Override

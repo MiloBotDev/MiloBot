@@ -3,6 +3,7 @@ package commands;
 import commands.fun.UserCommand;
 import commands.utility.HelpCommand;
 import commands.utility.InviteCommand;
+import commands.utility.PrefixCommand;
 import commands.utility.StatusCommand;
 
 import java.util.ArrayList;
@@ -34,6 +35,11 @@ public class CommandLoader {
         ArrayList<String> statusCommandKeys = new ArrayList<>(List.of(statusCommand.aliases));
         statusCommandKeys.add(statusCommand.commandName);
         commandList.put(statusCommandKeys, statusCommand);
+
+        PrefixCommand prefixCommand = new PrefixCommand();
+        ArrayList<String> prefixCommandKeys = new ArrayList<>(List.of(prefixCommand.aliases));
+        prefixCommandKeys.add(prefixCommand.commandName);
+        commandList.put(prefixCommandKeys, prefixCommand);
 
         // fun commands
         UserCommand userCommand = new UserCommand();

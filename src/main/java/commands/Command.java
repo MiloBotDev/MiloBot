@@ -2,6 +2,7 @@ package commands;
 
 import database.DatabaseManager;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,11 @@ public abstract class Command {
      * The time needed to call the command again in seconds.
      */
     public int cooldown = 0;
+
+    /**
+     * The permissions needed to use the command.
+     */
+    public HashMap<String, Permission> permissions = new HashMap<>();
 
     /**
      * A map that maps a users name to time when they can use the command again.
@@ -171,7 +177,7 @@ public abstract class Command {
      * @param cooldown - The cooldown for the command
      */
     public void generateHelp(@NotNull MessageReceivedEvent event, String commandName, String commandDescription,
-                             String @NotNull [] commandArgs, String[] aliases, String[] flags, int cooldown) {
+                             String @NotNull [] commandArgs, String @NotNull [] aliases, String[] flags, int cooldown) {
         String consumerName = event.getAuthor().getName();
 
         EmbedBuilder info = new EmbedBuilder();
@@ -179,27 +185,12 @@ public abstract class Command {
         info.setTitle(commandName);
         info.setDescription(commandDescription);
 
-        StringBuilder argumentsText = new StringBuilder();
-        if(commandArgs.length == 0) {
-            argumentsText.append("`!").append(commandName).append("`");
-        } else {
-            argumentsText.append("`!").append(commandName).append(" ");
-            for(int i = 0; i < commandArgs.length; i++) {
-                argumentsText.append("{").append(commandArgs[i]).append("}");
-                if(!(i + 1 == commandArgs.length)) {
-                    argumentsText.append(" ");
-                }
-            }
-            argumentsText.append('`');
-            argumentsText.append("\n Arguments marked with * are optional, " +
-                    "arguments marked with ** accept multiple inputs.");
-        }
+        StringBuilder argumentsText = getArgumentsText(commandName, commandArgs);
         info.addField(
                 "Usage",
                 argumentsText.toString(),
                 false
         );
-        
 
         if(!(aliases.length == 0)) {
             StringBuilder aliasesText = new StringBuilder();
@@ -227,9 +218,77 @@ public abstract class Command {
             info.addField("Cooldown", String.format("%d seconds.", cooldown), false);
         }
 
+        if(!permissions.isEmpty()) {
+            StringBuilder permissionsText = new StringBuilder();
+            permissions.forEach((s, permission) -> permissionsText.append("`").append(s).append("`"));
+            info.addField("Permissions", permissionsText.toString(), false);
+        }
+
         event.getChannel().sendTyping().queue();
         MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());
         messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerName));
+    }
+
+    /**
+     * Builds a String that explains the usage of a command.
+     * @param commandName - The name of the command
+     * @param commandArgs - The arguments of the command
+     * @return the String as a StringBuilder instance
+     */
+    @NotNull
+    private StringBuilder getArgumentsText(String commandName, String @NotNull [] commandArgs) {
+        StringBuilder argumentsText = new StringBuilder();
+        if(commandArgs.length == 0) {
+            argumentsText.append("`!").append(commandName).append("`");
+        } else {
+            argumentsText.append("`!").append(commandName).append(" ");
+            for(int i = 0; i < commandArgs.length; i++) {
+                argumentsText.append("{").append(commandArgs[i]).append("}");
+                if(!(i + 1 == commandArgs.length)) {
+                    argumentsText.append(" ");
+                }
+            }
+            argumentsText.append('`');
+            argumentsText.append("\n Arguments marked with * are optional, " +
+                    "arguments marked with ** accept multiple inputs.");
+        }
+        return argumentsText;
+    }
+
+    /**
+     * Generates a message for when the command has been improperly used.
+     * @param event - MessageReceivedEvent
+     * @param commandName - The name of the command
+     * @param commandArgs - The arguments of the command
+     */
+    public void generateCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
+        String consumerName = event.getAuthor().getName();
+
+        EmbedBuilder info = new EmbedBuilder();
+        EmbedUtils.styleEmbed(event, info);
+        info.setTitle("Missing required arguments");
+
+
+        info.setDescription(getArgumentsText(commandName, commandArgs));
+
+        event.getChannel().sendTyping().queue();
+        MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());
+        messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerName));
+    }
+
+    /**
+     * Calculates the required amount of arguments a command has.
+     * @param commandArgs - All the command arguments
+     * @return the required amount of arguments
+     */
+    public int calculateRequiredArgs(String @NotNull [] commandArgs) {
+        int requiredArgs = 0;
+        for (String commandArg : commandArgs) {
+            if (!commandArg.contains("*")) {
+                requiredArgs += 1;
+            }
+        }
+        return requiredArgs;
     }
 
 }

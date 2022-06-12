@@ -42,7 +42,7 @@ public class UserCommand extends Command implements FunCommand {
             user[0] = event.getAuthor();
             userProfile[0] = user[0].retrieveProfile().complete();
             member[0] = event.getMember();
-            makeEmbed(event, args, dtf, userEmbed, user[0], userProfile[0], member[0]);
+            makeEmbed(event, dtf, userEmbed, user[0], userProfile[0], member[0]);
         } else {
             String findUser = String.join(" ", args);
             try {
@@ -58,7 +58,7 @@ public class UserCommand extends Command implements FunCommand {
                                 user[0] = usersByName.get(0).getUser();
                                 userProfile[0] = user[0].retrieveProfile().complete();
                                 member[0] = usersByName.get(0);
-                                makeEmbed(event, args, dtf, userEmbed, user[0], userProfile[0]
+                                makeEmbed(event, dtf, userEmbed, user[0], userProfile[0]
                                         , member[0]);
                             }
                         });
@@ -70,7 +70,16 @@ public class UserCommand extends Command implements FunCommand {
         }
     }
 
-    private void makeEmbed(@NotNull MessageReceivedEvent event, @NotNull List<String> args, DateTimeFormatter dtf,
+    /**
+     * Constructs the embed for the User command.
+     * @param event - MessageReceivedEvent
+     * @param dtf - The datetime formatter
+     * @param userEmbed - The already created instance of the embed builder
+     * @param user - The User instance we are looking up the data from
+     * @param profile - The User.Profile instance we got from the user
+     * @param member - The User as a member of the guild
+     */
+    private void makeEmbed(@NotNull MessageReceivedEvent event, DateTimeFormatter dtf,
                            @NotNull EmbedBuilder userEmbed, @NotNull User user, User.@NotNull Profile profile, Member member) {
         userEmbed.setTitle(user.getName());
         userEmbed.setImage(profile.getBannerUrl());
@@ -97,7 +106,6 @@ public class UserCommand extends Command implements FunCommand {
         }
 
         userEmbed.addField("Account Created", user.getTimeCreated().format(dtf), false);
-
 
         event.getChannel().sendMessageEmbeds(userEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
                 event.getAuthor().getName()));
