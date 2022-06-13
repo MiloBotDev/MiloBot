@@ -44,6 +44,7 @@ public class CommandHandler extends ListenerAdapter {
 
         List<String> receivedMessage = Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
                 .map(String::toLowerCase).collect(Collectors.toList());
+        System.out.println(receivedMessage);
         AtomicBoolean commandFound = new AtomicBoolean(false);
 
         String prefix = prefixes.get(guildId);
@@ -52,7 +53,7 @@ public class CommandHandler extends ListenerAdapter {
                 if(receivedMessage.size() == 0) {
                     return;
                 }
-                if(strings.contains(receivedMessage.get(0).toLowerCase(Locale.ROOT).replace(prefix, ""))) {
+                if(strings.contains(receivedMessage.get(0).toLowerCase(Locale.ROOT).replaceFirst(prefix, ""))) {
                     receivedMessage.remove(0);
                     Command command = CommandLoader.commandList.get(strings);
                     // check for flags if one or multiple arguments are present
@@ -62,9 +63,14 @@ public class CommandHandler extends ListenerAdapter {
                             return;
                         }
                     }
+                    // check if the author has the required permissions
+                    if(!command.checkRequiredPermissions(event, command.permissions)) {
+                        command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
+                        return;
+                    }
                     // check if all required args are present
                     if(command.calculateRequiredArgs(command.commandArgs) > receivedMessage.size()) {
-                        command.generateCommandUsage(event, command.commandName, command.commandArgs);
+                        command.sendCommandUsage(event, command.commandName, command.commandArgs);
                         return;
                     }
                     // check for potential cooldown

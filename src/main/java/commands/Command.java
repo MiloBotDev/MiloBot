@@ -3,6 +3,7 @@ package commands;
 import database.DatabaseManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
@@ -10,8 +11,10 @@ import utility.EmbedUtils;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Basic implementation of a command.
@@ -257,12 +260,12 @@ public abstract class Command {
     }
 
     /**
-     * Generates a message for when the command has been improperly used.
+     * Generates and sends a  message for when the command has been improperly used.
      * @param event - MessageReceivedEvent
      * @param commandName - The name of the command
      * @param commandArgs - The arguments of the command
      */
-    public void generateCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
+    public void sendCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
         String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
         String consumerName = event.getAuthor().getName();
 
@@ -289,6 +292,70 @@ public abstract class Command {
             }
         }
         return requiredArgs;
+    }
+
+    /**
+     * Checks if the user has the permissions required to use the command.
+     * @param event - MessageReceivedEvent
+     * @param permissions- The permissions required to use the command
+     * @return true if the user has the required permissions, false otherwise.
+     */
+    public boolean checkRequiredPermissions(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, Permission> permissions) {
+        AtomicBoolean hasPermission = new AtomicBoolean(false);
+        Member member = event.getMember();
+        if(member == null) {
+            hasPermission.set(false);
+            return hasPermission.get();
+        }
+        if(permissions.isEmpty()) {
+            hasPermission.set(true);
+        } else {
+            permissions.forEach((s, p) -> {
+                hasPermission.set(member.getPermissions().contains(p));
+            });
+        }
+        return hasPermission.get();
+    }
+
+    /**
+     * Generates and sends a message for when a user is missing the required permissions to use the command.
+     * @param event - MessageReceivedEvent
+     * @param commandName - The name of the command
+     * @param permissions- The permissions required to use the command
+     * @param prefix - The prefix the bot uses in the guild this was sent in
+     */
+    public void sendMissingPermissions(@NotNull MessageReceivedEvent event, String commandName,
+                                       @NotNull HashMap<String, Permission> permissions, String prefix) {
+        Member member = event.getMember();
+        ArrayList<String> missingPermissions = new ArrayList<>();
+        if(member == null) {
+            // this should never happen
+            event.getChannel().sendTyping().queue();
+            event.getChannel().sendMessage("Something went wrong. We're sorry about that").queue();
+            return;
+        }
+        EnumSet<Permission> memberPermissions = member.getPermissions();
+        permissions.forEach((s, p) -> {
+            if(!(memberPermissions.contains(p))) {
+                missingPermissions.add(s);
+            }
+        });
+        EmbedBuilder embed = new EmbedBuilder();
+        EmbedUtils.styleEmbed(event, embed);
+        embed.setTitle(String.format("Missing required permissions for: %s%s", prefix, commandName));
+        StringBuilder missingPermissionsText = new StringBuilder();
+        missingPermissionsText.append("You are missing the following permission(s): ");
+        for(int i=0; i < missingPermissions.size(); i++) {
+            missingPermissionsText.append("`").append(missingPermissions.get(i)).append("`");
+            if(i + 1 == missingPermissions.size()) {
+                missingPermissionsText.append(".");
+            } else {
+                missingPermissionsText.append(", ");
+            }
+        }
+        embed.setDescription(missingPermissionsText.toString());
+        event.getChannel().sendTyping().queue();
+        event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getName()));
     }
 
 }

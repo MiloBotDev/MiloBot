@@ -3,6 +3,8 @@ package database;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sqlite.SQLiteConfig;
+import org.sqlite.SQLiteOpenMode;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ public class DatabaseManager {
     private static DatabaseManager instance;
 
     private final String connectionUrl = "jdbc:sqlite:C:/sqlite/IdleAway.db";
+    private final SQLiteConfig sqliteConfig;
 
     public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (commandName varchar(255), amount varchar(255));";
     public final String createPrefixTable = "CREATE TABLE IF NOT EXISTS prefix (serverId varchar(255), prefix varchar(255));";
@@ -42,7 +45,8 @@ public class DatabaseManager {
      * A private constructor since this class is a singleton.
      */
     private DatabaseManager() {
-
+        this.sqliteConfig = new SQLiteConfig();
+        this.sqliteConfig.resetOpenMode(SQLiteOpenMode.CREATE);
     }
 
     /**
@@ -63,9 +67,9 @@ public class DatabaseManager {
     public Connection connect() {
         Connection conn = null;
         try {
-            conn = DriverManager.getConnection(connectionUrl);
+            conn = DriverManager.getConnection(connectionUrl, sqliteConfig.toProperties());
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.info("Could not connect to the database.");
         }
         return conn;
     }
@@ -129,7 +133,7 @@ public class DatabaseManager {
         try {
             Connection conn = DriverManager.getConnection(url);
             if (conn != null) {
-                System.out.println("A new database has been created.");
+                logger.info("Created a new database.");
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());

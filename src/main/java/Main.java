@@ -6,6 +6,8 @@ import events.OnGuildLeaveEvent;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.Config;
 
 import javax.security.auth.login.LoginException;
@@ -18,12 +20,16 @@ import java.sql.Connection;
  */
 public class Main {
 
+	private final static Logger logger = LoggerFactory.getLogger(Main.class);
+
 	public static void main(String[] args) throws LoginException, FileNotFoundException {
 		DatabaseManager databaseManager = DatabaseManager.getInstance();
 		Connection connect = databaseManager.connect();
 		// checks if the database exists and creates a new one if needed
 		if (connect == null) {
+			logger.info("No existing database found.");
 			databaseManager.createNewDatabase();
+			databaseManager.createAndFillAllTables();
 		}
 
 		CommandLoader.loadAllCommands();
