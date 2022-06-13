@@ -178,6 +178,7 @@ public abstract class Command {
      */
     public void generateHelp(@NotNull MessageReceivedEvent event, String commandName, String commandDescription,
                              String @NotNull [] commandArgs, String @NotNull [] aliases, String[] flags, int cooldown) {
+        String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
         String consumerName = event.getAuthor().getName();
 
         EmbedBuilder info = new EmbedBuilder();
@@ -185,7 +186,7 @@ public abstract class Command {
         info.setTitle(commandName);
         info.setDescription(commandDescription);
 
-        StringBuilder argumentsText = getArgumentsText(commandName, commandArgs);
+        StringBuilder argumentsText = getArgumentsText(commandName, commandArgs, prefix);
         info.addField(
                 "Usage",
                 argumentsText.toString(),
@@ -236,12 +237,12 @@ public abstract class Command {
      * @return the String as a StringBuilder instance
      */
     @NotNull
-    private StringBuilder getArgumentsText(String commandName, String @NotNull [] commandArgs) {
+    private StringBuilder getArgumentsText(String commandName, String @NotNull [] commandArgs, String prefix) {
         StringBuilder argumentsText = new StringBuilder();
         if(commandArgs.length == 0) {
-            argumentsText.append("`!").append(commandName).append("`");
+            argumentsText.append("`").append(prefix).append(commandName).append("`");
         } else {
-            argumentsText.append("`!").append(commandName).append(" ");
+            argumentsText.append("`").append(prefix).append(commandName).append(" ");
             for(int i = 0; i < commandArgs.length; i++) {
                 argumentsText.append("{").append(commandArgs[i]).append("}");
                 if(!(i + 1 == commandArgs.length)) {
@@ -262,14 +263,13 @@ public abstract class Command {
      * @param commandArgs - The arguments of the command
      */
     public void generateCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
+        String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
         String consumerName = event.getAuthor().getName();
 
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(event, info);
         info.setTitle("Missing required arguments");
-
-
-        info.setDescription(getArgumentsText(commandName, commandArgs));
+        info.setDescription(getArgumentsText(commandName, commandArgs, prefix));
 
         event.getChannel().sendTyping().queue();
         MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());

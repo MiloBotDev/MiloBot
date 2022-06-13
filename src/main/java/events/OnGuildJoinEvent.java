@@ -1,5 +1,7 @@
 package events;
 
+import commands.CommandHandler;
+import database.DatabaseManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
@@ -26,6 +28,8 @@ public class OnGuildJoinEvent extends ListenerAdapter {
      */
     @Override
     public void onGuildJoin(@NotNull GuildJoinEvent event) {
+        DatabaseManager manager = DatabaseManager.getInstance();
+
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById("920316842902454343"))
                 .getTextChannelsByName("logs", true).get(0);
@@ -49,6 +53,8 @@ public class OnGuildJoinEvent extends ListenerAdapter {
         logs.sendTyping().queue();
         logs.sendMessageEmbeds(embed.build()).queue();
 
+        manager.query(manager.addServerPrefix, DatabaseManager.QueryTypes.UPDATE, event.getGuild().getId(), "!");
+        CommandHandler.prefixes.put(event.getGuild().getId(), "!");
         logger.info(String.format("Bot has been added to: %s.", event.getGuild().getName()));
     }
 

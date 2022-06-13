@@ -1,14 +1,13 @@
 package commands;
 
+import database.DatabaseManager;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -18,9 +17,21 @@ import java.util.stream.Collectors;
  */
 public class CommandHandler extends ListenerAdapter {
 
-    final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
+    private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 
-    public String prefix = "!";
+    public final static HashMap<String, String> prefixes = new HashMap<>();
+
+    public CommandHandler() {
+        DatabaseManager manager = DatabaseManager.getInstance();
+        // loads all the prefixes into a map
+        ArrayList<String> query = manager.query(manager.getAllPrefixes, DatabaseManager.QueryTypes.RETURN);
+        for(int i=0; i < query.size(); i+=2) {
+            prefixes.put(query.get(i), query.get(i + 1));
+            if(i == query.size()) {
+                break;
+            }
+        }
+    }
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
@@ -29,10 +40,13 @@ public class CommandHandler extends ListenerAdapter {
             return;
         }
 
+        String guildId = event.getGuild().getId();
+
         List<String> receivedMessage = Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
                 .map(String::toLowerCase).collect(Collectors.toList());
         AtomicBoolean commandFound = new AtomicBoolean(false);
 
+        String prefix = prefixes.get(guildId);
         if(receivedMessage.get(0).startsWith(prefix)) {
             CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
                 if(receivedMessage.size() == 0) {

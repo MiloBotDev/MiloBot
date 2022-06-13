@@ -25,7 +25,6 @@ public class Main {
 		if (connect == null) {
 			databaseManager.createNewDatabase();
 		}
-		databaseManager.createAndFillAllTables();
 
 		CommandLoader.loadAllCommands();
 

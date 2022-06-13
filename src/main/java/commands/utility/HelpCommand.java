@@ -1,6 +1,7 @@
 package commands.utility;
 
 import commands.Command;
+import commands.CommandHandler;
 import commands.CommandLoader;
 import commands.fun.FunCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -27,7 +28,7 @@ public class HelpCommand extends Command implements UtilityCommand {
     }
 
     @Override
-    public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
+    public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         if(args.size() > 0) {
             CommandLoader.commandList.forEach((key, value) -> {
                 if (key.contains(args.get(0).toLowerCase(Locale.ROOT))) {
@@ -36,6 +37,8 @@ public class HelpCommand extends Command implements UtilityCommand {
                 }
             });
         } else {
+            String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
+
             String consumerName = event.getAuthor().getName();
 
             EmbedBuilder categoryEmbed = new EmbedBuilder();
@@ -55,9 +58,9 @@ public class HelpCommand extends Command implements UtilityCommand {
 
             CommandLoader.commandList.forEach((key, value) -> {
                 if(value instanceof UtilityCommand) {
-                    utilityEmbed.addField(String.format("!%s", value.commandName), value.commandDescription, true);
+                    utilityEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
                 } else if(value instanceof FunCommand) {
-                    funEmbed.addField(String.format("!%s", value.commandName), value.commandDescription, true);
+                    funEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
                 }
             });
 

@@ -26,6 +26,10 @@ public class DatabaseManager {
     public final String addCommandToTracker = "INSERT INTO command_usage(commandName, amount) VALUES(?, ?);";
     public final String checkCommandUsageAmount = "SELECT amount FROM command_usage WHERE commandName = ?";
     public final String updateCommandUsageAmount = "UPDATE command_usage SET amount = ? WHERE commandName = ?";
+    public final String addServerPrefix = "INSERT INTO prefix(serverId, prefix) VALUES(?, ?);";
+    public final String deleteServerPrefix = "DELETE FROM prefix WHERE serverId = ?;";
+    public final String updateServerPrefix = "UPDATE prefix SET prefix = ? WHERE serverId = ?;";
+    public final String getAllPrefixes = "SELECT serverId, prefix FROM prefix;";
 
     /**
      * The type of query you want to send.
