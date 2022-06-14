@@ -25,10 +25,16 @@ public class DatabaseManager {
 
     public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (commandName varchar(255), amount varchar(255));";
     public final String createPrefixTable = "CREATE TABLE IF NOT EXISTS prefix (serverId varchar(255), prefix varchar(255));";
+    public final String createCommandUsageUserTable = "CREATE TABLE IF NOT EXISTS command_usage_user (commandName varchar(255), userId varchar(255), amount varchar(255));";
+    public final String getAllCommandUsages = "SELECT * FROM command_usage;";
+    public final String checkIfCommandUsageUserTracked = "SELECT * FROM command_usage_user WHERE commandName = ? AND userId = ?;";
     public final String checkIfCommandTracked = "SELECT CommandName FROM command_usage WHERE commandName = ?;";
     public final String addCommandToTracker = "INSERT INTO command_usage(commandName, amount) VALUES(?, ?);";
+    public final String addCommandUsageUserToTracker = "INSERT INTO command_usage_user(commandName, userId, amount) VALUES(?, ?, ?);";
     public final String checkCommandUsageAmount = "SELECT amount FROM command_usage WHERE commandName = ?";
+    public final String checkCommandUsageUserAmount = "SELECT amount FROM command_usage_user WHERE commandName = ? AND userId = ?";
     public final String updateCommandUsageAmount = "UPDATE command_usage SET amount = ? WHERE commandName = ?";
+    public final String updateCommandUsageUserAmount = "UPDATE command_usage_user SET amount = ? WHERE commandName = ? AND userId = ?";
     public final String addServerPrefix = "INSERT INTO prefix(serverId, prefix) VALUES(?, ?);";
     public final String deleteServerPrefix = "DELETE FROM prefix WHERE serverId = ?;";
     public final String updateServerPrefix = "UPDATE prefix SET prefix = ? WHERE serverId = ?;";
@@ -146,5 +152,6 @@ public class DatabaseManager {
     public void createAndFillAllTables() {
         query(createCommandUsageTable, QueryTypes.UPDATE);
         query(createPrefixTable, QueryTypes.UPDATE);
+        query(createCommandUsageUserTable, QueryTypes.UPDATE);
     }
 }

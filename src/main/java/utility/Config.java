@@ -16,7 +16,9 @@ public class Config {
 
     public static Config instance;
 
-    public final String botToken ;
+    public final String botToken;
+    public final String testGuildId;
+    public final String loggingChannelName;
 
     /**
      * Instantiates all the
@@ -28,7 +30,9 @@ public class Config {
         Yaml yaml = new Yaml();
         HashMap<String, Object> data = yaml.load(inputStream);
 
-        botToken = (String) data.get("token");
+        this.botToken = (String) data.get("token");
+        this.testGuildId = Long.toString(((Long) data.get("testGuildId")));
+        this.loggingChannelName = (String) data.get("loggingChannelName");
     }
 
     /**

@@ -152,6 +152,23 @@ public abstract class Command {
     }
 
     /**
+     * Updates the command tracker for a specific user;
+     * @param commandName - The name of the command
+     * @param userId - The id of the user
+     */
+    public void updateCommandTrackerUser(String commandName, String userId) {
+        DatabaseManager manager = DatabaseManager.getInstance();
+        ArrayList<String> query = manager.query(manager.checkIfCommandUsageUserTracked, DatabaseManager.QueryTypes.RETURN, commandName, userId);
+        if(query.size() == 0) {
+            manager.query(manager.addCommandUsageUserToTracker, DatabaseManager.QueryTypes.UPDATE, commandName, userId, "1");
+        } else {
+            ArrayList<String> result = manager.query(manager.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, userId);
+            String newAmount = Integer.toString(Integer.parseInt(result.get(0)) + 1);
+            manager.query(manager.updateCommandUsageUserAmount, DatabaseManager.QueryTypes.UPDATE, newAmount, commandName, userId);
+        }
+    }
+
+    /**
      * Generates a message with the stats of that specific command.
      * @param event - MessageReceivedEvent
      * @param commandName - The name of the command

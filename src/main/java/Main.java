@@ -3,6 +3,7 @@ import commands.CommandLoader;
 import database.DatabaseManager;
 import events.OnGuildJoinEvent;
 import events.OnGuildLeaveEvent;
+import events.OnReadyEvent;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -39,7 +40,8 @@ public class Main {
 						GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_TYPING,
 						GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS)
 				.setActivity(Activity.playing("IdleAway!"))
-				.addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent())
+				.addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent(),
+						new OnReadyEvent())
 				.build();
 	}
 }

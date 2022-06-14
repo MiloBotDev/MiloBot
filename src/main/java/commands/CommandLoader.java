@@ -1,10 +1,7 @@
 package commands;
 
 import commands.fun.UserCommand;
-import commands.utility.HelpCommand;
-import commands.utility.InviteCommand;
-import commands.utility.PrefixCommand;
-import commands.utility.StatusCommand;
+import commands.utility.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +37,11 @@ public class CommandLoader {
         ArrayList<String> prefixCommandKeys = new ArrayList<>(List.of(prefixCommand.aliases));
         prefixCommandKeys.add(prefixCommand.commandName);
         commandList.put(prefixCommandKeys, prefixCommand);
+
+        UsageCommand usageCommand = new UsageCommand();
+        ArrayList<String> usageCommandKeys = new ArrayList<>(List.of(usageCommand.aliases));
+        usageCommandKeys.add(usageCommand.commandName);
+        commandList.put(usageCommandKeys, usageCommand);
 
         // fun commands
         UserCommand userCommand = new UserCommand();

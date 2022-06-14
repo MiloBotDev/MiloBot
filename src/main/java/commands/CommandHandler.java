@@ -44,7 +44,6 @@ public class CommandHandler extends ListenerAdapter {
 
         List<String> receivedMessage = Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
                 .map(String::toLowerCase).collect(Collectors.toList());
-        System.out.println(receivedMessage);
         AtomicBoolean commandFound = new AtomicBoolean(false);
 
         String prefix = prefixes.get(guildId);
@@ -85,6 +84,8 @@ public class CommandHandler extends ListenerAdapter {
                     logger.info(String.format("Executed command: %s | Author: %s.", command.commandName, event.getAuthor().getName()));
                     // update the tracker
                     command.updateCommandTracker(command.commandName);
+                    command.updateCommandTrackerUser(command.commandName, event.getAuthor().getId());
+
                     commandFound.set(true);
                 }
             });
