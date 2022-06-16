@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteOpenMode;
+import utility.Config;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -20,12 +21,13 @@ public class DatabaseManager {
 
     private static DatabaseManager instance;
 
-    private final String connectionUrl = "jdbc:sqlite:C:/sqlite/IdleAway.db";
+    private String connectionUrl;
     private final SQLiteConfig sqliteConfig;
 
     public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (commandName varchar(255), amount varchar(255));";
     public final String createPrefixTable = "CREATE TABLE IF NOT EXISTS prefix (serverId varchar(255), prefix varchar(255));";
     public final String createCommandUsageUserTable = "CREATE TABLE IF NOT EXISTS command_usage_user (commandName varchar(255), userId varchar(255), amount varchar(255));";
+    public final String createUserTable = "CREATE TABLE IF NOT EXISTS user (userId varchar(255), currency varchar(255), level varchar(255), experience varchar(255));";
     public final String getAllCommandUsages = "SELECT * FROM command_usage;";
     public final String checkIfCommandUsageUserTracked = "SELECT * FROM command_usage_user WHERE commandName = ? AND userId = ?;";
     public final String checkIfCommandTracked = "SELECT CommandName FROM command_usage WHERE commandName = ?;";
@@ -39,6 +41,11 @@ public class DatabaseManager {
     public final String deleteServerPrefix = "DELETE FROM prefix WHERE serverId = ?;";
     public final String updateServerPrefix = "UPDATE prefix SET prefix = ? WHERE serverId = ?;";
     public final String getAllPrefixes = "SELECT serverId, prefix FROM prefix;";
+    public final String addUser = "INSERT INTO user(userId, currency, level, experience) VALUES(?, ?, ?, ?);";
+    public final String selectUser = "SELECT * FROM user WHERE userId = ?;";
+    public final String updateUserExperience = "UPDATE user SET experience = ? WHERE userId = ?;";
+    public final String updateUserLevelAndExperience = "UPDATE user SET level = ?, experience = ? WHERE userId = ?;";
+    public final String getUserExperienceAndLevel = "SELECT experience, level FROM user WHERE userId = ?;";
 
     /**
      * The type of query you want to send.
@@ -53,6 +60,8 @@ public class DatabaseManager {
     private DatabaseManager() {
         this.sqliteConfig = new SQLiteConfig();
         this.sqliteConfig.resetOpenMode(SQLiteOpenMode.CREATE);
+        Config config = Config.getInstance();
+        this.connectionUrl = config.connectionUrl;
     }
 
     /**
@@ -153,5 +162,6 @@ public class DatabaseManager {
         query(createCommandUsageTable, QueryTypes.UPDATE);
         query(createPrefixTable, QueryTypes.UPDATE);
         query(createCommandUsageUserTable, QueryTypes.UPDATE);
+        query(createUserTable, QueryTypes.UPDATE);
     }
 }

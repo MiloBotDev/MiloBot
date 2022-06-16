@@ -175,12 +175,14 @@ public abstract class Command {
      */
     public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
         DatabaseManager manager = DatabaseManager.getInstance();
-        ArrayList<String> amount = manager.query(manager.checkCommandUsageAmount, DatabaseManager.QueryTypes.RETURN, commandName);
+        ArrayList<String> totalAmount = manager.query(manager.checkCommandUsageAmount, DatabaseManager.QueryTypes.RETURN, commandName);
+        ArrayList<String> personalAmount = manager.query(manager.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, event.getAuthor().getId());
 
         EmbedBuilder stats = new EmbedBuilder();
         EmbedUtils.styleEmbed(event, stats);
         stats.setTitle(String.format("Stats for %s", commandName));
-        stats.addField("Usages", String.format("This command has been used %d times.", Integer.parseInt(amount.get(0))), false);
+        stats.addField("Total Usages", String.format("This command has been used %d times.", Integer.parseInt(totalAmount.get(0))), false);
+        stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
 
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessageEmbeds(stats.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getName()));

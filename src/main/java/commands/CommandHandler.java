@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import user.User;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,10 +20,14 @@ public class CommandHandler extends ListenerAdapter {
 
     private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 
+    private final User user;
+    private final DatabaseManager manager;
+
     public final static HashMap<String, String> prefixes = new HashMap<>();
 
     public CommandHandler() {
-        DatabaseManager manager = DatabaseManager.getInstance();
+        this.user = User.getInstance();
+        this.manager = DatabaseManager.getInstance();
         // loads all the prefixes into a map
         ArrayList<String> query = manager.query(manager.getAllPrefixes, DatabaseManager.QueryTypes.RETURN);
         for(int i=0; i < query.size(); i+=2) {
@@ -41,12 +46,11 @@ public class CommandHandler extends ListenerAdapter {
         }
 
         String guildId = event.getGuild().getId();
-
         List<String> receivedMessage = Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
                 .map(String::toLowerCase).collect(Collectors.toList());
         AtomicBoolean commandFound = new AtomicBoolean(false);
-
         String prefix = prefixes.get(guildId);
+        // check if the message starts with the prefix
         if(receivedMessage.get(0).startsWith(prefix)) {
             CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
                 if(receivedMessage.size() == 0) {
@@ -81,11 +85,20 @@ public class CommandHandler extends ListenerAdapter {
                     }
                     // execute the command
                     command.execute(event, receivedMessage);
-                    logger.info(String.format("Executed command: %s | Author: %s.", command.commandName, event.getAuthor().getName()));
+                    logger.info(String.format("Executed command: %s | Author: %s.", command.commandName,
+                            event.getAuthor().getName()));
                     // update the tracker
                     command.updateCommandTracker(command.commandName);
-                    command.updateCommandTrackerUser(command.commandName, event.getAuthor().getId());
+                    String userId = event.getAuthor().getId();
+                    command.updateCommandTrackerUser(command.commandName, userId);
+                    // check if this user exists in the database otherwise add it
+                    if(!user.checkIfUserExists(userId)) {
+                        manager.query(manager.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
+                                "0", "1", "0");
+                    }
+                    user.updateExperience(userId, 50);
 
+                    // stops the loop
                     commandFound.set(true);
                 }
             });

@@ -1,0 +1,22 @@
+[
+  {
+    "level" : 1,
+    "experience" : 0
+  },
+  {
+    "level" : 2,
+    "experience" : 100
+  },
+  {
+    "level" : 3,
+    "experience" : 300
+  },
+  {
+    "level" : 4,
+    "experience" : 600
+  },
+  {
+    "level" : 5,
+    "experience" : 1000
+  }
+]

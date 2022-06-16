@@ -1,5 +1,7 @@
 package utility;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;
@@ -14,11 +16,14 @@ import java.util.HashMap;
  */
 public class Config {
 
+    final static Logger logger = LoggerFactory.getLogger(Config.class);
     public static Config instance;
 
     public final String botToken;
     public final String testGuildId;
     public final String loggingChannelName;
+    public final String levelsJsonPath;
+    public final String connectionUrl;
 
     /**
      * Instantiates all the
@@ -33,17 +38,25 @@ public class Config {
         this.botToken = (String) data.get("token");
         this.testGuildId = Long.toString(((Long) data.get("testGuildId")));
         this.loggingChannelName = (String) data.get("loggingChannelName");
+        this.levelsJsonPath = (String) data.get("levelsJsonPath");
+        this.connectionUrl = (String) data.get("connectionUrl");
     }
 
     /**
      * Returns the only existing instance of Config or creates a new one if no instance exists.
-     * @return the Config instance
-     * @throws FileNotFoundException thrown when the file can't be found in the constructor
+     * @return Config instance
      */
-    public static Config getInstance() throws FileNotFoundException {
-        if(instance == null) {
-            instance = new Config();
+    public static Config getInstance() {
+        try{
+            if(instance == null) {
+                instance = new Config();
+                logger.info("Config file loaded in.");
+            }
+            return instance;
+        } catch (FileNotFoundException e) {
+            logger.info("Config file not found.");
+            logger.error(e.getMessage());
+            throw new IllegalStateException("Config file not found.");
         }
-        return instance;
     }
 }

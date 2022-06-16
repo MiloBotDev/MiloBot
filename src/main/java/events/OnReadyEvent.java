@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An event triggered when the bot is ready.
@@ -25,22 +26,18 @@ public class OnReadyEvent extends ListenerAdapter {
 
     @Override
     public void onReady(@Nonnull ReadyEvent event) {
-        try {
-            Config config = Config.getInstance();
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-            TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.testGuildId))
-                    .getTextChannelsByName(config.loggingChannelName, true).get(0);
+        Config config = Config.getInstance();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.testGuildId))
+                .getTextChannelsByName(config.loggingChannelName, true).get(0);
 
-            EmbedBuilder embed = new EmbedBuilder();
-            embed.setColor(Color.green);
-            embed.setDescription("Bot is ready.");
-            embed.setFooter(dtf.format(LocalDateTime.now()));
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setColor(Color.green);
+        embed.setDescription("Bot is ready.");
+        embed.setFooter(dtf.format(LocalDateTime.now()));
 
-            logs.sendTyping().queue();
-            logs.sendMessageEmbeds(embed.build()).queue();
-            logger.info("Bot is ready.");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        logs.sendTyping().queue();
+        logs.sendMessageEmbeds(embed.build()).queue();
+        logger.info("Bot is ready.");
     }
 }
