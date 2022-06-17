@@ -71,7 +71,7 @@ public class UserCommand extends Command implements FunCommand {
     }
 
     /**
-     * Constructs the embed for the User command.
+     * Constructs and sends the embed for the User command.
      * @param event - MessageReceivedEvent
      * @param dtf - The datetime formatter
      * @param userEmbed - The already created instance of the embed builder

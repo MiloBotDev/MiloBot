@@ -14,7 +14,6 @@ import utility.Config;
 import javax.security.auth.login.LoginException;
 import java.io.FileNotFoundException;
 import java.sql.Connection;
-import java.util.Optional;
 
 /**
  * The Main class from where the bot is started.
@@ -42,7 +41,7 @@ public class Main {
 						GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_EMOJIS, GatewayIntent.GUILD_VOICE_STATES,
 						GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_TYPING,
 						GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS)
-				.setActivity(Activity.playing("IdleAway!"))
+				.setActivity(Activity.watching("Morbius"))
 				.addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent(),
 						new OnReadyEvent())
 				.build();

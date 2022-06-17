@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import database.DatabaseManager;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * All functions related to users.
@@ -68,7 +70,7 @@ public class User {
      * @param userId - The id of the user
      * @param experience - The amount of experience to add
      */
-    public void updateExperience(String userId, int experience) {
+    public void updateExperience(String userId, int experience, MessageReceivedEvent event) {
         // load in their current experience and level
         ArrayList<String> query = manager.query(manager.getUserExperienceAndLevel, DatabaseManager.QueryTypes.RETURN, userId);
         int currentExperience = Integer.parseInt(query.get(0));
@@ -79,9 +81,12 @@ public class User {
         // check if they leveled up
         if(newExperience >= nextLevelExperience && currentLevel < maxLevel) {
             // user leveled up so update their level and experience
-            logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
             manager.query(manager.updateUserLevelAndExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(nextLevel),
                     String.valueOf(newExperience), userId);
+            logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
+            // send a message to the channel the user leveled up in
+            String asMention = Objects.requireNonNull(event.getGuild().getMemberById(userId)).getAsMention();
+            event.getChannel().sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
         } else {
             // user didn't level up so just update their experience
             manager.query(manager.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),

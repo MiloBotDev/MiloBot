@@ -21,7 +21,7 @@ public class DatabaseManager {
 
     private static DatabaseManager instance;
 
-    private String connectionUrl;
+    private final String connectionUrl;
     private final SQLiteConfig sqliteConfig;
 
     public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (commandName varchar(255), amount varchar(255));";
@@ -46,6 +46,9 @@ public class DatabaseManager {
     public final String updateUserExperience = "UPDATE user SET experience = ? WHERE userId = ?;";
     public final String updateUserLevelAndExperience = "UPDATE user SET level = ?, experience = ? WHERE userId = ?;";
     public final String getUserExperienceAndLevel = "SELECT experience, level FROM user WHERE userId = ?;";
+    public final String getUserRankByExperience = "SELECT rank FROM (SELECT userId, row_number() over () as rank FROM (SELECT userId FROM (SELECT userId FROM user ORDER BY experience DESC))) WHERE userId = ?";
+    public final String getUserAmount = "SELECT count(*) FROM user;";
+
 
     /**
      * The type of query you want to send.

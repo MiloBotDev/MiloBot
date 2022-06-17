@@ -96,7 +96,7 @@ public class CommandHandler extends ListenerAdapter {
                         manager.query(manager.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
                                 "0", "1", "0");
                     }
-                    user.updateExperience(userId, 50);
+                    user.updateExperience(userId, 50, event);
 
                     // stops the loop
                     commandFound.set(true);
