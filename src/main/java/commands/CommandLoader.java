@@ -1,5 +1,6 @@
 package commands;
 
+import commands.economy.ProfileCommand;
 import commands.fun.UserCommand;
 import commands.utility.*;
 
@@ -48,6 +49,13 @@ public class CommandLoader {
         ArrayList<String> userCommandKeys = new ArrayList<>(List.of(userCommand.aliases));
         userCommandKeys.add(userCommand.commandName);
         commandList.put(userCommandKeys, userCommand);
+
+        // economy commands
+        ProfileCommand profileCommand = new ProfileCommand();
+        ArrayList<String> profileCommandKeys = new ArrayList<>(List.of(profileCommand.aliases));
+        profileCommandKeys.add(profileCommand.commandName);
+        commandList.put(profileCommandKeys, profileCommand);
+
     }
 
 }
