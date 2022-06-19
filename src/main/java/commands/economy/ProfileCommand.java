@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
+import user.User;
 import utility.EmbedUtils;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.Locale;
 public class ProfileCommand extends Command implements EconomyCommand {
 
     private final DatabaseManager manager;
+    private final User user;
 
     public ProfileCommand() {
         this.commandName = "profile";
@@ -27,6 +29,7 @@ public class ProfileCommand extends Command implements EconomyCommand {
         this.commandArgs = new String[]{"*user"};
         this.cooldown = 60;
         this.manager = DatabaseManager.getInstance();
+        this.user = User.getInstance();
     }
 
     @Override
@@ -82,13 +85,30 @@ public class ProfileCommand extends Command implements EconomyCommand {
         String rank = resultGetUserRank.get(0);
         String userAmount = resultGetUserAmount.get(0);
 
-        StringBuilder description = new StringBuilder();
-        description.append(String.format("`Level`: %s.\n", level));
-        description.append(String.format("`Experience`: %s.\n", experience));
-        description.append(String.format("`Wallet:` %s.\n", currency));
-        description.append(String.format("Your are ranked as number %s out of %s users.", rank, userAmount));
-        embed.setDescription(description);
+        StringBuilder levelDescription = new StringBuilder();
+        levelDescription.append(String.format("`Level`: %s.\n", level));
+        levelDescription.append(String.format("`Experience`: %s.\n", experience));
+        embed.addField("Level", levelDescription.toString(), false);
+
+//        StringBuilder description = new StringBuilder();
+
+//        description.append(String.format("`Wallet:` %s.\n", currency));
+//        description.append(String.format("Your are ranked as number %s out of %s users.", rank, userAmount));
+//        embed.setDescription(description);
 
         event.getChannel().sendMessageEmbeds(embed.build()).queue();
+    }
+
+    private String generateLevelProgressBar(int currentLevel, int currentExperience) {
+        int nextLevel = currentLevel + 1;
+        if(nextLevel > user.maxLevel) {
+            return "You are at the maximum level.";
+        }
+        int nextlevelExperience = user.levels.get(nextLevel);
+        int experienceDifference = nextlevelExperience - user.levels.get(currentLevel);
+        int gainedExperience = nextlevelExperience - currentExperience;
+
+
+        return "";
     }
 }

@@ -28,7 +28,7 @@ public class User {
     private static User instance;
     private final DatabaseManager manager;
     private final String levelsJsonPath;
-    private int maxLevel;
+    public int maxLevel;
 
     public final HashMap<Integer, Integer> levels;
 
@@ -114,7 +114,8 @@ public class User {
             }
             logger.info("Levels.json loaded in.");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
+            logger.info("Unable to load levels.json.");
         }
     }
 }
