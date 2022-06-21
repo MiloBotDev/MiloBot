@@ -58,13 +58,16 @@ public class CommandHandler extends ListenerAdapter {
                 }
                 if(strings.contains(receivedMessage.get(0).toLowerCase(Locale.ROOT).replaceFirst(prefix, ""))) {
                     receivedMessage.remove(0);
+                    String fullCommandName;
                     Command command = CommandLoader.commandList.get(strings);
+                    fullCommandName = command.commandName;
                     // check if the user is calling to a subcommand of this command
                     if(receivedMessage.size() > 0) {
                         for(Command subCommand : command.subCommands) {
                             if(receivedMessage.get(0).toLowerCase(Locale.ROOT).equals(subCommand.commandName)) {
                                 receivedMessage.remove(0);
                                 command = subCommand;
+                                fullCommandName += String.format(" %s", subCommand.commandName);
                                 break;
                             }
                         }
@@ -102,16 +105,16 @@ public class CommandHandler extends ListenerAdapter {
                     }
                     // execute the command
                     command.execute(event, receivedMessage);
-                    logger.info(String.format("Executed command: %s | Author: %s.", command.commandName,
+                    logger.info(String.format("Executed command: %s | Author: %s.", fullCommandName,
                             event.getAuthor().getName()));
                     // update the tracker
-                    command.updateCommandTracker(command.commandName);
+                    command.updateCommandTracker(fullCommandName);
                     String userId = event.getAuthor().getId();
-                    command.updateCommandTrackerUser(command.commandName, userId);
+                    command.updateCommandTrackerUser(fullCommandName, userId);
                     // check if this user exists in the database otherwise add it
                     if(!user.checkIfUserExists(userId)) {
                         manager.query(manager.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
-                                "0", "1", "0");
+                                event.getAuthor().getName(), "0", "1", "0");
                     }
                     user.updateExperience(userId, 50, event);
 

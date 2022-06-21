@@ -27,7 +27,8 @@ public class DatabaseManager {
     public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (commandName varchar(255), amount varchar(255));";
     public final String createPrefixTable = "CREATE TABLE IF NOT EXISTS prefix (serverId varchar(255), prefix varchar(255));";
     public final String createCommandUsageUserTable = "CREATE TABLE IF NOT EXISTS command_usage_user (commandName varchar(255), userId varchar(255), amount varchar(255));";
-    public final String createUserTable = "CREATE TABLE IF NOT EXISTS user (userId varchar(255), currency varchar(255), level varchar(255), experience varchar(255));";
+    public final String createUserTable = "CREATE TABLE IF NOT EXISTS user (userId varchar(255), name varchar(255), currency varchar(255), level varchar(255), experience varchar(255));";
+    public final String createWordleTable = "CREATE TABLE IF NOT EXISTS wordle (userId varchar(255), fastestTime varchar(255), wonLastGame varchar(255), streak varchar(255), totalGames varchar(255), highestStreak varchar(255));";
     public final String getAllCommandUsages = "SELECT * FROM command_usage;";
     public final String checkIfCommandUsageUserTracked = "SELECT * FROM command_usage_user WHERE commandName = ? AND userId = ?;";
     public final String checkIfCommandTracked = "SELECT CommandName FROM command_usage WHERE commandName = ?;";
@@ -41,14 +42,16 @@ public class DatabaseManager {
     public final String deleteServerPrefix = "DELETE FROM prefix WHERE serverId = ?;";
     public final String updateServerPrefix = "UPDATE prefix SET prefix = ? WHERE serverId = ?;";
     public final String getAllPrefixes = "SELECT serverId, prefix FROM prefix;";
-    public final String addUser = "INSERT INTO user(userId, currency, level, experience) VALUES(?, ?, ?, ?);";
+    public final String addUser = "INSERT INTO user(userId, name, currency, level, experience) VALUES(?, ?, ?, ?, ?);";
+    public final String addUserWordle = "INSERT INTO wordle(userId, fastestTime, wonLastGame, streak, totalGames, highestStreak) VALUES(?, ?, ?, ?, ?, ?)";
+    public final String updateUserWordle = "UPDATE wordle SET fastestTime = ?, wonLastGame = ?, streak = ?, totalGames = ?, highestStreak = ? WHERE userId = ?";
     public final String selectUser = "SELECT * FROM user WHERE userId = ?;";
+    public final String selectUserWordle = "SELECT * FROM wordle WHERE userId = ?";
     public final String updateUserExperience = "UPDATE user SET experience = ? WHERE userId = ?;";
     public final String updateUserLevelAndExperience = "UPDATE user SET level = ?, experience = ? WHERE userId = ?;";
     public final String getUserExperienceAndLevel = "SELECT experience, level FROM user WHERE userId = ?;";
     public final String getUserRankByExperience = "SELECT rank FROM (SELECT userId, row_number() over () as rank FROM (SELECT userId FROM (SELECT userId FROM user ORDER BY experience DESC))) WHERE userId = ?";
     public final String getUserAmount = "SELECT count(*) FROM user;";
-
 
     /**
      * The type of query you want to send.
@@ -166,5 +169,6 @@ public class DatabaseManager {
         query(createPrefixTable, QueryTypes.UPDATE);
         query(createCommandUsageUserTable, QueryTypes.UPDATE);
         query(createUserTable, QueryTypes.UPDATE);
+        query(createWordleTable, QueryTypes.UPDATE);
     }
 }

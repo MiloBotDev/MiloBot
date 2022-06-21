@@ -79,9 +79,10 @@ public class ProfileCommand extends Command implements EconomyCommand {
         if(resultSelectUser.size() == 0) {
             event.getChannel().sendMessage("User doesn't have a profile.").queue();
         }
-        String currency = resultSelectUser.get(1);
-        String level = resultSelectUser.get(2);
-        String experience = resultSelectUser.get(3);
+        String userName = resultSelectUser.get(1);
+        String currency = resultSelectUser.get(2);
+        String level = resultSelectUser.get(3);
+        String experience = resultSelectUser.get(4);
         String rank = resultGetUserRank.get(0);
         String userAmount = resultGetUserAmount.get(0);
 
