@@ -1,6 +1,5 @@
 package commands.utility;
 
 public interface UtilityCommand {
-
-    String description = "Commands for general use.";
+    String description = "A collection of helpful tools.";
 }

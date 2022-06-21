@@ -1,7 +1,8 @@
 package commands;
 
 import commands.economy.ProfileCommand;
-import commands.fun.UserCommand;
+import commands.utility.UserCommand;
+import commands.games.WordleCommand;
 import commands.utility.*;
 
 import java.util.ArrayList;
@@ -18,44 +19,21 @@ public class CommandLoader {
     public static Map<List<String>, Command> commandList = new HashMap<>();
 
     public static void loadAllCommands() {
-        // utility commands
-        HelpCommand helpCommand = new HelpCommand();
-        ArrayList<String> helpCommandKeys = new ArrayList<>(List.of(helpCommand.aliases));
-        helpCommandKeys.add(helpCommand.commandName);
-        commandList.put(helpCommandKeys, helpCommand);
+        ArrayList<Command> commands = new ArrayList<>();
+        commands.add(new HelpCommand());
+        commands.add(new InviteCommand());
+        commands.add(new StatusCommand());
+        commands.add(new PrefixCommand());
+        commands.add(new UsageCommand());
+        commands.add(new UserCommand());
+        commands.add(new ProfileCommand());
+        commands.add(new WordleCommand());
 
-        InviteCommand inviteCommand = new InviteCommand();
-        ArrayList<String> inviteCommandKeys = new ArrayList<>(List.of(inviteCommand.aliases));
-        inviteCommandKeys.add(inviteCommand.commandName);
-        commandList.put(inviteCommandKeys, inviteCommand);
-
-        StatusCommand statusCommand = new StatusCommand();
-        ArrayList<String> statusCommandKeys = new ArrayList<>(List.of(statusCommand.aliases));
-        statusCommandKeys.add(statusCommand.commandName);
-        commandList.put(statusCommandKeys, statusCommand);
-
-        PrefixCommand prefixCommand = new PrefixCommand();
-        ArrayList<String> prefixCommandKeys = new ArrayList<>(List.of(prefixCommand.aliases));
-        prefixCommandKeys.add(prefixCommand.commandName);
-        commandList.put(prefixCommandKeys, prefixCommand);
-
-        UsageCommand usageCommand = new UsageCommand();
-        ArrayList<String> usageCommandKeys = new ArrayList<>(List.of(usageCommand.aliases));
-        usageCommandKeys.add(usageCommand.commandName);
-        commandList.put(usageCommandKeys, usageCommand);
-
-        // fun commands
-        UserCommand userCommand = new UserCommand();
-        ArrayList<String> userCommandKeys = new ArrayList<>(List.of(userCommand.aliases));
-        userCommandKeys.add(userCommand.commandName);
-        commandList.put(userCommandKeys, userCommand);
-
-        // economy commands
-        ProfileCommand profileCommand = new ProfileCommand();
-        ArrayList<String> profileCommandKeys = new ArrayList<>(List.of(profileCommand.aliases));
-        profileCommandKeys.add(profileCommand.commandName);
-        commandList.put(profileCommandKeys, profileCommand);
-
+        for(Command c : commands) {
+            ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));
+            keys.add(c.commandName);
+            commandList.put(keys, c);
+        }
     }
 
 }

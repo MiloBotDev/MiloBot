@@ -1,4 +1,4 @@
-package commands.fun;
+package commands.utility;
 
 import commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -20,7 +20,7 @@ import java.util.Objects;
  * Shows the user an overview of their own account details, or that of someone in the same server.
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class UserCommand extends Command implements FunCommand {
+public class UserCommand extends Command implements UtilityCommand {
 
     public UserCommand() {
         this.commandName = "user";

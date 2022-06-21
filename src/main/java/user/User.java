@@ -75,24 +75,29 @@ public class User {
         ArrayList<String> query = manager.query(manager.getUserExperienceAndLevel, DatabaseManager.QueryTypes.RETURN, userId);
         int currentExperience = Integer.parseInt(query.get(0));
         int currentLevel = Integer.parseInt(query.get(1));
-        int nextLevel = currentLevel + 1;
-        int nextLevelExperience = levels.get(nextLevel);
         int newExperience = currentExperience + experience;
         // check if they leveled up
-        if(newExperience >= nextLevelExperience && currentLevel < maxLevel) {
-            // user leveled up so update their level and experience
-            manager.query(manager.updateUserLevelAndExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(nextLevel),
-                    String.valueOf(newExperience), userId);
-            logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
-            // send a message to the channel the user leveled up in
-            String asMention = Objects.requireNonNull(event.getGuild().getMemberById(userId)).getAsMention();
-            event.getChannel().sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
+        if(currentLevel < maxLevel) {
+            int nextLevel = currentLevel + 1;
+            int nextLevelExperience = levels.get(nextLevel);
+            if (newExperience >= nextLevelExperience) {
+                // user leveled up so update their level and experience
+                manager.query(manager.updateUserLevelAndExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(nextLevel),
+                        String.valueOf(newExperience), userId);
+                logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
+                // send a message to the channel the user leveled up in
+                String asMention = Objects.requireNonNull(event.getGuild().getMemberById(userId)).getAsMention();
+                event.getChannel().sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
+            } else {
+                // user didn't level up so just update their experience
+                manager.query(manager.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
+                        userId);
+            }
         } else {
             // user didn't level up so just update their experience
             manager.query(manager.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
                     userId);
         }
-
     }
 
     /**

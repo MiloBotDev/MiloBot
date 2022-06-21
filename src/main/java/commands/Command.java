@@ -53,6 +53,16 @@ public abstract class Command {
     public int cooldown = 0;
 
     /**
+     * Determines if the user can have multiple instances of the same command running.
+     */
+    public boolean singleInstance = false;
+
+    /**
+     * The amount of time an instance will be open for.
+     */
+    public int instanceTime = 0;
+
+    /**
      * The permissions needed to use the command.
      */
     public HashMap<String, Permission> permissions = new HashMap<>();
@@ -61,6 +71,16 @@ public abstract class Command {
      * A map that maps a users name to time when they can use the command again.
      */
     public HashMap<String, OffsetDateTime> cooldownMap = new HashMap<>();
+
+    /**
+     * A map that maps a users' id to the time when they can open another game instance.
+     */
+    public HashMap<String, OffsetDateTime> gameInstanceMap = new HashMap<>();
+
+    /**
+     * A list of all the sub commands this command has.
+     */
+    public ArrayList<Command> subCommands = new ArrayList<>();
 
     /**
      * The default constructor for a command.
@@ -93,11 +113,11 @@ public abstract class Command {
      */
     public boolean checkForFlags(MessageReceivedEvent event, @NotNull List<String> args, String commandName,
                                  String commandDescription, String[] commandArgs, String[] aliases, String[] flags,
-                                 int cooldown) {
+                                 int cooldown, ArrayList<Command> subCommands) {
         boolean flagPresent = false;
         // checks if --help flag is present as an argument
         if(args.contains("--help")) {
-            generateHelp(event, commandName, commandDescription, commandArgs, aliases, flags, cooldown);
+            generateHelp(event, commandName, commandDescription, commandArgs, aliases, flags, cooldown, subCommands);
             flagPresent = true;
         }
         // checks if the --stats flag is present as an argument
@@ -111,7 +131,7 @@ public abstract class Command {
     /**
      * Checks if the user is using the command again before the cooldown is over.
      * @param event - MessageReceivedEvent
-     * @param cooldownMap - A HashMap containing the usernames and the times when they can use the command again.
+     * @param cooldownMap - A HashMap containing the user id's and the times when they can use the command again
      * @return true if the command is on cooldown, false if otherwise
      */
     public boolean checkCooldown(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> cooldownMap) {
@@ -127,10 +147,39 @@ public abstract class Command {
                         .queue();
                 return true;
             } else {
-                cooldownMap.replace(authorId, availableTime, newAvailableTime);
+                cooldownMap.remove(authorId);
             }
         } else {
             cooldownMap.put(authorId, newAvailableTime);
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the user is using the command again when its only allowed to have 1 instance open.
+     * @param event - MessageReceivedEvent
+     * @param gameInstanceMap - A HashMap containing the user id's and the times when they can use the command again
+     * @param commandName - The name of the command you are checking on
+     * @return true if the command already has an instance open, false if otherwise
+     */
+    public boolean checkInstanceOpen(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> gameInstanceMap, String commandName) {
+        OffsetDateTime currentTime = event.getMessage().getTimeCreated();
+        String authorId = event.getAuthor().getId();
+        OffsetDateTime newAvailableTime = event.getMessage().getTimeCreated().plusSeconds(instanceTime);
+        if(gameInstanceMap.containsKey(authorId)) {
+            OffsetDateTime availableTime = gameInstanceMap.get(authorId);
+            if(currentTime.isBefore(availableTime)) {
+                long waitTime = availableTime.toEpochSecond() - currentTime.toEpochSecond();
+                event.getChannel().sendTyping().queue();
+                event.getChannel().sendMessage(String.format("You can only have 1 %s game open at the same time. " +
+                                "Finish your %s game or wait %d seconds.", commandName, commandName, waitTime))
+                        .queue();
+                return true;
+            } else {
+                gameInstanceMap.remove(authorId);
+            }
+        } else {
+            gameInstanceMap.put(authorId, newAvailableTime);
         }
         return false;
     }
@@ -197,9 +246,11 @@ public abstract class Command {
      * @param aliases - The different aliases for the command
      * @param flags - The flags for the command
      * @param cooldown - The cooldown for the command
+     * @param subCommands - A list of all the sub commands
      */
     public void generateHelp(@NotNull MessageReceivedEvent event, String commandName, String commandDescription,
-                             String @NotNull [] commandArgs, String @NotNull [] aliases, String[] flags, int cooldown) {
+                             String @NotNull [] commandArgs, String @NotNull [] aliases, String[] flags, int cooldown,
+                             @NotNull ArrayList<Command> subCommands) {
         String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
         String consumerName = event.getAuthor().getName();
 
@@ -214,6 +265,20 @@ public abstract class Command {
                 argumentsText.toString(),
                 false
         );
+
+        if(!(subCommands.size() == 0)) {
+            StringBuilder subCommandsText = new StringBuilder();
+            for (Command subCommand : subCommands) {
+                subCommandsText.append("\n`").append(prefix).append(String.format("%s ", commandName)).append(subCommand.commandName);
+                if (!(subCommand.commandArgs.length == 0)) {
+                    for (int y = 0; y < subCommand.commandArgs.length; y++) {
+                        subCommandsText.append(String.format(" {%s}", subCommand.commandArgs[y]));
+                    }
+                }
+                subCommandsText.append("`\n").append(subCommand.commandDescription);
+            }
+            info.addField("Sub Commands", subCommandsText.toString(), false);
+        }
 
         if(!(aliases.length == 0)) {
             StringBuilder aliasesText = new StringBuilder();

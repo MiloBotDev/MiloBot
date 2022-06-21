@@ -89,6 +89,7 @@ public class ProfileCommand extends Command implements EconomyCommand {
         levelDescription.append(String.format("`Level`: %s.\n", level));
         levelDescription.append(String.format("`Experience`: %s.\n", experience));
         embed.addField("Level", levelDescription.toString(), false);
+        generateLevelProgressBar(Integer.parseInt(level), Integer.parseInt(experience));
 
 //        StringBuilder description = new StringBuilder();
 
@@ -107,7 +108,7 @@ public class ProfileCommand extends Command implements EconomyCommand {
         int nextlevelExperience = user.levels.get(nextLevel);
         int experienceDifference = nextlevelExperience - user.levels.get(currentLevel);
         int gainedExperience = nextlevelExperience - currentExperience;
-
+        System.out.println(experienceDifference/gainedExperience);
 
         return "";
     }

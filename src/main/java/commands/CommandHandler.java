@@ -59,10 +59,20 @@ public class CommandHandler extends ListenerAdapter {
                 if(strings.contains(receivedMessage.get(0).toLowerCase(Locale.ROOT).replaceFirst(prefix, ""))) {
                     receivedMessage.remove(0);
                     Command command = CommandLoader.commandList.get(strings);
+                    // check if the user is calling to a subcommand of this command
+                    if(receivedMessage.size() > 0) {
+                        for(Command subCommand : command.subCommands) {
+                            if(receivedMessage.get(0).toLowerCase(Locale.ROOT).equals(subCommand.commandName)) {
+                                receivedMessage.remove(0);
+                                command = subCommand;
+                                break;
+                            }
+                        }
+                    }
                     // check for flags if one or multiple arguments are present
                     if(receivedMessage.size() > 0) {
                         if(command.checkForFlags(event, receivedMessage, command.commandName, command.commandDescription,
-                                command.commandArgs, command.aliases, command.flags, command.cooldown)){
+                                command.commandArgs, command.aliases, command.flags, command.cooldown, command.subCommands)){
                             return;
                         }
                     }
@@ -80,6 +90,13 @@ public class CommandHandler extends ListenerAdapter {
                     if(command.cooldown > 0) {
                         boolean onCooldown = command.checkCooldown(event, command.cooldownMap);
                         if(onCooldown) {
+                            return;
+                        }
+                    }
+                    // check for single instance
+                    if(command.singleInstance) {
+                        boolean instanceOpen = command.checkInstanceOpen(event, command.gameInstanceMap, command.commandName);
+                        if(instanceOpen) {
                             return;
                         }
                     }

@@ -24,6 +24,7 @@ public class Config {
     public final String loggingChannelName;
     public final String levelsJsonPath;
     public final String connectionUrl;
+    public final String wordleWordsPath;
 
     /**
      * Instantiates all the
@@ -40,6 +41,7 @@ public class Config {
         this.loggingChannelName = (String) data.get("loggingChannelName");
         this.levelsJsonPath = (String) data.get("levelsJsonPath");
         this.connectionUrl = (String) data.get("connectionUrl");
+        this.wordleWordsPath = (String) data.get("wordleWordsPath");
     }
 
     /**
