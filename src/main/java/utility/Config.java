@@ -25,6 +25,7 @@ public class Config {
     public final String levelsJsonPath;
     public final String connectionUrl;
     public final String wordleWordsPath;
+    public final String defaultPrefix;
 
     /**
      * Instantiates all the
@@ -42,6 +43,7 @@ public class Config {
         this.levelsJsonPath = (String) data.get("levelsJsonPath");
         this.connectionUrl = (String) data.get("connectionUrl");
         this.wordleWordsPath = (String) data.get("wordleWordsPath");
+        this.defaultPrefix = (String) data.get("prefix");
     }
 
     /**
