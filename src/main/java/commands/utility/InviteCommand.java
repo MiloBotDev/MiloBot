@@ -10,20 +10,21 @@ import java.util.List;
 /**
  * The invite command.
  * Sends the user an invite link, so they can invite the bot to their own server.
+ *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class InviteCommand extends Command implements UtilityCommand{
+public class InviteCommand extends Command implements UtilityCommand {
 
-    public InviteCommand() {
-        this.commandName = "invite";
-        this.commandDescription = "Creates an invite for the bot.";
-        this.aliases = new String[]{"inv"};
-    }
+	public InviteCommand() {
+		this.commandName = "invite";
+		this.commandDescription = "Creates an invite for the bot.";
+		this.aliases = new String[]{"inv"};
+	}
 
-    @Override
-    public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
-        event.getChannel().sendTyping().queue();
-        event.getChannel().sendMessage(event.getJDA().getInviteUrl(Permission.ADMINISTRATOR)).queue();
-    }
+	@Override
+	public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
+		event.getChannel().sendTyping().queue();
+		event.getChannel().sendMessage(event.getJDA().getInviteUrl(Permission.ADMINISTRATOR)).queue();
+	}
 }
 

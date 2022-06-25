@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * The prefix command.
  * Can change the prefix the bot listens to for a guild.
+ *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class PrefixCommand extends Command implements UtilityCommand {
@@ -30,7 +31,7 @@ public class PrefixCommand extends Command implements UtilityCommand {
 
 	@Override
 	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-		if(args.get(0).length() > 1) {
+		if (args.get(0).length() > 1) {
 			event.getChannel().sendTyping().queue();
 			event.getChannel().sendMessage("A prefix cant be longer then 1 character.").queue();
 		} else {

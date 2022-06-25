@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The wordle command.
+ *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class WordleCommand extends Command implements GamesCommand {
