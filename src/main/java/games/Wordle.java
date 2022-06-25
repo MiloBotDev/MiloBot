@@ -21,7 +21,7 @@ public class Wordle {
 
 	final static Logger logger = LoggerFactory.getLogger(Wordle.class);
 
-	public final int maxGuesses = 6;
+	public final int maxGuesses = 7;
 	public final int wordLength = 5;
 
 	public String word;
@@ -41,7 +41,6 @@ public class Wordle {
 	/**
 	 * Makes a guess for the user and checks if the guess was correct.
 	 *
-	 * @param guess - The word the user guessed
 	 * @return String[] containing the result of the users guess.
 	 * Example:
 	 * [:green_square:, :green_square:, :black_large_square:, :black_large_square:, :yellow_square:]

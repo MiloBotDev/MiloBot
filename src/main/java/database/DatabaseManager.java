@@ -53,8 +53,8 @@ public class DatabaseManager {
 	public final String getUserExperienceAndLevel = "SELECT experience, level FROM user WHERE userId = ?;";
 	public final String getUserRankByExperience = "SELECT rank FROM (SELECT userId, row_number() over () as rank FROM (SELECT userId FROM (SELECT userId FROM user ORDER BY experience DESC))) WHERE userId = ?";
 	public final String getUserAmount = "SELECT count(*) FROM user;";
-	public final String wordleGetTopTotalGamesPlayed = "SELECT user.name, wordle.totalGames FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY wordle.totalGames DESC;";
-	public final String wordleGetTopHighestStreak = "SELECT user.name, wordle.highestStreak FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY wordle.highestStreak DESC;";
+	public final String wordleGetTopTotalGamesPlayed = "SELECT user.name, wordle.totalGames FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY CAST(wordle.totalGames AS int) DESC LIMIT 100;";
+	public final String wordleGetTopHighestStreak = "SELECT user.name, wordle.highestStreak FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY CAST(wordle.highestStreak AS int) DESC LIMIT 100;";
 	public final String updateUserName = "UPDATE user SET name = ? WHERE userId = ?;";
 	public final String getAllUserIdsAndNames = "SELECT userId, name FROM user";
 
@@ -106,9 +106,6 @@ public class DatabaseManager {
 	/**
 	 * Send a query to the database.
 	 *
-	 * @param query - The query as a String
-	 * @param types - The type of query as a QueryTypes
-	 * @param args  - Optional arguments
 	 * @return ArrayList<String> with the result of the query, null if no result
 	 */
 	public ArrayList<String> query(String query, @NotNull QueryTypes types, String... args) {
