@@ -54,6 +54,8 @@ public class DatabaseManager {
     public final String getUserAmount = "SELECT count(*) FROM user;";
     public final String wordleGetTopTotalGamesPlayed = "SELECT user.name, wordle.totalGames FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY wordle.totalGames DESC;";
     public final String wordleGetTopHighestStreak = "SELECT user.name, wordle.highestStreak FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY wordle.highestStreak DESC;";
+    public final String updateUserName = "UPDATE user SET name = ? WHERE userId = ?;";
+    public final String getAllUserIdsAndNames = "SELECT userId, name FROM user";
 
 
     /**

@@ -91,8 +91,6 @@ public abstract class Command {
 
     /**
      * The default implementation for every command.
-     * @param event - MessageReceivedEvent
-     * @param args - The arguments provided as a String[]
      */
     public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
         event.getChannel().sendTyping().queue();
@@ -101,14 +99,6 @@ public abstract class Command {
 
     /**
      * The default implementation for checking if a flag is present.
-     * @param event - MessageReceivedEvent
-     * @param args - The arguments provided as a String[]
-     * @param commandName - The name of the command
-     * @param commandDescription - The description of the command
-     * @param commandArgs - The arguments of the command
-     * @param aliases - The different aliases for the command
-     * @param flags - The flags for the command
-     * @param cooldown - The cooldown for the command
      * @return true if a flag was present, false if no flag was present.
      */
     public boolean checkForFlags(MessageReceivedEvent event, @NotNull List<String> args, String commandName,
@@ -130,8 +120,6 @@ public abstract class Command {
 
     /**
      * Checks if the user is using the command again before the cooldown is over.
-     * @param event - MessageReceivedEvent
-     * @param cooldownMap - A HashMap containing the user id's and the times when they can use the command again
      * @return true if the command is on cooldown, false if otherwise
      */
     public boolean checkCooldown(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> cooldownMap) {
@@ -157,9 +145,6 @@ public abstract class Command {
 
     /**
      * Checks if the user is using the command again when its only allowed to have 1 instance open.
-     * @param event - MessageReceivedEvent
-     * @param gameInstanceMap - A HashMap containing the user id's and the times when they can use the command again
-     * @param commandName - The name of the command you are checking on
      * @return true if the command already has an instance open, false if otherwise
      */
     public boolean checkInstanceOpen(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> gameInstanceMap, String commandName) {
@@ -186,7 +171,6 @@ public abstract class Command {
 
     /**
      * Updates the command tracker for the given command name.
-     * @param commandName - The name of the command
      */
     public void updateCommandTracker(String commandName) {
         DatabaseManager manager = DatabaseManager.getInstance();
@@ -202,8 +186,6 @@ public abstract class Command {
 
     /**
      * Updates the command tracker for a specific user;
-     * @param commandName - The name of the command
-     * @param userId - The id of the user
      */
     public void updateCommandTrackerUser(String commandName, String userId) {
         DatabaseManager manager = DatabaseManager.getInstance();
@@ -219,8 +201,6 @@ public abstract class Command {
 
     /**
      * Generates a message with the stats of that specific command.
-     * @param event - MessageReceivedEvent
-     * @param commandName - The name of the command
      */
     public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
         DatabaseManager manager = DatabaseManager.getInstance();
@@ -239,14 +219,6 @@ public abstract class Command {
 
     /**
      * Generates a standard help message for when the command is called with the --help flag.
-     * @param event - MessageReceivedEvent
-     * @param commandName - The name of the command
-     * @param commandDescription - The description of the command
-     * @param commandArgs - The arguments of the command
-     * @param aliases - The different aliases for the command
-     * @param flags - The flags for the command
-     * @param cooldown - The cooldown for the command
-     * @param subCommands - A list of all the sub commands
      */
     public void generateHelp(@NotNull MessageReceivedEvent event, String commandName, String commandDescription,
                              String @NotNull [] commandArgs, String @NotNull [] aliases, String[] flags, int cooldown,
@@ -319,8 +291,6 @@ public abstract class Command {
 
     /**
      * Builds a String that explains the usage of a command.
-     * @param commandName - The name of the command
-     * @param commandArgs - The arguments of the command
      * @return the String as a StringBuilder instance
      */
     @NotNull
@@ -345,9 +315,6 @@ public abstract class Command {
 
     /**
      * Generates and sends a  message for when the command has been improperly used.
-     * @param event - MessageReceivedEvent
-     * @param commandName - The name of the command
-     * @param commandArgs - The arguments of the command
      */
     public void sendCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
         String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
@@ -365,7 +332,6 @@ public abstract class Command {
 
     /**
      * Calculates the required amount of arguments a command has.
-     * @param commandArgs - All the command arguments
      * @return the required amount of arguments
      */
     public int calculateRequiredArgs(String @NotNull [] commandArgs) {
@@ -380,8 +346,6 @@ public abstract class Command {
 
     /**
      * Checks if the user has the permissions required to use the command.
-     * @param event - MessageReceivedEvent
-     * @param permissions- The permissions required to use the command
      * @return true if the user has the required permissions, false otherwise.
      */
     public boolean checkRequiredPermissions(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, Permission> permissions) {
@@ -403,10 +367,6 @@ public abstract class Command {
 
     /**
      * Generates and sends a message for when a user is missing the required permissions to use the command.
-     * @param event - MessageReceivedEvent
-     * @param commandName - The name of the command
-     * @param permissions- The permissions required to use the command
-     * @param prefix - The prefix the bot uses in the guild this was sent in
      */
     public void sendMissingPermissions(@NotNull MessageReceivedEvent event, String commandName,
                                        @NotNull HashMap<String, Permission> permissions, String prefix) {

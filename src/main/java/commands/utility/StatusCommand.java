@@ -26,7 +26,6 @@ public class StatusCommand extends Command implements UtilityCommand {
     @Override
     public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
         EmbedBuilder embed = new EmbedBuilder();
-        embed.setDescription("Insert some information that nobody cares about.....");
         EmbedUtils.styleEmbed(event, embed);
 
         JDA jda = event.getJDA();

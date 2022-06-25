@@ -86,7 +86,7 @@ public class User {
                         String.valueOf(newExperience), userId);
                 logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
                 // send a message to the channel the user leveled up in
-                String asMention = Objects.requireNonNull(event.getGuild().getMemberById(userId)).getAsMention();
+                String asMention = event.getAuthor().getAsMention();
                 event.getChannel().sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
             } else {
                 // user didn't level up so just update their experience

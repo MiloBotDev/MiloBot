@@ -10,11 +10,9 @@ import utility.Config;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
-import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An event triggered when the bot is ready.
