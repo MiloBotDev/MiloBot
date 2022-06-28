@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
-import user.User;
+import utility.User;
 import utility.EmbedUtils;
 
 import java.util.ArrayList;
@@ -19,12 +19,12 @@ import java.util.Locale;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class ProfileCommand extends Command implements EconomyCommand {
+public class ProfileCmd extends Command implements EconomyCmd {
 
 	private final DatabaseManager manager;
 	private final User user;
 
-	public ProfileCommand() {
+	public ProfileCmd() {
 		this.commandName = "profile";
 		this.commandDescription = "View your own or someone else's profile.";
 		this.commandArgs = new String[]{"*user"};

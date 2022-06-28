@@ -3,8 +3,9 @@ package commands.utility;
 import commands.Command;
 import commands.CommandHandler;
 import commands.CommandLoader;
-import commands.economy.EconomyCommand;
-import commands.games.GamesCommand;
+import commands.bot.BotCmd;
+import commands.economy.EconomyCmd;
+import commands.games.GamesCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -21,9 +22,9 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class HelpCommand extends Command implements UtilityCommand {
+public class HelpCmd extends Command implements UtilityCmd {
 
-	public HelpCommand() {
+	public HelpCmd() {
 		this.commandName = "help";
 		this.commandDescription = "Shows the user a list of available commands.";
 		this.commandArgs = new String[]{"*command"};
@@ -47,9 +48,10 @@ public class HelpCommand extends Command implements UtilityCommand {
 			EmbedUtils.styleEmbed(event, categoryEmbed);
 			categoryEmbed.setTitle("Categories 📝");
 			categoryEmbed.setDescription("Click each categories respective emoji to see their commands.");
-			categoryEmbed.addField("Utility 🔨", UtilityCommand.description, true);
-			categoryEmbed.addField("Economy 💰", EconomyCommand.description, true);
-			categoryEmbed.addField("Games 🎮", GamesCommand.description, true);
+			categoryEmbed.addField("Utility 🔨", UtilityCmd.description, true);
+			categoryEmbed.addField("Economy 💰", EconomyCmd.description, true);
+			categoryEmbed.addField("Games 🎮", GamesCmd.description, true);
+			categoryEmbed.addField("Bot 🤖", BotCmd.description, true);
 
 			EmbedBuilder utilityEmbed = new EmbedBuilder();
 			EmbedUtils.styleEmbed(event, utilityEmbed);
@@ -63,13 +65,19 @@ public class HelpCommand extends Command implements UtilityCommand {
 			EmbedUtils.styleEmbed(event, gamesEmbed);
 			gamesEmbed.setTitle("Game Commands 🎮");
 
+			EmbedBuilder botEmbed = new EmbedBuilder();
+			EmbedUtils.styleEmbed(event, botEmbed);
+			botEmbed.setTitle("Bot Commands 🤖");
+
 			CommandLoader.commandList.forEach((key, value) -> {
-				if (value instanceof UtilityCommand) {
+				if (value instanceof UtilityCmd) {
 					utilityEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
-				} else if (value instanceof EconomyCommand) {
+				} else if (value instanceof EconomyCmd) {
 					economyEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
-				} else if (value instanceof GamesCommand) {
+				} else if (value instanceof GamesCmd) {
 					gamesEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
+				} else if (value instanceof BotCmd) {
+					botEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
 				}
 			});
 
@@ -78,6 +86,7 @@ public class HelpCommand extends Command implements UtilityCommand {
 			embedAsEmoji.put("🔨", utilityEmbed);
 			embedAsEmoji.put("💰", economyEmbed);
 			embedAsEmoji.put("🎮", gamesEmbed);
+			embedAsEmoji.put("🤖", botEmbed);
 
 			event.getChannel().sendTyping().queue();
 			event.getChannel().sendMessageEmbeds(categoryEmbed.build()).queue(
@@ -86,6 +95,7 @@ public class HelpCommand extends Command implements UtilityCommand {
 						message.addReaction("🔨").queue();
 						message.addReaction("💰").queue();
 						message.addReaction("🎮").queue();
+						message.addReaction("🤖").queue();
 						message.addReaction("❌").queue();
 						ListenerAdapter listener = new ListenerAdapter() {
 							@Override

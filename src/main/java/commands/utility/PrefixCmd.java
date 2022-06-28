@@ -15,11 +15,11 @@ import java.util.List;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class PrefixCommand extends Command implements UtilityCommand {
+public class PrefixCmd extends Command implements UtilityCmd {
 
 	public DatabaseManager manager;
 
-	public PrefixCommand() {
+	public PrefixCmd() {
 		this.commandName = "prefix";
 		this.commandDescription = "Change the prefix of the guild you're in.";
 		this.commandArgs = new String[]{"prefix"};

@@ -16,11 +16,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class WordleLeaderboardCommand extends Command implements SubCommand {
+public class WordleLeaderboardCmd extends Command implements SubCommand {
 
 	private final DatabaseManager manager;
 
-	public WordleLeaderboardCommand() {
+	public WordleLeaderboardCmd() {
 		this.commandName = "leaderboard";
 		this.commandDescription = "Check the wordle leaderboards.";
 		this.manager = DatabaseManager.getInstance();

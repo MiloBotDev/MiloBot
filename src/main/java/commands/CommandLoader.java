@@ -1,7 +1,8 @@
 package commands;
 
-import commands.economy.ProfileCommand;
-import commands.games.WordleCommand;
+import commands.bot.BugCmd;
+import commands.economy.ProfileCmd;
+import commands.games.WordleCmd;
 import commands.utility.*;
 
 import java.util.ArrayList;
@@ -20,14 +21,15 @@ public class CommandLoader {
 
 	public static void loadAllCommands() {
 		ArrayList<Command> commands = new ArrayList<>();
-		commands.add(new HelpCommand());
-		commands.add(new InviteCommand());
-		commands.add(new StatusCommand());
-		commands.add(new PrefixCommand());
-		commands.add(new UsageCommand());
-		commands.add(new UserCommand());
-		commands.add(new ProfileCommand());
-		commands.add(new WordleCommand());
+		commands.add(new HelpCmd());
+		commands.add(new InviteCmd());
+		commands.add(new StatusCmd());
+		commands.add(new PrefixCmd());
+		commands.add(new UsageCmd());
+		commands.add(new UserCmd());
+		commands.add(new ProfileCmd());
+		commands.add(new WordleCmd());
+		commands.add(new BugCmd());
 
 		for (Command c : commands) {
 			ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));

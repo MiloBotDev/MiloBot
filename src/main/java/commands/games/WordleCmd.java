@@ -20,16 +20,16 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class WordleCommand extends Command implements GamesCommand {
+public class WordleCmd extends Command implements GamesCmd {
 
 	private final DatabaseManager manager;
 
-	public WordleCommand() {
+	public WordleCmd() {
 		this.commandName = "wordle";
 		this.commandDescription = "Try to guess the 5 letter word.";
 		this.instanceTime = 300;
 		this.singleInstance = true;
-		this.subCommands.add(new WordleLeaderboardCommand());
+		this.subCommands.add(new WordleLeaderboardCmd());
 		this.manager = DatabaseManager.getInstance();
 	}
 

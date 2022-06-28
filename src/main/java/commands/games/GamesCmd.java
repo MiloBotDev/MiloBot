@@ -1,5 +1,5 @@
 package commands.games;
 
-public interface GamesCommand {
+public interface GamesCmd {
 	String description = "Games playable completely on discord.";
 }

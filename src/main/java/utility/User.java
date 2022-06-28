@@ -1,4 +1,4 @@
-package user;
+package utility;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -7,7 +7,6 @@ import database.DatabaseManager;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utility.Config;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,7 +40,7 @@ public class User {
 	}
 
 	/**
-	 * Get the instance of this class.
+	 * Get the only existing instance of this class.
 	 *
 	 * @return The instance of this class.
 	 */

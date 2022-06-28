@@ -21,9 +21,9 @@ import java.util.Objects;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class UserCommand extends Command implements UtilityCommand {
+public class UserCmd extends Command implements UtilityCmd {
 
-	public UserCommand() {
+	public UserCmd() {
 		this.commandName = "user";
 		this.commandDescription = "Shows information about a user.";
 		this.commandArgs = new String[]{"*user"};

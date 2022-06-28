@@ -16,9 +16,9 @@ import java.util.List;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class StatusCommand extends Command implements UtilityCommand {
+public class StatusCmd extends Command implements UtilityCmd {
 
-	public StatusCommand() {
+	public StatusCmd() {
 		this.commandName = "status";
 		this.commandDescription = "The status of the bot.";
 		this.cooldown = 60;

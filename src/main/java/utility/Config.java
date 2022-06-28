@@ -27,6 +27,8 @@ public class Config {
 	public final String connectionUrl;
 	public final String wordleWordsPath;
 	public final String defaultPrefix;
+	public final String personalAccessToken;
+	public final String repositoryName;
 
 	/**
 	 * Instantiates all the
@@ -46,6 +48,8 @@ public class Config {
 		this.connectionUrl = (String) data.get("connectionUrl");
 		this.wordleWordsPath = (String) data.get("wordleWordsPath");
 		this.defaultPrefix = (String) data.get("prefix");
+		this.personalAccessToken = (String) data.get("personalAccessToken");
+		this.repositoryName = (String) data.get("repositoryName");
 	}
 
 	/**

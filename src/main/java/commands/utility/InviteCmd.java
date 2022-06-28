@@ -13,9 +13,9 @@ import java.util.List;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class InviteCommand extends Command implements UtilityCommand {
+public class InviteCmd extends Command implements UtilityCmd {
 
-	public InviteCommand() {
+	public InviteCmd() {
 		this.commandName = "invite";
 		this.commandDescription = "Creates an invite for the bot.";
 		this.aliases = new String[]{"inv"};

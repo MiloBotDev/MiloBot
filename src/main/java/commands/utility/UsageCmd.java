@@ -16,11 +16,11 @@ import java.util.List;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class UsageCommand extends Command implements UtilityCommand {
+public class UsageCmd extends Command implements UtilityCmd {
 
 	public final DatabaseManager manager;
 
-	public UsageCommand() {
+	public UsageCmd() {
 		this.commandName = "usage";
 		this.commandDescription = "See the amount of times each command has been used.";
 		this.cooldown = 60;
