@@ -1,7 +1,7 @@
-package commands.bot;
+package commands.bot.bug;
 
 import commands.Command;
-import commands.SubCommand;
+import commands.SubCmd;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class BugReportCmd extends Command implements SubCommand {
+public class BugReportCmd extends Command implements SubCmd {
 
 	private final ArrayList<String> questions;
 	private final GitHubBot gitHubBot;

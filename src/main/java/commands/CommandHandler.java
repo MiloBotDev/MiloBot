@@ -83,6 +83,11 @@ public class CommandHandler extends ListenerAdapter {
 						command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
 						return;
 					}
+					// check if the command is a parent command
+					if(command instanceof ParentCmd) {
+						command.sendCommandExplanation(event, command.commandName, command.subCommands, prefix  );
+						return;
+					}
 					// check if all required args are present
 					if (command.calculateRequiredArgs(command.commandArgs) > receivedMessage.size()) {
 						command.sendCommandUsage(event, command.commandName, command.commandArgs);

@@ -243,16 +243,7 @@ public abstract class Command {
 		);
 
 		if (!(subCommands.size() == 0)) {
-			StringBuilder subCommandsText = new StringBuilder();
-			for (Command subCommand : subCommands) {
-				subCommandsText.append("\n`").append(prefix).append(String.format("%s ", commandName)).append(subCommand.commandName);
-				if (!(subCommand.commandArgs.length == 0)) {
-					for (int y = 0; y < subCommand.commandArgs.length; y++) {
-						subCommandsText.append(String.format(" {%s}", subCommand.commandArgs[y]));
-					}
-				}
-				subCommandsText.append("`\n").append(subCommand.commandDescription);
-			}
+			StringBuilder subCommandsText = getSubCommandsText(commandName, subCommands, prefix);
 			info.addField("Sub Commands", subCommandsText.toString(), false);
 		}
 
@@ -294,6 +285,26 @@ public abstract class Command {
 	}
 
 	/**
+	 * Builds a String that explains the sub commands a command has.
+	 *
+	 * @return the String as a StringBuilder instance.
+	 */
+	@NotNull
+	private StringBuilder getSubCommandsText(String commandName, @NotNull ArrayList<Command> subCommands, String prefix) {
+		StringBuilder subCommandsText = new StringBuilder();
+		for (Command subCommand : subCommands) {
+			subCommandsText.append("\n`").append(prefix).append(String.format("%s ", commandName)).append(subCommand.commandName);
+			if (!(subCommand.commandArgs.length == 0)) {
+				for (int y = 0; y < subCommand.commandArgs.length; y++) {
+					subCommandsText.append(String.format(" {%s}", subCommand.commandArgs[y]));
+				}
+			}
+			subCommandsText.append("`\n").append(subCommand.commandDescription);
+		}
+		return subCommandsText;
+	}
+
+	/**
 	 * Builds a String that explains the usage of a command.
 	 *
 	 * @return the String as a StringBuilder instance
@@ -319,7 +330,7 @@ public abstract class Command {
 	}
 
 	/**
-	 * Generates and sends a  message for when the command has been improperly used.
+	 * Generates and sends a message for when the command has been improperly used.
 	 */
 	public void sendCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
 		String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
@@ -333,6 +344,20 @@ public abstract class Command {
 		event.getChannel().sendTyping().queue();
 		MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());
 		messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerName));
+	}
+
+	/**
+	 * Generates and sends a message for when the parent command has been called without a sub command.
+	 */
+	public void sendCommandExplanation(@NotNull MessageReceivedEvent event, String commandName,
+									   @NotNull ArrayList<Command> subCommands, String prefix) {
+		EmbedBuilder embed = new EmbedBuilder();
+		EmbedUtils.styleEmbed(event, embed);
+		embed.setTitle(commandName);
+		embed.setDescription("This is the base command for all wordle related commands. Please use any of the " +
+				"commands listed below.");
+		embed.addField("Sub Commands", getSubCommandsText(commandName, subCommands, prefix).toString(), false);
+		event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
 	}
 
 	/**

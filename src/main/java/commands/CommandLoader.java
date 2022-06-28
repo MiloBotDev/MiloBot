@@ -1,9 +1,8 @@
 package commands;
 
-import commands.bot.BugCmd;
-import commands.bot.BugReportCmd;
+import commands.bot.bug.BugCmd;
 import commands.economy.ProfileCmd;
-import commands.games.WordleCmd;
+import commands.games.wordle.WordleCmd;
 import commands.utility.*;
 
 import java.util.ArrayList;
