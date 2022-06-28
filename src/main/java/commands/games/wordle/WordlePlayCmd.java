@@ -140,7 +140,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
 							if (gameOver[0]) {
 								gameInstanceMap.remove(id);
 								message.editMessageEmbeds(newEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
-										event.getAuthor().getName()));
+										event.getAuthor().getId()));
 							} else {
 								message.editMessageEmbeds(newEmbed.build()).queue();
 							}

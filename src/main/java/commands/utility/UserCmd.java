@@ -102,6 +102,6 @@ public class UserCmd extends Command implements UtilityCmd {
 		userEmbed.addField("Account Created", user.getTimeCreated().format(dtf), false);
 
 		event.getChannel().sendMessageEmbeds(userEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
-				event.getAuthor().getName()));
+				event.getAuthor().getId()));
 	}
 }

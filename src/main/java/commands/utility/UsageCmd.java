@@ -46,7 +46,7 @@ public class UsageCmd extends Command implements UtilityCmd {
 			EmbedUtils.styleEmbed(event, embed);
 			embed.setTitle("Command Usages");
 			embed.setDescription(usages.toString());
-			event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getName()));
+			event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
 		}
 	}
 

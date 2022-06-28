@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -122,6 +123,29 @@ public class GitHubBot {
 		return Optional.empty();
 	}
 
-
+	/**
+	 * Loads all issues labeled as a bug.
+	 *
+	 * @return A list of bugs as ArrayList<GHIssue>.
+	 */
+	public ArrayList<GHIssue> getAllBugs() {
+		ArrayList<GHIssue> bugs = new ArrayList<>();
+		try {
+			List<GHIssue> issues = this.repository.getIssues(GHIssueState.OPEN);
+			for(GHIssue issue : issues) {
+				Collection<GHLabel> labels = issue.getLabels();
+				for (GHLabel label : labels) {
+					if (label.getName().equals("bug")) {
+						bugs.add(issue);
+						break;
+					}
+				}
+			}
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			logger.info("Failed to load issues.");
+		}
+		return bugs;
+	}
 
 }

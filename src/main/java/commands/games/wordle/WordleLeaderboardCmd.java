@@ -33,7 +33,7 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 
 	@Override
 	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-		String consumerName = event.getAuthor().getName();
+		String consumerId = event.getAuthor().getId();
 		EmbedBuilder embed = new EmbedBuilder();
 		EmbedUtils.styleEmbed(event, embed);
 		embed.setTitle("Leaderboards");
@@ -47,7 +47,7 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 			message.addReaction("1️⃣").queue();
 			message.addReaction("2️⃣").queue();
 			message.addReaction("❌").queue();
-			ListenerAdapter listener = getListenerAdapterLeaderboard(event, consumerName, message);
+			ListenerAdapter listener = getListenerAdapterLeaderboard(event, consumerId, message);
 			message.getJDA().getRateLimitPool().schedule(() -> event.getJDA().removeEventListener(listener),
 					1, TimeUnit.MINUTES);
 			message.getJDA().addEventListener(listener);
@@ -56,12 +56,12 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 	}
 
 	@NotNull
-	private ListenerAdapter getListenerAdapterLeaderboard(@NotNull MessageReceivedEvent event, String consumerName, Message message) {
+	private ListenerAdapter getListenerAdapterLeaderboard(@NotNull MessageReceivedEvent event, String consumerId, Message message) {
 		return new ListenerAdapter() {
 			@Override
 			public void onMessageReactionAdd(@NotNull MessageReactionAddEvent eventReaction) {
 				String messageId = eventReaction.getMessageId();
-				if (Objects.requireNonNull(eventReaction.getUser()).getName().equals(consumerName)
+				if (Objects.requireNonNull(eventReaction.getUser()).getId().equals(consumerId)
 						&& message.getId().equals(messageId)) {
 					String asReactionCode = eventReaction.getReactionEmote().getAsReactionCode();
 					ArrayList<EmbedBuilder> pages;
@@ -70,14 +70,14 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 							pages = makeLeaderboardEmbeds(event, "Top 100: total games played",
 									manager.wordleGetTopTotalGamesPlayed);
 							EmbedUtils.createPaginator(event,"Top 100: total games played", pages,
-									message, consumerName);
+									message, consumerId);
 							event.getJDA().removeEventListener(this);
 							break;
 						case "2️⃣":
 							pages = makeLeaderboardEmbeds(event, "Top 100: highest streak",
 									manager.wordleGetTopHighestStreak);
 							EmbedUtils.createPaginator(event, "Top 100: highest streak", pages,
-									message, consumerName);
+									message, consumerId);
 							event.getJDA().removeEventListener(this);
 							break;
 						case "❌":

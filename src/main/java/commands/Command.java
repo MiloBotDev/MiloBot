@@ -218,7 +218,7 @@ public abstract class Command {
 		stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
 
 		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessageEmbeds(stats.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getName()));
+		event.getChannel().sendMessageEmbeds(stats.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
 	}
 
 	/**
@@ -228,7 +228,7 @@ public abstract class Command {
 							 String @NotNull [] commandArgs, String @NotNull [] aliases, String[] flags, int cooldown,
 							 @NotNull ArrayList<Command> subCommands) {
 		String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
-		String consumerName = event.getAuthor().getName();
+		String consumerId = event.getAuthor().getId();
 
 		EmbedBuilder info = new EmbedBuilder();
 		EmbedUtils.styleEmbed(event, info);
@@ -281,7 +281,7 @@ public abstract class Command {
 
 		event.getChannel().sendTyping().queue();
 		MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());
-		messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerName));
+		messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerId));
 	}
 
 	/**
@@ -334,7 +334,7 @@ public abstract class Command {
 	 */
 	public void sendCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
 		String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
-		String consumerName = event.getAuthor().getName();
+		String consumerId = event.getAuthor().getId();
 
 		EmbedBuilder info = new EmbedBuilder();
 		EmbedUtils.styleEmbed(event, info);
@@ -343,7 +343,7 @@ public abstract class Command {
 
 		event.getChannel().sendTyping().queue();
 		MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());
-		messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerName));
+		messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerId));
 	}
 
 	/**
@@ -431,7 +431,7 @@ public abstract class Command {
 		}
 		embed.setDescription(missingPermissionsText.toString());
 		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getName()));
+		event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
 	}
 
 }

@@ -50,7 +50,7 @@ public class StatusCmd extends Command implements UtilityCmd {
 				emoteTotal, roleTotal), false);
 
 		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getName()));
+		event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
 	}
 
 }

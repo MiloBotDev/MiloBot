@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * Helpful functions regarding embeds.
+ * Helpful functions for embeds.
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
@@ -29,14 +29,14 @@ public class EmbedUtils {
 	 * @return The consumer that adds the emoji.
 	 */
 	@NotNull
-	public static Consumer<Message> deleteEmbedButton(@NotNull MessageReceivedEvent event, String consumerName) {
+	public static Consumer<Message> deleteEmbedButton(@NotNull MessageReceivedEvent event, String consumerId) {
 		return (message) -> {
 			message.addReaction("❌").queue();
 			ListenerAdapter listener = new ListenerAdapter() {
 				@Override
 				public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
 					String messageId = event.getMessageId();
-					if (Objects.requireNonNull(event.getUser()).getName().equals(consumerName) &&
+					if (Objects.requireNonNull(event.getUser()).getId().equals(consumerId) &&
 							event.getReactionEmote().getAsReactionCode().equals("❌") && message.getId().equals(messageId)) {
 						event.getChannel().deleteMessageById(messageId).queue();
 						event.getJDA().removeEventListener(this);
@@ -63,7 +63,7 @@ public class EmbedUtils {
 	 * Adds a simple paginator to the specified message.
 	 */
 	public static void createPaginator(@NotNull MessageReceivedEvent event, String title, @NotNull ArrayList<EmbedBuilder> pages,
-									   @NotNull Message message, String consumerName) {
+									   @NotNull Message message, String consumerId) {
 		message.clearReactions().queue();
 		EmbedBuilder embedBuilder = pages.get(0);
 		message.editMessageEmbeds(embedBuilder.build()).queue(message1 -> {
@@ -76,7 +76,7 @@ public class EmbedUtils {
 					ListenerAdapter totalGames = new ListenerAdapter() {
 						@Override
 						public void onMessageReactionAdd(@NotNull MessageReactionAddEvent eventReaction2) {
-							if (Objects.requireNonNull(eventReaction2.getUser()).getName().equals(consumerName)
+							if (Objects.requireNonNull(eventReaction2.getUser()).getId().equals(consumerId)
 									&& message.getId().equals(message1.getId())) {
 								String asReactionCode = eventReaction2.getReactionEmote().getAsReactionCode();
 								EmbedBuilder newEmbed = new EmbedBuilder();
