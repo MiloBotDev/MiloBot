@@ -10,8 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * The prefix command.
- * Can change the prefix the bot listens to for a guild.
+ * Change the prefix the bot listens to for a guild.
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */

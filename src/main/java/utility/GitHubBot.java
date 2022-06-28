@@ -5,7 +5,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
+/**
+ * Responsible for handling all actions with the GitHub api.
+ * This class is a singleton.
+ *
+ * @author Ruben Eekhof - rubeneekhof@gmail.com
+ */
 public class GitHubBot {
 
 	final static Logger logger = LoggerFactory.getLogger(GitHubBot.class);
@@ -54,9 +63,11 @@ public class GitHubBot {
 
 	/**
 	 * Adds a bug to the issue tracker on the GitHub repository.
+	 *
+	 * @return The url of the created issue.
 	 */
-	public void createBugIssue(String title, String reproduce, String severity, String additionalInfo, String authorName,
-							   String authorId) {
+	public String createBugIssue(String title, String reproduce, String severity, String additionalInfo, String authorName,
+								 String authorId) {
 		try {
 			GHIssueBuilder issue = this.repository.createIssue(title);
 			String body = "## Steps to Reproduce\n" +
@@ -72,10 +83,43 @@ public class GitHubBot {
 			issue.label("bug");
 			issue.create();
 			logger.info(String.format("Issue created with title: %s", title));
+
+			List<GHIssue> issues = this.repository.getIssues(GHIssueState.ALL);
+			for (GHIssue _issue : issues) {
+				if (_issue.getTitle().equals(title)) {
+					return _issue.getHtmlUrl().toString();
+				}
+			}
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			logger.info("Failed to create issue.");
 		}
+		return "";
+	}
+
+	/**
+	 * Returns a bug by its issue number.
+	 *
+	 * @return an Optional of GHIssue.
+	 */
+	public Optional<GHIssue> getBug(int issueNumber) {
+		try {
+			List<GHIssue> issues = this.repository.getIssues(GHIssueState.OPEN);
+			for(GHIssue issue : issues) {
+				Collection<GHLabel> labels = issue.getLabels();
+				for(GHLabel label : labels) {
+					if(label.getName().equals("bug")) {
+						if(issueNumber == issue.getNumber()) {
+							return Optional.of(issue);
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			logger.info("Failed to load issues.");
+		}
+		return Optional.empty();
 	}
 
 }

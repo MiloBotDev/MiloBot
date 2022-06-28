@@ -19,12 +19,10 @@ import java.util.stream.Collectors;
  */
 public class CommandHandler extends ListenerAdapter {
 
+	public final static HashMap<String, String> prefixes = new HashMap<>();
 	private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
-
 	private final User user;
 	private final DatabaseManager manager;
-
-	public final static HashMap<String, String> prefixes = new HashMap<>();
 
 	public CommandHandler() {
 		this.user = User.getInstance();
@@ -104,10 +102,6 @@ public class CommandHandler extends ListenerAdapter {
 							return;
 						}
 					}
-					// execute the command
-					command.execute(event, receivedMessage);
-					logger.info(String.format("Executed command: %s | Author: %s.", fullCommandName,
-							event.getAuthor().getName()));
 					// update the tracker
 					command.updateCommandTracker(fullCommandName);
 					String userId = event.getAuthor().getId();
@@ -118,7 +112,10 @@ public class CommandHandler extends ListenerAdapter {
 								event.getAuthor().getName(), "0", "1", "0");
 					}
 					user.updateExperience(userId, 50, event);
-
+					// execute the command
+					command.execute(event, receivedMessage);
+					logger.info(String.format("Executed command: %s | Author: %s.", fullCommandName,
+							event.getAuthor().getName()));
 					// stops the loop
 					commandFound.set(true);
 				}

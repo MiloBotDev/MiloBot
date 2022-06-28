@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The wordle command.
+ * Play a game of wordle.
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
@@ -29,6 +29,7 @@ public class WordleCmd extends Command implements GamesCmd {
 		this.commandDescription = "Try to guess the 5 letter word.";
 		this.instanceTime = 300;
 		this.singleInstance = true;
+		this.aliases = new String[]{"morble"};
 		this.subCommands.add(new WordleLeaderboardCmd());
 		this.manager = DatabaseManager.getInstance();
 	}
@@ -81,23 +82,29 @@ public class WordleCmd extends Command implements GamesCmd {
 									manager.query(manager.addUserWordle, DatabaseManager.QueryTypes.UPDATE, id,
 											timeTaken, "true", "1", "1", "1");
 								} else {
-									int previousFastestTime = Integer.parseInt(resultQuery.get(1));
+									int timeTakenAsInt = Integer.parseInt(timeTaken);
+									String currentFastestTime;
+									if(!resultQuery.get(1).equals("null")) {
+										int previousFastestTime = Integer.parseInt(resultQuery.get(1));
+										int currentFastestTimeInt = Math.min(timeTakenAsInt, previousFastestTime);
+										currentFastestTime = String.valueOf(currentFastestTimeInt);
+										if (timeTakenAsInt < previousFastestTime) {
+											editDescription.append(String.format("That's a new personal best with an improvement of %d seconds!",
+													previousFastestTime - timeTakenAsInt));
+										} else if (timeTakenAsInt == previousFastestTime) {
+											editDescription.append("You tied your personal best.");
+										}
+									} else {
+										currentFastestTime = timeTaken;
+									}
 									int newStreak = Integer.parseInt(resultQuery.get(3)) + 1;
 									int highestStreak = Integer.parseInt(resultQuery.get(5));
-									int timeTakenAsInt = Integer.parseInt(timeTaken);
-									int currentFastestTime = Math.min(timeTakenAsInt, previousFastestTime);
 									int newTotalGames = Integer.parseInt(resultQuery.get(4)) + 1;
 									int newHighestStreak = Math.max(highestStreak, newStreak);
-									if (timeTakenAsInt < previousFastestTime) {
-										editDescription.append(String.format("That's a new personal best with an improvement of %d seconds!",
-												previousFastestTime - timeTakenAsInt));
-									} else if (timeTakenAsInt == previousFastestTime) {
-										editDescription.append("You tied your personal best.");
-									}
 									manager.query(manager.updateUserWordle, DatabaseManager.QueryTypes.UPDATE,
 											String.valueOf(currentFastestTime), "true", String.valueOf(newStreak),
 											String.valueOf(newTotalGames), String.valueOf(newHighestStreak), authorId);
-									editDescription.append(String.format("\n**Personal Best:** %d seconds.\n", currentFastestTime));
+									editDescription.append(String.format("\n**Personal Best:** %s seconds.\n", currentFastestTime));
 									editDescription.append(String.format("**Current Streak:** %d games.\n", newStreak));
 									editDescription.append(String.format("**Highest Streak:** %d games.\n", newHighestStreak));
 									editDescription.append(String.format("**Total Games Played:** %d games.", newTotalGames));
@@ -117,8 +124,12 @@ public class WordleCmd extends Command implements GamesCmd {
 									manager.query(manager.updateUserWordle, DatabaseManager.QueryTypes.UPDATE,
 											String.valueOf(resultQuery.get(1)), "false", "0",
 											String.valueOf(newTotalGames), highestStreak, authorId);
-									int previousFastestTime = Integer.parseInt(resultQuery.get(1));
-									editDescription.append(String.format("\n**Personal Best:** %d seconds.\n", previousFastestTime));
+									String previousFastestTime = resultQuery.get(1);
+									if(previousFastestTime.equals("null")) {
+										editDescription.append("\n**Personal Best:** not set yet.\n");
+									} else {
+										editDescription.append(String.format("\n**Personal Best:** %s seconds.\n", previousFastestTime));
+									}
 									editDescription.append(String.format("**Highest Streak:** %s games.\n", highestStreak));
 									editDescription.append(String.format("**Total Games Played:** %d games.", newTotalGames));
 								}

@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * The user command.
  * Shows the user an overview of their own account details, or that of someone in the same server.
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com

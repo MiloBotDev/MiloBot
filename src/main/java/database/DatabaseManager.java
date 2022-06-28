@@ -21,10 +21,6 @@ public class DatabaseManager {
 	final static Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 
 	private static DatabaseManager instance;
-
-	private final String connectionUrl;
-	private final SQLiteConfig sqliteConfig;
-
 	public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (commandName varchar(255), amount varchar(255));";
 	public final String createPrefixTable = "CREATE TABLE IF NOT EXISTS prefix (serverId varchar(255), prefix varchar(255));";
 	public final String createCommandUsageUserTable = "CREATE TABLE IF NOT EXISTS command_usage_user (commandName varchar(255), userId varchar(255), amount varchar(255));";
@@ -57,14 +53,9 @@ public class DatabaseManager {
 	public final String wordleGetTopHighestStreak = "SELECT user.name, wordle.highestStreak FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY CAST(wordle.highestStreak AS int) DESC LIMIT 100;";
 	public final String updateUserName = "UPDATE user SET name = ? WHERE userId = ?;";
 	public final String getAllUserIdsAndNames = "SELECT userId, name FROM user";
+	private final String connectionUrl;
+	private final SQLiteConfig sqliteConfig;
 
-
-	/**
-	 * The type of query you want to send.
-	 * UPDATE has no return value.
-	 * RETURN has a return value.
-	 */
-	public enum QueryTypes {UPDATE, RETURN}
 
 	/**
 	 * A private constructor since this class is a singleton.
@@ -177,4 +168,11 @@ public class DatabaseManager {
 		query(createUserTable, QueryTypes.UPDATE);
 		query(createWordleTable, QueryTypes.UPDATE);
 	}
+
+	/**
+	 * The type of query you want to send.
+	 * UPDATE has no return value.
+	 * RETURN has a return value.
+	 */
+	public enum QueryTypes {UPDATE, RETURN}
 }

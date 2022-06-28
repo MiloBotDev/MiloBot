@@ -6,15 +6,15 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
-import utility.User;
 import utility.EmbedUtils;
+import utility.User;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * The Profile Command.
  * Shows the user their own profile or that of someone else.
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
@@ -28,7 +28,7 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		this.commandName = "profile";
 		this.commandDescription = "View your own or someone else's profile.";
 		this.commandArgs = new String[]{"*user"};
-		this.cooldown = 60;
+		this.cooldown = 0;
 		this.manager = DatabaseManager.getInstance();
 		this.user = User.getInstance();
 	}
@@ -89,30 +89,53 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		String userAmount = resultGetUserAmount.get(0);
 
 		StringBuilder levelDescription = new StringBuilder();
-		levelDescription.append(String.format("`Level`: %s.\n", level));
-		levelDescription.append(String.format("`Experience`: %s.\n", experience));
+		String levelProgressBar = generateLevelProgressBar(Integer.parseInt(level), Integer.parseInt(experience));
+		levelDescription.append(String.format("**Level:** `%s`\n", level));
+		levelDescription.append(String.format("**Experience:** `%s`\n", experience));
+		levelDescription.append("**Progress till next level:** ");
+		levelDescription.append(String.format("`%s`", levelProgressBar));
 		embed.addField("Level", levelDescription.toString(), false);
-		generateLevelProgressBar(Integer.parseInt(level), Integer.parseInt(experience));
-
-//        StringBuilder description = new StringBuilder();
-
-//        description.append(String.format("`Wallet:` %s.\n", currency));
-//        description.append(String.format("Your are ranked as number %s out of %s users.", rank, userAmount));
-//        embed.setDescription(description);
 
 		event.getChannel().sendMessageEmbeds(embed.build()).queue();
 	}
 
-	private String generateLevelProgressBar(int currentLevel, int currentExperience) {
+	private @NotNull String generateLevelProgressBar(int currentLevel, int currentExperience) {
 		int nextLevel = currentLevel + 1;
 		if (nextLevel > user.maxLevel) {
 			return "You are at the maximum level.";
 		}
-		int nextlevelExperience = user.levels.get(nextLevel);
-		int experienceDifference = nextlevelExperience - user.levels.get(currentLevel);
-		int gainedExperience = nextlevelExperience - currentExperience;
-		System.out.println(experienceDifference / gainedExperience);
 
-		return "";
+		int experienceDifference = user.levels.get(nextLevel) - user.levels.get(currentLevel);
+		int gainedExperience = currentExperience - user.levels.get(currentLevel);
+		float percentageDone = (float) gainedExperience / experienceDifference;
+
+		DecimalFormat df = new DecimalFormat("#.#");
+		String neededBlocksFormat = df.format(percentageDone);
+		int neededBlocks = Integer.parseInt(neededBlocksFormat.substring(neededBlocksFormat.length() - 1));
+
+		df = new DecimalFormat("#.##");
+		String percentageDoneFormat = df.format(percentageDone);
+		if(percentageDoneFormat.length() == 3) {
+			percentageDoneFormat += "0";
+		}
+		String percentageDoneString;
+		if(percentageDoneFormat.equals("0")) {
+			percentageDoneString = "0";
+		} else {
+			percentageDoneString = percentageDoneFormat.substring(percentageDoneFormat.length() - 2);
+		}
+
+		StringBuilder progressBar = new StringBuilder("[");
+		for(int i =0; i < 10; i++) {
+			if(neededBlocks > 0) {
+				progressBar.append("#");
+				neededBlocks--;
+			} else {
+				progressBar.append("-");
+			}
+		}
+		progressBar.append(String.format("] %s", percentageDoneString)).append("%");
+
+		return progressBar.toString();
 	}
 }

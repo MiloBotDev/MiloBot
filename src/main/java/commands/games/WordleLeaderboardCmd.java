@@ -80,12 +80,12 @@ public class WordleLeaderboardCmd extends Command implements SubCommand {
 						query);
 				EmbedBuilder embedBuilder = pages.get(0);
 				message.editMessageEmbeds(embedBuilder.build()).queue(message1 -> {
-					final int[] currentPage = {0};
-					if (pages.size() != 0) {
-						message.addReaction("◀").queue();
-						message.addReaction("▶").queue();
-					}
-					message.addReaction("❌").queue();
+							final int[] currentPage = {0};
+							if (pages.size() != 0) {
+								message.addReaction("◀").queue();
+								message.addReaction("▶").queue();
+							}
+							message.addReaction("❌").queue();
 							ListenerAdapter totalGames = new ListenerAdapter() {
 								@Override
 								public void onMessageReactionAdd(@NotNull MessageReactionAddEvent eventReaction2) {
@@ -98,7 +98,7 @@ public class WordleLeaderboardCmd extends Command implements SubCommand {
 										switch (asReactionCode) {
 											case "◀":
 												message.removeReaction(asReactionCode, eventReaction2.getUser()).queue();
-												if(!(currentPage[0] - 1 < 0)) {
+												if (!(currentPage[0] - 1 < 0)) {
 													currentPage[0]--;
 													newEmbed.setDescription(pages.get(currentPage[0]).getDescriptionBuilder());
 													message.editMessageEmbeds(newEmbed.build()).queue();
@@ -106,7 +106,7 @@ public class WordleLeaderboardCmd extends Command implements SubCommand {
 												break;
 											case "▶":
 												message.removeReaction(asReactionCode, eventReaction2.getUser()).queue();
-												if(!(currentPage[0] + 1 == pages.size())) {
+												if (!(currentPage[0] + 1 == pages.size())) {
 													currentPage[0]++;
 													newEmbed.setDescription(pages.get(currentPage[0]).getDescriptionBuilder());
 													message.editMessageEmbeds(newEmbed.build()).queue();

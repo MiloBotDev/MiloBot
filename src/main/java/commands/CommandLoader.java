@@ -1,6 +1,7 @@
 package commands;
 
 import commands.bot.BugCmd;
+import commands.bot.BugReportCmd;
 import commands.economy.ProfileCmd;
 import commands.games.WordleCmd;
 import commands.utility.*;

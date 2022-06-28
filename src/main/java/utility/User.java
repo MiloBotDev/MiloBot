@@ -25,11 +25,10 @@ public class User {
 	final static Logger logger = LoggerFactory.getLogger(User.class);
 
 	private static User instance;
+	public final HashMap<Integer, Integer> levels;
 	private final DatabaseManager manager;
 	private final String levelsJsonPath;
 	public int maxLevel;
-
-	public final HashMap<Integer, Integer> levels;
 
 	private User() {
 		this.manager = DatabaseManager.getInstance();
