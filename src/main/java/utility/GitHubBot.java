@@ -106,11 +106,11 @@ public class GitHubBot {
 	public Optional<GHIssue> getBug(int issueNumber) {
 		try {
 			List<GHIssue> issues = this.repository.getIssues(GHIssueState.OPEN);
-			for(GHIssue issue : issues) {
+			for (GHIssue issue : issues) {
 				Collection<GHLabel> labels = issue.getLabels();
-				for(GHLabel label : labels) {
-					if(label.getName().equals("bug")) {
-						if(issueNumber == issue.getNumber()) {
+				for (GHLabel label : labels) {
+					if (label.getName().equals("bug")) {
+						if (issueNumber == issue.getNumber()) {
 							return Optional.of(issue);
 						}
 					}
@@ -132,7 +132,7 @@ public class GitHubBot {
 		ArrayList<GHIssue> bugs = new ArrayList<>();
 		try {
 			List<GHIssue> issues = this.repository.getIssues(GHIssueState.OPEN);
-			for(GHIssue issue : issues) {
+			for (GHIssue issue : issues) {
 				Collection<GHLabel> labels = issue.getLabels();
 				for (GHLabel label : labels) {
 					if (label.getName().equals("bug")) {

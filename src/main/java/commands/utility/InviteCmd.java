@@ -22,7 +22,7 @@ public class InviteCmd extends Command implements UtilityCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
 		event.getChannel().sendTyping().queue();
 		event.getChannel().sendMessage(event.getJDA().getInviteUrl(Permission.ADMINISTRATOR)).queue();
 	}

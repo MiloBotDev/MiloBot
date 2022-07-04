@@ -25,17 +25,17 @@ public class BugViewCmd extends Command implements SubCmd {
 
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-		if(args.size() < 1) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+		if (args.size() < 1) {
 			sendCommandUsage(event, this.commandName, this.commandArgs);
 		} else {
 			Optional<GHIssue> bug = gitHubBot.getBug(Integer.parseInt(args.get(0)));
-			if(bug.isEmpty()) {
+			if (bug.isEmpty()) {
 				event.getChannel().sendMessage(String.format("Bug with number: %s not found.", args.get(0))).queue();
 			} else {
 				GHIssue ghIssue = bug.get();
 				EmbedBuilder embed = new EmbedBuilder();
-				EmbedUtils.styleEmbed(event, embed);
+				EmbedUtils.styleEmbed(embed, event.getAuthor());
 				embed.setTitle(ghIssue.getTitle());
 				String body = ghIssue.getBody().replaceAll("#", "")
 						.replaceAll("Steps to Reproduce", "**Steps to Reproduce:**")

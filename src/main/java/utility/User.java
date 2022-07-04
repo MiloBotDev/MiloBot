@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import database.DatabaseManager;
+import database.queries.UserTableQueries;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class User {
 	 */
 	public boolean checkIfUserExists(String userId) {
 		boolean exists = false;
-		ArrayList<String> result = manager.query(manager.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
+		ArrayList<String> result = manager.query(UserTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
 		if (result.size() > 0) {
 			exists = true;
 		}
@@ -73,7 +74,7 @@ public class User {
 	 */
 	public void updateExperience(String userId, int experience, MessageReceivedEvent event) {
 		// load in their current experience and level
-		ArrayList<String> query = manager.query(manager.getUserExperienceAndLevel, DatabaseManager.QueryTypes.RETURN, userId);
+		ArrayList<String> query = manager.query(UserTableQueries.getUserExperienceAndLevel, DatabaseManager.QueryTypes.RETURN, userId);
 		int currentExperience = Integer.parseInt(query.get(0));
 		int currentLevel = Integer.parseInt(query.get(1));
 		int newExperience = currentExperience + experience;
@@ -83,7 +84,7 @@ public class User {
 			int nextLevelExperience = levels.get(nextLevel);
 			if (newExperience >= nextLevelExperience) {
 				// user leveled up so update their level and experience
-				manager.query(manager.updateUserLevelAndExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(nextLevel),
+				manager.query(UserTableQueries.updateUserLevelAndExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(nextLevel),
 						String.valueOf(newExperience), userId);
 				logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
 				// send a message to the channel the user leveled up in
@@ -91,12 +92,12 @@ public class User {
 				event.getChannel().sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
 			} else {
 				// user didn't level up so just update their experience
-				manager.query(manager.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
+				manager.query(UserTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
 						userId);
 			}
 		} else {
 			// user didn't level up so just update their experience
-			manager.query(manager.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
+			manager.query(UserTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
 					userId);
 		}
 	}

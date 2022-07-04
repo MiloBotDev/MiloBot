@@ -3,7 +3,6 @@ package commands.bot.bug;
 import commands.Command;
 import commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
@@ -30,11 +29,11 @@ public class BugListCmd extends Command implements SubCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 		ArrayList<EmbedBuilder> pages = createPages();
 
 		EmbedBuilder startingEmbed = pages.get(0);
-		EmbedUtils.styleEmbed(event, startingEmbed);
+		EmbedUtils.styleEmbed(startingEmbed, event.getAuthor());
 		event.getChannel().sendMessageEmbeds(startingEmbed.build()).queue(message ->
 				EmbedUtils.createPaginator(event, "Bugs", pages, message, event.getAuthor().getId()));
 	}
@@ -53,16 +52,16 @@ public class BugListCmd extends Command implements SubCmd {
 		page.setTitle("Bugs");
 
 		int rowCount = 0;
-		for(int i=0; i < allBugs.size(); i++) {
+		for (int i = 0; i < allBugs.size(); i++) {
 			GHIssue ghIssue = allBugs.get(i);
 			description.append(String.format("`%s:` %s...\n", ghIssue.getNumber(), ghIssue.getTitle().substring(0, 50)));
-			if(i + 1 == allBugs.size()) {
+			if (i + 1 == allBugs.size()) {
 				page.setDescription(description.toString());
 				pages.add(page);
 				break;
 			}
 			rowCount++;
-			if(rowCount == 10) {
+			if (rowCount == 10) {
 				rowCount = 0;
 				page.setDescription(description.toString());
 				pages.add(page);

@@ -3,6 +3,7 @@ package commands.games.wordle;
 import commands.Command;
 import commands.SubCmd;
 import database.DatabaseManager;
+import database.queries.WordleTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -32,10 +33,10 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 		String consumerId = event.getAuthor().getId();
 		EmbedBuilder embed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, embed);
+		EmbedUtils.styleEmbed(embed, event.getAuthor());
 		embed.setTitle("Leaderboards");
 
 		String description = "Select the leaderboard you want to view:\n" +
@@ -46,7 +47,7 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 		event.getChannel().sendMessageEmbeds(embed.build()).queue(message -> {
 			message.addReaction("1️⃣").queue();
 			message.addReaction("2️⃣").queue();
-			message.addReaction("❌").queue();
+			message.addReaction("⏹").queue();
 			ListenerAdapter listener = getListenerAdapterLeaderboard(event, consumerId, message);
 			message.getJDA().getRateLimitPool().schedule(() -> event.getJDA().removeEventListener(listener),
 					1, TimeUnit.MINUTES);
@@ -68,19 +69,19 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 					switch (asReactionCode) {
 						case "1️⃣":
 							pages = makeLeaderboardEmbeds(event, "Top 100: total games played",
-									manager.wordleGetTopTotalGamesPlayed);
-							EmbedUtils.createPaginator(event,"Top 100: total games played", pages,
+									WordleTableQueries.wordleGetTopTotalGamesPlayed);
+							EmbedUtils.createPaginator(event, "Top 100: total games played", pages,
 									message, consumerId);
 							event.getJDA().removeEventListener(this);
 							break;
 						case "2️⃣":
 							pages = makeLeaderboardEmbeds(event, "Top 100: highest streak",
-									manager.wordleGetTopHighestStreak);
+									WordleTableQueries.wordleGetTopHighestStreak);
 							EmbedUtils.createPaginator(event, "Top 100: highest streak", pages,
 									message, consumerId);
 							event.getJDA().removeEventListener(this);
 							break;
-						case "❌":
+						case "⏹":
 							event.getJDA().removeEventListener(this);
 							event.getChannel().deleteMessageById(messageId).queue();
 					}
@@ -96,7 +97,7 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 				int rank = 1;
 				EmbedBuilder page = new EmbedBuilder();
 				page.setTitle(title);
-				EmbedUtils.styleEmbed(event, page);
+				EmbedUtils.styleEmbed(page, event.getAuthor());
 				StringBuilder description = new StringBuilder();
 				for (int i = 0; i < result.size(); i += 2) {
 					description.append(String.format("`%d`: %s - %s total games.\n", rank, result.get(i), result.get(i + 1)));
@@ -112,7 +113,7 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 
 						rowCount = 0;
 						page = new EmbedBuilder();
-						EmbedUtils.styleEmbed(event, page);
+						EmbedUtils.styleEmbed(page, event.getAuthor());
 						page.setTitle(title);
 						description = new StringBuilder();
 					}

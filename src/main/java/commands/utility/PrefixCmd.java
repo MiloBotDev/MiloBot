@@ -3,6 +3,7 @@ package commands.utility;
 import commands.Command;
 import commands.CommandHandler;
 import database.DatabaseManager;
+import database.queries.PrefixTableQueries;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -29,12 +30,12 @@ public class PrefixCmd extends Command implements UtilityCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 		if (args.get(0).length() > 1) {
 			event.getChannel().sendTyping().queue();
 			event.getChannel().sendMessage("A prefix cant be longer then 1 character.").queue();
 		} else {
-			this.manager.query(manager.updateServerPrefix, DatabaseManager.QueryTypes.UPDATE, args.get(0), event.getGuild().getId());
+			this.manager.query(PrefixTableQueries.updateServerPrefix, DatabaseManager.QueryTypes.UPDATE, args.get(0), event.getGuild().getId());
 			CommandHandler.prefixes.replace(event.getGuild().getId(), args.get(0));
 			event.getChannel().sendMessage(String.format("Prefix successfully changed to: %s", args.get(0))).queue();
 		}

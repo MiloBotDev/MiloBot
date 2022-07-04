@@ -38,7 +38,7 @@ public class BugReportCmd extends Command implements SubCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 		String authorId = event.getAuthor().getId();
 		ArrayList<String> results = new ArrayList<>();
 		askQuestion(event, this.questions, authorId, results);

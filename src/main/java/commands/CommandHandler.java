@@ -1,6 +1,9 @@
 package commands;
 
 import database.DatabaseManager;
+import database.queries.PrefixTableQueries;
+import database.queries.UserTableQueries;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +31,7 @@ public class CommandHandler extends ListenerAdapter {
 		this.user = User.getInstance();
 		this.manager = DatabaseManager.getInstance();
 		// loads all the prefixes into a map
-		ArrayList<String> query = manager.query(manager.getAllPrefixes, DatabaseManager.QueryTypes.RETURN);
+		ArrayList<String> query = manager.query(PrefixTableQueries.getAllPrefixes, DatabaseManager.QueryTypes.RETURN);
 		for (int i = 0; i < query.size(); i += 2) {
 			prefixes.put(query.get(i), query.get(i + 1));
 			if (i == query.size()) {
@@ -56,6 +59,9 @@ public class CommandHandler extends ListenerAdapter {
 					return;
 				}
 				if (strings.contains(receivedMessage.get(0).toLowerCase(Locale.ROOT).replaceFirst(prefix, ""))) {
+					// stops the loop
+					commandFound.set(true);
+
 					receivedMessage.remove(0);
 					String fullCommandName;
 					Command command = CommandLoader.commandList.get(strings);
@@ -84,8 +90,8 @@ public class CommandHandler extends ListenerAdapter {
 						return;
 					}
 					// check if the command is a parent command
-					if(command instanceof ParentCmd) {
-						command.sendCommandExplanation(event, command.commandName, command.subCommands, prefix  );
+					if (command instanceof ParentCmd) {
+						command.sendCommandExplanation(event, command.commandName, command.subCommands, prefix);
 						return;
 					}
 					// check if all required args are present
@@ -108,24 +114,38 @@ public class CommandHandler extends ListenerAdapter {
 						}
 					}
 					// update the tracker
-					command.updateCommandTracker(fullCommandName);
 					String userId = event.getAuthor().getId();
 					command.updateCommandTrackerUser(fullCommandName, userId);
 					// check if this user exists in the database otherwise add it
 					if (!user.checkIfUserExists(userId)) {
-						manager.query(manager.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
+						manager.query(UserTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
 								event.getAuthor().getName(), "0", "1", "0");
 					}
 					user.updateExperience(userId, 50, event);
 					// execute the command
-					command.execute(event, receivedMessage);
+					command.executeCommand(event, receivedMessage);
 					logger.info(String.format("Executed command: %s | Author: %s.", fullCommandName,
 							event.getAuthor().getName()));
-					// stops the loop
-					commandFound.set(true);
 				}
 			});
 		}
+	}
+
+	@Override
+	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+		// ignore commands not from a guild
+		if(event.getGuild() == null) {
+			return;
+		}
+		AtomicBoolean commandFound = new AtomicBoolean(false);
+		CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
+			if(strings.contains(event.getName())) {
+				commandFound.set(true);
+				Command command = CommandLoader.commandList.get(strings);
+				command.executeSlashCommand(event);
+			}
+		});
+
 	}
 
 }

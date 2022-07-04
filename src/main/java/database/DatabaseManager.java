@@ -1,5 +1,9 @@
 package database;
 
+import database.queries.CommandTrackerTableQueries;
+import database.queries.PrefixTableQueries;
+import database.queries.UserTableQueries;
+import database.queries.WordleTableQueries;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,38 +25,7 @@ public class DatabaseManager {
 	final static Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 
 	private static DatabaseManager instance;
-	public final String createCommandUsageTable = "CREATE TABLE IF NOT EXISTS command_usage (commandName varchar(255), amount varchar(255));";
-	public final String createPrefixTable = "CREATE TABLE IF NOT EXISTS prefix (serverId varchar(255), prefix varchar(255));";
-	public final String createCommandUsageUserTable = "CREATE TABLE IF NOT EXISTS command_usage_user (commandName varchar(255), userId varchar(255), amount varchar(255));";
-	public final String createUserTable = "CREATE TABLE IF NOT EXISTS user (userId varchar(255), name varchar(255), currency varchar(255), level varchar(255), experience varchar(255));";
-	public final String createWordleTable = "CREATE TABLE IF NOT EXISTS wordle (userId varchar(255), fastestTime varchar(255), wonLastGame varchar(255), streak varchar(255), totalGames varchar(255), highestStreak varchar(255));";
-	public final String getAllCommandUsages = "SELECT * FROM command_usage;";
-	public final String checkIfCommandUsageUserTracked = "SELECT * FROM command_usage_user WHERE commandName = ? AND userId = ?;";
-	public final String checkIfCommandTracked = "SELECT CommandName FROM command_usage WHERE commandName = ?;";
-	public final String addCommandToTracker = "INSERT INTO command_usage(commandName, amount) VALUES(?, ?);";
-	public final String addCommandUsageUserToTracker = "INSERT INTO command_usage_user(commandName, userId, amount) VALUES(?, ?, ?);";
-	public final String checkCommandUsageAmount = "SELECT amount FROM command_usage WHERE commandName = ?";
-	public final String checkCommandUsageUserAmount = "SELECT amount FROM command_usage_user WHERE commandName = ? AND userId = ?";
-	public final String updateCommandUsageAmount = "UPDATE command_usage SET amount = ? WHERE commandName = ?";
-	public final String updateCommandUsageUserAmount = "UPDATE command_usage_user SET amount = ? WHERE commandName = ? AND userId = ?";
-	public final String addServerPrefix = "INSERT INTO prefix(serverId, prefix) VALUES(?, ?);";
-	public final String deleteServerPrefix = "DELETE FROM prefix WHERE serverId = ?;";
-	public final String updateServerPrefix = "UPDATE prefix SET prefix = ? WHERE serverId = ?;";
-	public final String getAllPrefixes = "SELECT serverId, prefix FROM prefix;";
-	public final String addUser = "INSERT INTO user(userId, name, currency, level, experience) VALUES(?, ?, ?, ?, ?);";
-	public final String addUserWordle = "INSERT INTO wordle(userId, fastestTime, wonLastGame, streak, totalGames, highestStreak) VALUES(?, ?, ?, ?, ?, ?)";
-	public final String updateUserWordle = "UPDATE wordle SET fastestTime = ?, wonLastGame = ?, streak = ?, totalGames = ?, highestStreak = ? WHERE userId = ?";
-	public final String selectUser = "SELECT * FROM user WHERE userId = ?;";
-	public final String selectUserWordle = "SELECT * FROM wordle WHERE userId = ?";
-	public final String updateUserExperience = "UPDATE user SET experience = ? WHERE userId = ?;";
-	public final String updateUserLevelAndExperience = "UPDATE user SET level = ?, experience = ? WHERE userId = ?;";
-	public final String getUserExperienceAndLevel = "SELECT experience, level FROM user WHERE userId = ?;";
-	public final String getUserRankByExperience = "SELECT rank FROM (SELECT userId, row_number() over () as rank FROM (SELECT userId FROM (SELECT userId FROM user ORDER BY experience DESC))) WHERE userId = ?";
-	public final String getUserAmount = "SELECT count(*) FROM user;";
-	public final String wordleGetTopTotalGamesPlayed = "SELECT user.name, wordle.totalGames FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY CAST(wordle.totalGames AS int) DESC LIMIT 100;";
-	public final String wordleGetTopHighestStreak = "SELECT user.name, wordle.highestStreak FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY CAST(wordle.highestStreak AS int) DESC LIMIT 100;";
-	public final String updateUserName = "UPDATE user SET name = ? WHERE userId = ?;";
-	public final String getAllUserIdsAndNames = "SELECT userId, name FROM user";
+
 	private final String connectionUrl;
 	private final SQLiteConfig sqliteConfig;
 
@@ -162,11 +135,10 @@ public class DatabaseManager {
 	 * Creates all tables.
 	 */
 	public void createAndFillAllTables() {
-		query(createCommandUsageTable, QueryTypes.UPDATE);
-		query(createPrefixTable, QueryTypes.UPDATE);
-		query(createCommandUsageUserTable, QueryTypes.UPDATE);
-		query(createUserTable, QueryTypes.UPDATE);
-		query(createWordleTable, QueryTypes.UPDATE);
+		query(PrefixTableQueries.createPrefixTable, QueryTypes.UPDATE);
+		query(CommandTrackerTableQueries.createCommandUsageUserTable, QueryTypes.UPDATE);
+		query(UserTableQueries.createUserTable, QueryTypes.UPDATE);
+		query(WordleTableQueries.createWordleTable, QueryTypes.UPDATE);
 	}
 
 	/**

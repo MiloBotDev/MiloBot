@@ -2,6 +2,7 @@ package commands.economy;
 
 import commands.Command;
 import database.DatabaseManager;
+import database.queries.UserTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -13,6 +14,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Shows the user their own profile or that of someone else.
@@ -34,7 +36,7 @@ public class ProfileCmd extends Command implements EconomyCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 		if (args.size() == 0) {
 			event.getChannel().sendTyping().queue();
 			String userId = event.getAuthor().getId();
@@ -48,10 +50,8 @@ public class ProfileCmd extends Command implements EconomyCmd {
 						.onSuccess(members -> {
 							usersByName.addAll(members);
 							if (usersByName.size() == 0) {
-								event.getChannel().sendTyping().queue();
 								event.getChannel().sendMessage(String.format("User `%s` not found.", findUser)).queue();
 							} else {
-								event.getChannel().sendTyping().queue();
 								String userId = usersByName.get(0).getId();
 								String name = usersByName.get(0).getUser().getName();
 								makeEmbed(event, userId, name);
@@ -71,16 +71,9 @@ public class ProfileCmd extends Command implements EconomyCmd {
 	 * @param name   - The name of the User you want to get the profile of
 	 */
 	private void makeEmbed(MessageReceivedEvent event, String userId, String name) {
-		EmbedBuilder embed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, embed);
-		embed.setTitle(name);
-
-		ArrayList<String> resultSelectUser = manager.query(manager.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
-		ArrayList<String> resultGetUserRank = manager.query(manager.getUserRankByExperience, DatabaseManager.QueryTypes.RETURN, userId);
-		ArrayList<String> resultGetUserAmount = manager.query(manager.getUserAmount, DatabaseManager.QueryTypes.RETURN);
-		if (resultSelectUser.size() == 0) {
-			event.getChannel().sendMessage("User doesn't have a profile.").queue();
-		}
+		ArrayList<String> resultSelectUser = manager.query(UserTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
+		ArrayList<String> resultGetUserRank = manager.query(UserTableQueries.getUserRankByExperience, DatabaseManager.QueryTypes.RETURN, userId);
+		ArrayList<String> resultGetUserAmount = manager.query(UserTableQueries.getUserAmount, DatabaseManager.QueryTypes.RETURN);
 		String userName = resultSelectUser.get(1);
 		String currency = resultSelectUser.get(2);
 		String level = resultSelectUser.get(3);
@@ -88,21 +81,34 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		String rank = resultGetUserRank.get(0);
 		String userAmount = resultGetUserAmount.get(0);
 
+		EmbedBuilder embed = new EmbedBuilder();
+		EmbedUtils.styleEmbed(embed, event.getAuthor());
+		embed.setTitle(name);
+
+		if (resultSelectUser.size() == 0) {
+			event.getChannel().sendMessage("User doesn't have a profile.").queue();
+		}
+
 		StringBuilder levelDescription = new StringBuilder();
-		String levelProgressBar = generateLevelProgressBar(Integer.parseInt(level), Integer.parseInt(experience));
+		Optional<String> levelProgressBar = generateLevelProgressBar(Integer.parseInt(level), Integer.parseInt(experience));
 		levelDescription.append(String.format("**Level:** `%s`\n", level));
 		levelDescription.append(String.format("**Experience:** `%s`\n", experience));
-		levelDescription.append("**Progress till next level:** ");
-		levelDescription.append(String.format("`%s`", levelProgressBar));
-		embed.addField("Level", levelDescription.toString(), false);
+		if (levelProgressBar.isPresent()) {
+			levelDescription.append("**Progress till next level:** ");
+			levelDescription.append(String.format("`%s`\n", levelProgressBar));
+		} else {
+			levelDescription.append("You are at the maximum level.\n");
+		}
+		levelDescription.append(String.format("You are rank `%s` out of `%s` people.", rank, userAmount));
+		embed.setDescription(levelDescription.toString());
 
 		event.getChannel().sendMessageEmbeds(embed.build()).queue();
 	}
 
-	private @NotNull String generateLevelProgressBar(int currentLevel, int currentExperience) {
+	private @NotNull Optional<String> generateLevelProgressBar(int currentLevel, int currentExperience) {
 		int nextLevel = currentLevel + 1;
 		if (nextLevel > user.maxLevel) {
-			return "You are at the maximum level.";
+			return Optional.empty();
 		}
 
 		int experienceDifference = user.levels.get(nextLevel) - user.levels.get(currentLevel);
@@ -115,19 +121,19 @@ public class ProfileCmd extends Command implements EconomyCmd {
 
 		df = new DecimalFormat("#.##");
 		String percentageDoneFormat = df.format(percentageDone);
-		if(percentageDoneFormat.length() == 3) {
+		if (percentageDoneFormat.length() == 3) {
 			percentageDoneFormat += "0";
 		}
 		String percentageDoneString;
-		if(percentageDoneFormat.equals("0")) {
+		if (percentageDoneFormat.equals("0")) {
 			percentageDoneString = "0";
 		} else {
 			percentageDoneString = percentageDoneFormat.substring(percentageDoneFormat.length() - 2);
 		}
 
 		StringBuilder progressBar = new StringBuilder("[");
-		for(int i =0; i < 10; i++) {
-			if(neededBlocks > 0) {
+		for (int i = 0; i < 10; i++) {
+			if (neededBlocks > 0) {
 				progressBar.append("#");
 				neededBlocks--;
 			} else {
@@ -136,6 +142,6 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		}
 		progressBar.append(String.format("] %s", percentageDoneString)).append("%");
 
-		return progressBar.toString();
+		return Optional.of(progressBar.toString());
 	}
 }

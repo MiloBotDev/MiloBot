@@ -25,7 +25,7 @@ public class WordleCmd extends Command implements GamesCmd, ParentCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 
 	}
 }

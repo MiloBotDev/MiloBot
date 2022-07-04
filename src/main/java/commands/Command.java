@@ -1,9 +1,13 @@
 package commands;
 
 import database.DatabaseManager;
+import database.queries.CommandTrackerTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
@@ -93,9 +97,15 @@ public abstract class Command {
 	/**
 	 * The default implementation for every command.
 	 */
-	public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
-		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessage("This command has not yet been implemented!").queue();
+	public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+		event.getChannel().sendMessage("This command has not yet been implemented.").queue();
+	}
+
+	/**
+	 * The default implementation for every slash command.
+	 */
+	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+		event.getChannel().sendMessage("This command has not yet been implemented.").queue();
 	}
 
 	/**
@@ -109,7 +119,9 @@ public abstract class Command {
 		boolean flagPresent = false;
 		// checks if --help flag is present as an argument
 		if (args.contains("--help")) {
-			generateHelp(event, commandName, commandDescription, commandArgs, aliases, flags, cooldown, subCommands);
+			EmbedBuilder embedBuilder = generateHelp(commandName, commandDescription, commandArgs, aliases, flags, cooldown, subCommands,
+					event.getGuild(), event.getAuthor());
+			event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
 			flagPresent = true;
 		}
 		// checks if the --stats flag is present as an argument
@@ -174,32 +186,17 @@ public abstract class Command {
 	}
 
 	/**
-	 * Updates the command tracker for the given command name.
-	 */
-	public void updateCommandTracker(String commandName) {
-		DatabaseManager manager = DatabaseManager.getInstance();
-		ArrayList<String> query = manager.query(manager.checkIfCommandTracked, DatabaseManager.QueryTypes.RETURN, commandName);
-		if (query.size() == 0) {
-			manager.query(manager.addCommandToTracker, DatabaseManager.QueryTypes.UPDATE, commandName, "1");
-		} else {
-			ArrayList<String> result = manager.query(manager.checkCommandUsageAmount, DatabaseManager.QueryTypes.RETURN, commandName);
-			String newAmount = Integer.toString(Integer.parseInt(result.get(0)) + 1);
-			manager.query(manager.updateCommandUsageAmount, DatabaseManager.QueryTypes.UPDATE, newAmount, commandName);
-		}
-	}
-
-	/**
 	 * Updates the command tracker for a specific user;
 	 */
 	public void updateCommandTrackerUser(String commandName, String userId) {
 		DatabaseManager manager = DatabaseManager.getInstance();
-		ArrayList<String> query = manager.query(manager.checkIfCommandUsageUserTracked, DatabaseManager.QueryTypes.RETURN, commandName, userId);
+		ArrayList<String> query = manager.query(CommandTrackerTableQueries.checkIfCommandUsageUserTracked, DatabaseManager.QueryTypes.RETURN, commandName, userId);
 		if (query.size() == 0) {
-			manager.query(manager.addCommandUsageUserToTracker, DatabaseManager.QueryTypes.UPDATE, commandName, userId, "1");
+			manager.query(CommandTrackerTableQueries.addCommandUsageUserToTracker, DatabaseManager.QueryTypes.UPDATE, commandName, userId, "1");
 		} else {
-			ArrayList<String> result = manager.query(manager.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, userId);
+			ArrayList<String> result = manager.query(CommandTrackerTableQueries.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, userId);
 			String newAmount = Integer.toString(Integer.parseInt(result.get(0)) + 1);
-			manager.query(manager.updateCommandUsageUserAmount, DatabaseManager.QueryTypes.UPDATE, newAmount, commandName, userId);
+			manager.query(CommandTrackerTableQueries.updateCommandUsageUserAmount, DatabaseManager.QueryTypes.UPDATE, newAmount, commandName, userId);
 		}
 	}
 
@@ -208,14 +205,11 @@ public abstract class Command {
 	 */
 	public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
 		DatabaseManager manager = DatabaseManager.getInstance();
-		ArrayList<String> totalAmount = manager.query(manager.checkCommandUsageAmount, DatabaseManager.QueryTypes.RETURN, commandName);
-		ArrayList<String> personalAmount = manager.query(manager.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, event.getAuthor().getId());
+		ArrayList<String> personalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, event.getAuthor().getId());
 
 		EmbedBuilder stats = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, stats);
-		stats.setTitle(String.format("Stats for %s", commandName));
-		stats.addField("Total Usages", String.format("This command has been used %d times.", Integer.parseInt(totalAmount.get(0))), false);
-		stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
+		EmbedUtils.styleEmbed(stats, event.getAuthor());
+		stats.setTitle(String.format("Stats for %s", commandName));stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
 
 		event.getChannel().sendTyping().queue();
 		event.getChannel().sendMessageEmbeds(stats.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
@@ -224,14 +218,14 @@ public abstract class Command {
 	/**
 	 * Generates a standard help message for when the command is called with the --help flag.
 	 */
-	public void generateHelp(@NotNull MessageReceivedEvent event, String commandName, String commandDescription,
-							 String @NotNull [] commandArgs, String @NotNull [] aliases, String[] flags, int cooldown,
-							 @NotNull ArrayList<Command> subCommands) {
-		String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
-		String consumerId = event.getAuthor().getId();
+	public EmbedBuilder generateHelp(String commandName, String commandDescription, String @NotNull [] commandArgs,
+									 String @NotNull [] aliases, String[] flags, int cooldown,
+									 @NotNull ArrayList<Command> subCommands, @NotNull Guild guild, @NotNull User author) {
+		String prefix = CommandHandler.prefixes.get(guild.getId());
+		String consumerId = author.getId();
 
 		EmbedBuilder info = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, info);
+		EmbedUtils.styleEmbed(info, author);
 		info.setTitle(commandName);
 		info.setDescription(commandDescription);
 
@@ -279,9 +273,7 @@ public abstract class Command {
 			info.addField("Permissions", permissionsText.toString(), false);
 		}
 
-		event.getChannel().sendTyping().queue();
-		MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());
-		messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerId));
+		return info;
 	}
 
 	/**
@@ -337,7 +329,7 @@ public abstract class Command {
 		String consumerId = event.getAuthor().getId();
 
 		EmbedBuilder info = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, info);
+		EmbedUtils.styleEmbed(info, event.getAuthor());
 		info.setTitle("Missing required arguments");
 		info.setDescription(getArgumentsText(commandName, commandArgs, prefix));
 
@@ -352,7 +344,7 @@ public abstract class Command {
 	public void sendCommandExplanation(@NotNull MessageReceivedEvent event, String commandName,
 									   @NotNull ArrayList<Command> subCommands, String prefix) {
 		EmbedBuilder embed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, embed);
+		EmbedUtils.styleEmbed(embed, event.getAuthor());
 		embed.setTitle(commandName);
 		embed.setDescription("This is the base command for all wordle related commands. Please use any of the " +
 				"commands listed below.");
@@ -417,7 +409,7 @@ public abstract class Command {
 			}
 		});
 		EmbedBuilder embed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, embed);
+		EmbedUtils.styleEmbed(embed, event.getAuthor());
 		embed.setTitle(String.format("Missing required permissions for: %s%s", prefix, commandName));
 		StringBuilder missingPermissionsText = new StringBuilder();
 		missingPermissionsText.append("You are missing the following permission(s): ");

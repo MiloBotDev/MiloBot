@@ -29,10 +29,10 @@ public class UserCmd extends Command implements UtilityCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		EmbedBuilder userEmbed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, userEmbed);
+		EmbedUtils.styleEmbed(userEmbed, event.getAuthor());
 
 		final User[] user = new User[1];
 		final User.Profile[] userProfile = new User.Profile[1];

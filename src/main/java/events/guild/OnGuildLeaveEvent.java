@@ -2,6 +2,7 @@ package events.guild;
 
 import commands.CommandHandler;
 import database.DatabaseManager;
+import database.queries.PrefixTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
@@ -52,7 +53,7 @@ public class OnGuildLeaveEvent extends ListenerAdapter {
 		logs.sendTyping().queue();
 		logs.sendMessageEmbeds(embed.build()).queue();
 
-		manager.query(manager.deleteServerPrefix, DatabaseManager.QueryTypes.UPDATE, event.getGuild().getId());
+		manager.query(PrefixTableQueries.deleteServerPrefix, DatabaseManager.QueryTypes.UPDATE, event.getGuild().getId());
 		CommandHandler.prefixes.remove(event.getGuild().getId());
 		logger.info(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
 	}

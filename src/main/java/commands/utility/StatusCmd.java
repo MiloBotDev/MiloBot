@@ -25,9 +25,9 @@ public class StatusCmd extends Command implements UtilityCmd {
 	}
 
 	@Override
-	public void execute(@NotNull MessageReceivedEvent event, List<String> args) {
+	public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
 		EmbedBuilder embed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(event, embed);
+		EmbedUtils.styleEmbed(embed, event.getAuthor());
 
 		JDA jda = event.getJDA();
 		List<Guild> guilds = jda.getGuilds();
