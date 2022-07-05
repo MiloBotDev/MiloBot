@@ -7,6 +7,9 @@ import utility.Config;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Random;
@@ -100,17 +103,15 @@ public class Wordle {
 	 * Loads the wordle_words.txt file into an ArrayList.
 	 */
 	private void loadWordsAsList() {
-		try {
-			Scanner s = new Scanner(new File(Config.getInstance().wordleWordsPath));
-			ArrayList<String> list = new ArrayList<>();
-			while (s.hasNext()) {
-				list.add(s.next());
-			}
-			s.close();
-			this.words = list;
-		} catch (FileNotFoundException e) {
-			logger.info("wordle_words.txt not found.");
-			logger.error(e.getMessage());
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream(Config.getInstance().wordleWordsPath);
+		InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
+		Scanner s = new Scanner(streamReader);
+		ArrayList<String> list = new ArrayList<>();
+		while (s.hasNext()) {
+			list.add(s.next());
 		}
+		s.close();
+		this.words = list;
 	}
 }

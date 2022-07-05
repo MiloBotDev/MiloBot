@@ -2,10 +2,14 @@ package commands.dnd;
 
 import commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +34,9 @@ public class EncounterCmd extends Command implements DndCmd {
 	private final String[] environments;
 	private final EncounterGenerator gen;
 
-	public EncounterCmd() {
+	private static EncounterCmd instance;
+
+	private EncounterCmd() {
 		this.commandName = "encounter";
 		this.commandDescription = "Generate a random encounter for a given average party level, party size, " +
 				"difficulty and an optional environment.";
@@ -39,6 +45,13 @@ public class EncounterCmd extends Command implements DndCmd {
 		this.difficulties = new String[]{"easy", "medium", "difficult", "deadly"};
 		this.environments = new String[]{"city", "dungeon", "forest", "nature", "other plane", "underground", "water"};
 		this.gen = EncounterGenerator.getInstance();
+	}
+
+	public static EncounterCmd getInstance() {
+		if(instance == null) {
+			instance = new EncounterCmd();
+		}
+		return instance;
 	}
 
 	@Override
@@ -92,8 +105,9 @@ public class EncounterCmd extends Command implements DndCmd {
 			}
 		}
 		EmbedBuilder embed = buildEncounterEmbed(event.getAuthor(), partySize, partyLevel, difficulty, difficultyAsInt, environment);
-		event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(Button.secondary(event.getAuthor().getId()
-				+ ":delete", "Delete")).queue();
+		event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
+				Button.primary(event.getAuthor().getId() + ":regenerate", "Regenerate"),
+				Button.secondary(event.getAuthor().getId() + ":delete", "Delete"))).queue();
 	}
 
 	@Override
@@ -107,7 +121,9 @@ public class EncounterCmd extends Command implements DndCmd {
 			environment = Objects.requireNonNull(event.getOption("environment")).getAsString();
 		}
 		EmbedBuilder embedBuilder = buildEncounterEmbed(event.getUser(), partySize, partyLevel, difficulty, difficultyAsInt, environment);
-		event.replyEmbeds(embedBuilder.build()).addActionRow(Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
+		event.replyEmbeds(embedBuilder.build()).addActionRows(
+				ActionRow.of(Button.primary(event.getUser().getId() + ":regenerate", "Regenerate"),
+						Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
 	}
 
 	@NotNull
@@ -125,6 +141,35 @@ public class EncounterCmd extends Command implements DndCmd {
 		embed.setDescription(desc);
 		embed.addField("Encounter", encounter, false);
 		return embed;
+	}
+
+	public @NotNull EmbedBuilder regenerateEncounter(@NotNull MessageEmbed embed) {
+		EmbedBuilder newEmbed = new EmbedBuilder();
+		newEmbed.setTitle(embed.getTitle());
+		String description = embed.getDescription();
+		newEmbed.setDescription(description);
+
+		int partySize;
+		int partyLevel;
+		int difficultyAsInt;
+		String environment = null;
+		String difficulty;
+
+		String s = description.replaceAll("[*\n]", "").replaceAll(" ", "");
+		partySize = Integer.parseInt(StringUtils.substringBetween(s, "PartySize:", "PartyLevel"));
+		partyLevel = Integer.parseInt(StringUtils.substringBetween(s, "PartyLevel:", "Difficulty"));
+		if(s.contains("Environment:")) {
+			difficulty = StringUtils.substringBetween(s, "Difficulty:", "Environment");
+			environment = s.substring(s.indexOf("nt:") + 3);
+		} else {
+			difficulty = s.substring(s.indexOf("ty:") + 3);
+		}
+		difficultyAsInt = Arrays.asList(difficulties).indexOf(difficulty.toLowerCase(Locale.ROOT)) + 1;
+
+		String encounter = gen.generateEncounter(partySize, partyLevel, difficultyAsInt, environment);
+		newEmbed.addField("Encounter", encounter, false);
+
+		return newEmbed;
 	}
 
 }

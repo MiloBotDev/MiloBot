@@ -4,9 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
@@ -36,12 +35,19 @@ public class EncounterGenerator {
 		return instance;
 	}
 
+	public static void main(String[] args) {
+		EncounterGenerator.getInstance().loadMonsters();
+	}
+
 	/**
 	 * Loads all the monsters from the csv file into a list.
 	 */
 	public void loadMonsters() {
 		this.monsters = new ArrayList<>();
-		try(BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().monstersCsvPath))) {
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream(Config.getInstance().monstersCsvPath);
+		InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
+		try(BufferedReader br = new BufferedReader(streamReader)) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] split = line.split(",");

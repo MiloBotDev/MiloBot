@@ -2,6 +2,7 @@ package commands.utility;
 
 import commands.Command;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,16 +16,23 @@ import java.util.List;
  */
 public class InviteCmd extends Command implements UtilityCmd {
 
+	private final String inviteUrl;
+
 	public InviteCmd() {
 		this.commandName = "invite";
-		this.commandDescription = "Creates an invite for the bot.";
+		this.commandDescription = "Sends an invite link to add the bot to another server.";
 		this.aliases = new String[]{"inv"};
+		this.inviteUrl = "https://discord.com/api/oauth2/authorize?client_id=993881386618466314&permissions=8&scope=applications.commands%20bot";
 	}
 
 	@Override
 	public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
-		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessage(event.getJDA().getInviteUrl(Permission.ADMINISTRATOR)).queue();
+		event.getChannel().sendMessage(inviteUrl).queue();
+	}
+
+	@Override
+	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+		event.reply(inviteUrl).queue();
 	}
 }
 

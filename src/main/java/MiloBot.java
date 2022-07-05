@@ -88,6 +88,8 @@ public class MiloBot {
 								new Command.Choice("water", "water")
 						))).queue();
 
+		commands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server.")).queue();
+
 		loadPrefixes(manager, config, bot);
 		updateUserNames(manager, bot);
 	}

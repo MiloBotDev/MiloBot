@@ -10,9 +10,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -106,8 +115,23 @@ public class User {
 	 * Loads the levels.json file into a HashMap.
 	 */
 	private void loadLevelsAsMap() {
+		// see https://stackoverflow.com/a/48298758
 		try {
-			String jsonAsString = new String(Files.readAllBytes(Paths.get(levelsJsonPath)));
+			URI uri = getClass().getResource(Config.getInstance().levelsJsonPath).toURI();
+			if("jar".equals(uri.getScheme())){
+				for (FileSystemProvider provider: FileSystemProvider.installedProviders()) {
+					if (provider.getScheme().equalsIgnoreCase("jar")) {
+						try {
+							provider.getFileSystem(uri);
+						} catch (FileSystemNotFoundException e) {
+							// in this case we need to initialize it first:
+							provider.newFileSystem(uri, Collections.emptyMap());
+						}
+					}
+				}
+			}
+			Path source = Paths.get(uri);
+			String jsonAsString = new String(Files.readAllBytes(source));
 			JsonArray asJsonArray = JsonParser.parseString(jsonAsString).getAsJsonArray();
 			for (int i = 0; i < asJsonArray.size(); i++) {
 				JsonObject asJsonObject = asJsonArray.get(i).getAsJsonObject();
@@ -120,7 +144,7 @@ public class User {
 				}
 			}
 			logger.info("Levels.json loaded in.");
-		} catch (IOException e) {
+		} catch (IOException | URISyntaxException e) {
 			logger.error(e.getMessage());
 			logger.info("Unable to load levels.json.");
 		}

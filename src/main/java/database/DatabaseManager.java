@@ -120,9 +120,8 @@ public class DatabaseManager {
 	 * Creates a new database.
 	 */
 	public void createNewDatabase() {
-		String url = "jdbc:sqlite:C:/sqlite/" + "IdleAway.db";
 		try {
-			Connection conn = DriverManager.getConnection(url);
+			Connection conn = DriverManager.getConnection(connectionUrl);
 			if (conn != null) {
 				logger.info("Created a new database.");
 			}

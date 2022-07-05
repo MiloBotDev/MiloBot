@@ -31,7 +31,7 @@ public class CommandLoader {
 		commands.add(new ProfileCmd());
 		commands.add(new WordleCmd());
 		commands.add(new BugCmd());
-		commands.add(new EncounterCmd());
+		commands.add(EncounterCmd.getInstance());
 
 		for (Command c : commands) {
 			ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));
