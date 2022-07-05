@@ -4,6 +4,7 @@ import commands.Command;
 import commands.CommandHandler;
 import commands.CommandLoader;
 import commands.bot.BotCmd;
+import commands.dnd.DndCmd;
 import commands.economy.EconomyCmd;
 import commands.games.GamesCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -38,6 +39,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 	private EmbedBuilder botEmbed;
 	private EmbedBuilder gamesEmbed;
 	private EmbedBuilder economyEmbed;
+	private EmbedBuilder dndEmbed;
 
 	private HelpCmd() {
 		this.commandName = "help";
@@ -126,6 +128,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 		buttons.add(List.of(ActionRow.of(
 				Button.secondary(authorId + ":previous", "Previous"),
 				Button.primary(authorId + ":bot", "Bot 🤖"),
+				Button.primary(authorId + ":dnd", "DnD 🐉"),
 				Button.secondary(authorId + ":delete", "Delete"))
 		));
 	}
@@ -143,6 +146,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 		categoryEmbed.addField("Economy 💰", EconomyCmd.description, true);
 		categoryEmbed.addField("Games 🎮", GamesCmd.description, true);
 		categoryEmbed.addField("Bot 🤖", BotCmd.description, true);
+		categoryEmbed.addField("Dungeons & Dragons 🐉", DndCmd.description, true);
 
 		this.utilityEmbed = new EmbedBuilder();
 		utilityEmbed.setTitle("Utility Commands 🔨");
@@ -156,6 +160,9 @@ public class HelpCmd extends Command implements UtilityCmd {
 		this.botEmbed = new EmbedBuilder();
 		botEmbed.setTitle("Bot Commands 🤖");
 
+		this.dndEmbed = new EmbedBuilder();
+		dndEmbed.setTitle("Dungeons & Dragons commands 🐉");
+
 		CommandLoader.commandList.forEach((key, value) -> {
 			if (value instanceof UtilityCmd) {
 				utilityEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
@@ -165,6 +172,8 @@ public class HelpCmd extends Command implements UtilityCmd {
 				gamesEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
 			} else if (value instanceof BotCmd) {
 				botEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
+			} else if (value instanceof DndCmd) {
+				dndEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
 			}
 		});
 	}
@@ -193,4 +202,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 		return economyEmbed;
 	}
 
+	public EmbedBuilder getDndEmbed() {
+		return dndEmbed;
+	}
 }

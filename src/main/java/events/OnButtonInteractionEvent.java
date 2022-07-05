@@ -66,6 +66,11 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 				EmbedUtils.styleEmbed(botEmbed, user);
 				event.getHook().editOriginalEmbeds(botEmbed.build()).queue();
 				break;
+			case "dnd":
+				EmbedBuilder dndEmbed = helpCmd.getDndEmbed();
+				EmbedUtils.styleEmbed(dndEmbed, user);
+				event.getHook().editOriginalEmbeds(dndEmbed.build()).queue();
+				break;
 			case "next":
 				List<MessageEmbed> embeds = event.getMessage().getEmbeds();
 				event.getHook().editOriginalEmbeds(embeds).setActionRows(helpCmd
