@@ -23,12 +23,13 @@ import java.util.function.Consumer;
 public class EmbedUtils {
 
 	/**
-	 * Adds ❌ as an emoji under the message that when added by the user who issued the command removes the message.
+	 * Adds ⏹ as an emoji under the message that when added by the user who issued the command removes the message.
 	 * If the emoji isnt clicked in under 60 seconds its no longer possible to delete the message.
 	 *
 	 * @return The consumer that adds the emoji.
 	 */
 	@NotNull
+	@Deprecated(since = "4-7-2022, migrating to using buttons instead.")
 	public static Consumer<Message> deleteEmbedButton(@NotNull MessageReceivedEvent event, String consumerId) {
 		return (message) -> {
 			message.addReaction("⏹").queue();
@@ -51,7 +52,7 @@ public class EmbedUtils {
 	/**
 	 * Applies some default styling to an embed.
 	 */
-	public static void styleEmbed(@NotNull EmbedBuilder embed, User user) {
+	public static void styleEmbed(@NotNull EmbedBuilder embed, @NotNull User user) {
 		embed.setColor(Color.BLUE);
 		embed.setAuthor(user.getName(), null, user.getAvatarUrl());
 		embed.setTimestamp(new Date().toInstant());
@@ -61,6 +62,7 @@ public class EmbedUtils {
 	/**
 	 * Adds a simple paginator to the specified message.
 	 */
+	@Deprecated(since = "4-7-2022, migrating to using buttons instead.")
 	public static void createPaginator(@NotNull MessageReceivedEvent event, String title, @NotNull ArrayList<EmbedBuilder> pages,
 									   @NotNull Message message, String consumerId) {
 		message.clearReactions().queue();

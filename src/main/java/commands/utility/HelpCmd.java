@@ -9,54 +9,84 @@ import commands.games.GamesCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Shows the user an overview of every command, or detailed information on a specific command.
+ * This class is a singleton.
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class HelpCmd extends Command implements UtilityCmd {
 
-	public HelpCmd() {
+	private static HelpCmd instance;
+
+	private ArrayList<List<ActionRow>> buttons;
+	private EmbedBuilder categoryEmbed;
+	private EmbedBuilder utilityEmbed;
+	private EmbedBuilder botEmbed;
+	private EmbedBuilder gamesEmbed;
+	private EmbedBuilder economyEmbed;
+
+	private HelpCmd() {
 		this.commandName = "help";
 		this.commandDescription = "Shows the user a list of available commands.";
 		this.commandArgs = new String[]{"*command"};
+
+	}
+
+	/**
+	 * Return the only instance of this class or make a new one if no instance exists.
+	 */
+	public static HelpCmd getInstance() {
+		if(instance == null) {
+			instance = new HelpCmd();
+		}
+		return instance;
 	}
 
 	@Override
 	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+		String authorId = event.getAuthor().getId();
 		if (args.size() > 0) {
+			AtomicBoolean commandFound = new AtomicBoolean(false);
 			String arg = args.get(0);
 			CommandLoader.commandList.forEach((key, value) -> {
 				if (key.contains(arg.toLowerCase(Locale.ROOT))) {
 					EmbedBuilder embedBuilder = value.generateHelp(value.commandName, value.commandDescription,
 							value.commandArgs, value.aliases, value.flags, value.cooldown, value.subCommands,
 							event.getGuild(), event.getAuthor());
-					event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
+					event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
+							Button.secondary(authorId + ":delete", "Delete")).queue();
+					commandFound.set(true);
 				}
 			});
-			event.getChannel().sendMessage(String.format("%s not found.", arg)).queue();
+			if(!commandFound.get()) {
+				event.getChannel().sendMessage(String.format("%s not found.", arg)).queue();
+			}
 		} else {
-			buildHelpEmbed(event.getAuthor(), event.getGuild(), event);
+			createButtons(authorId);
+			createEmbeds(event.getAuthor(), event.getGuild());
+			EmbedUtils.styleEmbed(categoryEmbed, event.getAuthor());
+			event.getChannel().sendMessageEmbeds(categoryEmbed.build()).setActionRows(buttons.get(0)).queue();
 		}
 	}
 
 	@Override
 	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
-		if(event.getOption("command") == null) {
-			buildHelpEmbed(event.getUser(), Objects.requireNonNull(event.getGuild()), event);
-		} else {
+		String authorId = event.getUser().getId();
+		if(!(event.getOption("command") == null)) {
 			AtomicBoolean commandFound = new AtomicBoolean(false);
 			String command = Objects.requireNonNull(event.getOption("command")).getAsString();
 			CommandLoader.commandList.forEach((key, value) -> {
@@ -64,47 +94,66 @@ public class HelpCmd extends Command implements UtilityCmd {
 					EmbedBuilder embedBuilder = value.generateHelp(value.commandName, value.commandDescription,
 							value.commandArgs, value.aliases, value.flags, value.cooldown, value.subCommands,
 							Objects.requireNonNull(event.getGuild()), event.getUser());
-					event.replyEmbeds(embedBuilder.build()).queue();
+					event.replyEmbeds(embedBuilder.build()).addActionRow(Button.secondary(authorId + ":delete", "Delete")).queue();
 					commandFound.set(true);
 				}
 			});
 			if(!commandFound.get()) {
 				event.reply(String.format("%s not found.", command)).queue();
 			}
+		} else {
+			createButtons(authorId);
+			createEmbeds(event.getUser(), Objects.requireNonNull(event.getGuild()));
+			EmbedUtils.styleEmbed(categoryEmbed, event.getUser());
+			event.replyEmbeds(categoryEmbed.build()).addActionRows(buttons.get(0)).queue();
 		}
 	}
 
 	/**
-	 * Builds and sends the embed for the help command.
+	 * Creates the buttons to attach to the help embed.
 	 */
-	private void buildHelpEmbed(@NotNull User author, @NotNull Guild guild, Event event) {
+	private void createButtons(String authorId) {
+		this.buttons = new ArrayList<>();
+
+		buttons.add(List.of(ActionRow.of(
+				Button.primary(authorId + ":categories", "Categories 📝"),
+				Button.primary(authorId + ":utility", "Utility 🔨"),
+				Button.primary(authorId + ":economy", "Economy 💰"),
+				Button.primary(authorId + ":games", "Games 🎮"),
+				Button.secondary(authorId + ":next", "Next"))
+		));
+
+		buttons.add(List.of(ActionRow.of(
+				Button.secondary(authorId + ":previous", "Previous"),
+				Button.primary(authorId + ":bot", "Bot 🤖"),
+				Button.secondary(authorId + ":delete", "Delete"))
+		));
+	}
+
+	/**
+	 * Builds the embeds for the help command.
+	 */
+	private void createEmbeds(@NotNull User author, @NotNull Guild guild) {
 		String prefix = CommandHandler.prefixes.get(guild.getId());
 
-		String consumerName = author.getName();
-
-		EmbedBuilder categoryEmbed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(categoryEmbed, author);
+		this.categoryEmbed = new EmbedBuilder();
 		categoryEmbed.setTitle("Categories 📝");
-		categoryEmbed.setDescription("Click each categories respective emoji to see their commands.");
+		categoryEmbed.setDescription("Use the buttons to navigate through the commands.");
 		categoryEmbed.addField("Utility 🔨", UtilityCmd.description, true);
 		categoryEmbed.addField("Economy 💰", EconomyCmd.description, true);
 		categoryEmbed.addField("Games 🎮", GamesCmd.description, true);
 		categoryEmbed.addField("Bot 🤖", BotCmd.description, true);
 
-		EmbedBuilder utilityEmbed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(utilityEmbed, author);
+		this.utilityEmbed = new EmbedBuilder();
 		utilityEmbed.setTitle("Utility Commands 🔨");
 
-		EmbedBuilder economyEmbed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(economyEmbed, author);
+		this.economyEmbed = new EmbedBuilder();
 		economyEmbed.setTitle("Economy Commands 💰");
 
-		EmbedBuilder gamesEmbed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(gamesEmbed, author);
+		this.gamesEmbed = new EmbedBuilder();
 		gamesEmbed.setTitle("Game Commands 🎮");
 
-		EmbedBuilder botEmbed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(botEmbed, author);
+		this.botEmbed = new EmbedBuilder();
 		botEmbed.setTitle("Bot Commands 🤖");
 
 		CommandLoader.commandList.forEach((key, value) -> {
@@ -118,78 +167,30 @@ public class HelpCmd extends Command implements UtilityCmd {
 				botEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
 			}
 		});
+	}
 
-		Map<String, EmbedBuilder> embedAsEmoji = new HashMap<>();
-		embedAsEmoji.put("📝", categoryEmbed);
-		embedAsEmoji.put("🔨", utilityEmbed);
-		embedAsEmoji.put("💰", economyEmbed);
-		embedAsEmoji.put("🎮", gamesEmbed);
-		embedAsEmoji.put("🤖", botEmbed);
+	public ArrayList<List<ActionRow>> getButtons() {
+		return buttons;
+	}
 
-		if(event instanceof MessageReceivedEvent) {
-			MessageReceivedEvent messageReceivedEvent = (MessageReceivedEvent) event;
-			messageReceivedEvent.getChannel().sendMessageEmbeds(categoryEmbed.build()).queue(
-					message -> {
-						message.addReaction("📝").queue();
-						message.addReaction("🔨").queue();
-						message.addReaction("💰").queue();
-						message.addReaction("🎮").queue();
-						message.addReaction("🤖").queue();
-						message.addReaction("⏹").queue();
-						ListenerAdapter listener = new ListenerAdapter() {
-							@Override
-							public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event1) {
-								String messageId = event1.getMessageId();
-								if (Objects.requireNonNull(event1.getUser()).getName().equals(consumerName)
-										&& message.getId().equals(messageId)) {
-									String asReactionCode = event1.getReactionEmote().getAsReactionCode();
-									if (asReactionCode.equals("⏹")) {
-										messageReceivedEvent.getChannel().deleteMessageById(messageId).queue();
-										messageReceivedEvent.getJDA().removeEventListener(this);
-									} else {
-										message.removeReaction(asReactionCode, event1.getUser()).queue();
-										message.editMessageEmbeds(embedAsEmoji.get(asReactionCode).build()).queue();
-									}
-								}
-							}
-						};
-						message.getJDA().getRateLimitPool().schedule(() -> messageReceivedEvent.getJDA().removeEventListener(listener),
-								1, TimeUnit.MINUTES);
-						message.getJDA().addEventListener(listener);
-					});
-		} else if(event instanceof SlashCommandInteractionEvent) {
-			SlashCommandInteractionEvent slashEvent = (SlashCommandInteractionEvent) event;
-			slashEvent.getChannel().sendMessageEmbeds(categoryEmbed.build()).queue(
-					message -> {
-						message.addReaction("📝").queue();
-						message.addReaction("🔨").queue();
-						message.addReaction("💰").queue();
-						message.addReaction("🎮").queue();
-						message.addReaction("🤖").queue();
-						message.addReaction("⏹").queue();
-						ListenerAdapter listener = new ListenerAdapter() {
-							@Override
-							public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event1) {
-								String messageId = event1.getMessageId();
-								if (Objects.requireNonNull(event1.getUser()).getName().equals(consumerName)
-										&& message.getId().equals(messageId)) {
-									String asReactionCode = event1.getReactionEmote().getAsReactionCode();
-									if (asReactionCode.equals("⏹")) {
-										slashEvent.getChannel().deleteMessageById(messageId).queue();
-										slashEvent.getJDA().removeEventListener(this);
-									} else {
-										message.removeReaction(asReactionCode, event1.getUser()).queue();
-										message.editMessageEmbeds(embedAsEmoji.get(asReactionCode).build()).queue();
-									}
-								}
-							}
-						};
-						message.getJDA().getRateLimitPool().schedule(() -> slashEvent.getJDA().removeEventListener(listener),
-								1, TimeUnit.MINUTES);
-						message.getJDA().addEventListener(listener);
-					});
-			slashEvent.reply("Sending help").queue();
-		}
+	public EmbedBuilder getCategoryEmbed() {
+		return categoryEmbed;
+	}
+
+	public EmbedBuilder getUtilityEmbed() {
+		return utilityEmbed;
+	}
+
+	public EmbedBuilder getBotEmbed() {
+		return botEmbed;
+	}
+
+	public EmbedBuilder getGamesEmbed() {
+		return gamesEmbed;
+	}
+
+	public EmbedBuilder getEconomyEmbed() {
+		return economyEmbed;
 	}
 
 }

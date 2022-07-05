@@ -143,6 +143,7 @@ public class CommandHandler extends ListenerAdapter {
 				commandFound.set(true);
 				Command command = CommandLoader.commandList.get(strings);
 				command.executeSlashCommand(event);
+				command.updateCommandTrackerUser(event.getName(), event.getUser().getId());
 			}
 		});
 

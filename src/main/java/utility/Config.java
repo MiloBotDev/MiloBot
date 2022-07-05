@@ -29,9 +29,10 @@ public class Config {
 	public final String defaultPrefix;
 	public final String personalAccessToken;
 	public final String repositoryName;
+	public final String monstersCsvPath;
 
 	/**
-	 * Instantiates all the
+	 * Instantiates all the configuration fields.
 	 *
 	 * @throws FileNotFoundException thrown when the file can't be found
 	 */
@@ -50,6 +51,7 @@ public class Config {
 		this.defaultPrefix = (String) data.get("prefix");
 		this.personalAccessToken = (String) data.get("personalAccessToken");
 		this.repositoryName = (String) data.get("repositoryName");
+		this.monstersCsvPath = (String) data.get("monstersCsvPath");
 	}
 
 	/**
@@ -61,13 +63,13 @@ public class Config {
 		try {
 			if (instance == null) {
 				instance = new Config();
-				logger.info("Config file loaded in.");
+				logger.info("config.yml file loaded in.");
 			}
 			return instance;
 		} catch (FileNotFoundException e) {
-			logger.info("Config file not found.");
+			logger.info("config.yml file not found.");
 			logger.error(e.getMessage());
-			throw new IllegalStateException("Config file not found.");
+			throw new IllegalStateException("config.yml file not found.");
 		}
 	}
 }

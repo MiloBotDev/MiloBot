@@ -1,6 +1,7 @@
 package commands;
 
 import commands.bot.bug.BugCmd;
+import commands.dnd.EncounterCmd;
 import commands.economy.ProfileCmd;
 import commands.games.wordle.WordleCmd;
 import commands.utility.*;
@@ -21,7 +22,7 @@ public class CommandLoader {
 
 	public static void loadAllCommands() {
 		ArrayList<Command> commands = new ArrayList<>();
-		commands.add(new HelpCmd());
+		commands.add(HelpCmd.getInstance());
 		commands.add(new InviteCmd());
 		commands.add(new StatusCmd());
 		commands.add(new PrefixCmd());
@@ -30,6 +31,7 @@ public class CommandLoader {
 		commands.add(new ProfileCmd());
 		commands.add(new WordleCmd());
 		commands.add(new BugCmd());
+		commands.add(new EncounterCmd());
 
 		for (Command c : commands) {
 			ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));

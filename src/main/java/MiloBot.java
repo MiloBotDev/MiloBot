@@ -3,6 +3,7 @@ import commands.CommandLoader;
 import database.DatabaseManager;
 import database.queries.PrefixTableQueries;
 import database.queries.UserTableQueries;
+import events.OnButtonInteractionEvent;
 import events.OnReadyEvent;
 import events.OnUserUpdateNameEvent;
 import events.guild.OnGuildJoinEvent;
@@ -13,8 +14,10 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import org.jetbrains.annotations.NotNull;
@@ -57,13 +60,33 @@ public class MiloBot {
 						GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS)
 				.setActivity(Activity.watching("Morbius"))
 				.addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent(),
-						new OnReadyEvent(), new OnUserUpdateNameEvent())
+						new OnReadyEvent(), new OnUserUpdateNameEvent(), new OnButtonInteractionEvent())
 				.build().awaitReady();
 
 		CommandListUpdateAction commands = bot.updateCommands();
-		commands.addCommands(Commands.slash("help", "the help command")
-				.addOption(OptionType.STRING, "command", "The command you want help on", false))
+
+		commands.addCommands(Commands.slash("help", "Shows the user a list of available commands.")
+				.addOption(OptionType.STRING, "command", "The command you want information about.", false))
 				.queue();
+
+		commands.addCommands(Commands.slash("encounter", "Generates a random D&D encounter.")
+				.addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
+						.setRequired(true)
+						.setRequiredRange(1, 10))
+				.addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
+						.setRequired(true)
+						.setRequiredRange(1, 20))
+				.addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
+						.setRequired(true)
+						.addChoices(new Command.Choice("easy", "easy"), new Command.Choice("medium", "medium"),
+								new Command.Choice("difficult", "difficult"), new Command.Choice("deadly", "deadly")))
+				.addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
+						.setRequired(false)
+						.addChoices(new Command.Choice("city", "city"), new Command.Choice("dungeon", "dungeon"),
+								new Command.Choice("forest", "forest"), new Command.Choice("nature", "nature"),
+								new Command.Choice("other plane", "other plane"), new Command.Choice("underground", "underground"),
+								new Command.Choice("water", "water")
+						))).queue();
 
 		loadPrefixes(manager, config, bot);
 		updateUserNames(manager, bot);
