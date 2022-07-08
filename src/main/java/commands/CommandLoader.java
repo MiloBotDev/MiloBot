@@ -69,6 +69,7 @@ public class CommandLoader {
 								new net.dv8tion.jda.api.interactions.commands.Command.Choice("water", "water")
 						))).queue();
 
+
 		slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server.")).queue();
 
 		slashCommands.addCommands(Commands.slash("profile", "View your own or someone else's profile.")

@@ -4,7 +4,8 @@ A discord bot written in Java that aims to build a collection of commands for fu
 
 ## Current Features
 
-Check out our [features](https://github.com/RubenJ01/MiloBot/blob/master/features.md) page to see everything the bot is currently capable of.
+Check out our [features](https://github.com/RubenJ01/MiloBot/blob/master/features.md) page to see everything the bot is
+currently capable of.
 
 ## Planned Features
 

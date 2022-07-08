@@ -45,7 +45,7 @@ public class ProfileCmd extends Command implements EconomyCmd {
 			String userId = author.getId();
 			String name = author.getName();
 			Optional<EmbedBuilder> embedBuilder = makeEmbed(userId, name, author);
-			if(embedBuilder.isPresent()) {
+			if (embedBuilder.isPresent()) {
 				event.getChannel().sendMessageEmbeds(embedBuilder.get().build()).queue();
 			} else {
 				event.getChannel().sendMessage("Something went wrong.").queue();

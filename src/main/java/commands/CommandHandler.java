@@ -134,12 +134,12 @@ public class CommandHandler extends ListenerAdapter {
 	@Override
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 		// ignore commands not from a guild
-		if(event.getGuild() == null) {
+		if (event.getGuild() == null) {
 			return;
 		}
 		AtomicBoolean commandFound = new AtomicBoolean(false);
 		CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
-			if(strings.contains(event.getName())) {
+			if (strings.contains(event.getName())) {
 				commandFound.set(true);
 				Command command = CommandLoader.commandList.get(strings);
 				command.executeSlashCommand(event);

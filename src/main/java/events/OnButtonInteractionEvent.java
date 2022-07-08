@@ -86,7 +86,7 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 				EmbedUtils.styleEmbed(embedBuilder, event.getUser());
 				event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRows(
 						ActionRow.of(Button.primary(event.getUser().getId() + ":regenerate", "Regenerate"),
-						Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
+								Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
 				break;
 			case "previous":
 				event.getHook().editOriginalEmbeds(event.getMessage().getEmbeds()).setActionRows(helpCmd

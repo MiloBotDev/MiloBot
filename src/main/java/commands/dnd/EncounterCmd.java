@@ -29,12 +29,10 @@ import java.util.Objects;
 public class EncounterCmd extends Command implements DndCmd {
 
 	private final static Logger logger = LoggerFactory.getLogger(EncounterCmd.class);
-
+	private static EncounterCmd instance;
 	private final String[] difficulties;
 	private final String[] environments;
 	private final EncounterGenerator gen;
-
-	private static EncounterCmd instance;
 
 	private EncounterCmd() {
 		this.commandName = "encounter";
@@ -48,7 +46,7 @@ public class EncounterCmd extends Command implements DndCmd {
 	}
 
 	public static EncounterCmd getInstance() {
-		if(instance == null) {
+		if (instance == null) {
 			instance = new EncounterCmd();
 		}
 		return instance;
@@ -56,7 +54,7 @@ public class EncounterCmd extends Command implements DndCmd {
 
 	@Override
 	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-		if(args.size() < 3) {
+		if (args.size() < 3) {
 			sendCommandUsage(event, this.commandName, this.commandArgs);
 			return;
 		}
@@ -70,33 +68,33 @@ public class EncounterCmd extends Command implements DndCmd {
 			logger.error(e.getMessage());
 			return;
 		}
-		if(partySize < 1 || partySize > 10) {
+		if (partySize < 1 || partySize > 10) {
 			event.getChannel().sendMessage("Party size must be a number between 1 and 10").queue();
 			return;
 		}
-		if(partyLevel < 1 || partyLevel > 20) {
+		if (partyLevel < 1 || partyLevel > 20) {
 			event.getChannel().sendMessage("Party level must be a number between 1 and 20").queue();
 			return;
 		}
 		String difficulty = args.get(2);
-		if(!(Arrays.asList(difficulties).contains(difficulty.toLowerCase(Locale.ROOT)))) {
+		if (!(Arrays.asList(difficulties).contains(difficulty.toLowerCase(Locale.ROOT)))) {
 			event.getChannel().sendMessage(String.format("%s is not a valid difficulty. Please choose one of: " +
 					"%s, %s, %s, %s.", difficulty, difficulties[0], difficulties[1], difficulties[2], difficulties[3])).queue();
 			return;
 		}
 		int difficultyAsInt = Arrays.asList(difficulties).indexOf(difficulty.toLowerCase(Locale.ROOT)) + 1;
 		String environment = null;
-		if(args.size() > 3) {
+		if (args.size() > 3) {
 			environment = args.get(3);
-			if(args.size() > 4) {
+			if (args.size() > 4) {
 				environment += String.format(" %s", args.get(4));
 			}
-			if(!(Arrays.asList(environments).contains(environment.toLowerCase(Locale.ROOT)))) {
+			if (!(Arrays.asList(environments).contains(environment.toLowerCase(Locale.ROOT)))) {
 				StringBuilder envError = new StringBuilder();
 				envError.append(String.format("%s is not a valid environment. Please choose one of: ", environment));
-				for(int i = 0; i <  environments.length; i++) {
+				for (int i = 0; i < environments.length; i++) {
 					envError.append(environments[i]);
-					if(i + 1 == environments.length) {
+					if (i + 1 == environments.length) {
 						envError.append(".");
 					}
 				}
@@ -117,7 +115,7 @@ public class EncounterCmd extends Command implements DndCmd {
 		String difficulty = Objects.requireNonNull(event.getOption("difficulty")).getAsString();
 		int difficultyAsInt = Arrays.asList(difficulties).indexOf(difficulty.toLowerCase(Locale.ROOT)) + 1;
 		String environment = null;
-		if(!(event.getOption("environment") == null)) {
+		if (!(event.getOption("environment") == null)) {
 			environment = Objects.requireNonNull(event.getOption("environment")).getAsString();
 		}
 		EmbedBuilder embedBuilder = buildEncounterEmbed(event.getUser(), partySize, partyLevel, difficulty, environment);
@@ -134,7 +132,7 @@ public class EncounterCmd extends Command implements DndCmd {
 		embed.setTitle("Generated encounter");
 		String desc = String.format("**Party Size:** %d\n**Party Level:** %d\n**Difficulty:** %s\n",
 				partySize, partyLevel, difficulty);
-		if(environment != null) {
+		if (environment != null) {
 			desc += String.format("**Environment:** %s", environment);
 		}
 		embed.setDescription(desc);
@@ -156,7 +154,7 @@ public class EncounterCmd extends Command implements DndCmd {
 		String s = description.replaceAll("[*\n]", "").replaceAll(" ", "");
 		partySize = Integer.parseInt(StringUtils.substringBetween(s, "PartySize:", "PartyLevel"));
 		partyLevel = Integer.parseInt(StringUtils.substringBetween(s, "PartyLevel:", "Difficulty"));
-		if(s.contains("Environment:")) {
+		if (s.contains("Environment:")) {
 			difficulty = StringUtils.substringBetween(s, "Difficulty:", "Environment");
 			environment = s.substring(s.indexOf("nt:") + 3);
 		} else {

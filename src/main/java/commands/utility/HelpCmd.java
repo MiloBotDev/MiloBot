@@ -52,7 +52,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 	 * Return the only instance of this class or make a new one if no instance exists.
 	 */
 	public static HelpCmd getInstance() {
-		if(instance == null) {
+		if (instance == null) {
 			instance = new HelpCmd();
 		}
 		return instance;
@@ -74,7 +74,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 					commandFound.set(true);
 				}
 			});
-			if(!commandFound.get()) {
+			if (!commandFound.get()) {
 				event.getChannel().sendMessage(String.format("%s not found.", arg)).queue();
 			}
 		} else {
@@ -88,7 +88,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 	@Override
 	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
 		String authorId = event.getUser().getId();
-		if(!(event.getOption("command") == null)) {
+		if (!(event.getOption("command") == null)) {
 			AtomicBoolean commandFound = new AtomicBoolean(false);
 			String command = Objects.requireNonNull(event.getOption("command")).getAsString();
 			CommandLoader.commandList.forEach((key, value) -> {
@@ -100,7 +100,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 					commandFound.set(true);
 				}
 			});
-			if(!commandFound.get()) {
+			if (!commandFound.get()) {
 				event.reply(String.format("%s not found.", command)).queue();
 			}
 		} else {

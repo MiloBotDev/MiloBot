@@ -2,12 +2,9 @@ package commands.utility;
 
 import commands.Command;
 import database.DatabaseManager;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
-import utility.EmbedUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

@@ -6,16 +6,12 @@ import com.google.gson.JsonParser;
 import database.DatabaseManager;
 import database.queries.UserTableQueries;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -118,8 +114,8 @@ public class User {
 		// see https://stackoverflow.com/a/48298758
 		try {
 			URI uri = getClass().getResource(Config.getInstance().levelsJsonPath).toURI();
-			if("jar".equals(uri.getScheme())){
-				for (FileSystemProvider provider: FileSystemProvider.installedProviders()) {
+			if ("jar".equals(uri.getScheme())) {
+				for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
 					if (provider.getScheme().equalsIgnoreCase("jar")) {
 						try {
 							provider.getFileSystem(uri);

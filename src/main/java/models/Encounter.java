@@ -32,7 +32,7 @@ public class Encounter {
 				return 3;
 			case "deadly":
 				return 4;
-			}
+		}
 		return 0;
 	}
 
@@ -40,7 +40,7 @@ public class Encounter {
 	@Override
 	public String toString() {
 		StringBuilder enc = new StringBuilder();
-		for(Monster monster : monsters) {
+		for (Monster monster : monsters) {
 			enc.append(String.format("**%s**, type: %s, xp value of: %s (MM pg. %s) \n",
 					monster.getName(), monster.getType(), monster.getXp(), monster.getMmPage()));
 		}

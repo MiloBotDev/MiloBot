@@ -6,7 +6,10 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -21,9 +24,8 @@ public class EncounterGenerator {
 	private final static Logger logger = LoggerFactory.getLogger(EncounterGenerator.class);
 
 	public static EncounterGenerator instance;
-
-	private ArrayList<String[]> monsters;
 	private final Map<String, Monster> cachedMonsters;
+	private ArrayList<String[]> monsters;
 
 	private EncounterGenerator() {
 		cachedMonsters = new HashMap<>();
@@ -31,7 +33,7 @@ public class EncounterGenerator {
 	}
 
 	public static EncounterGenerator getInstance() {
-		if(instance == null) {
+		if (instance == null) {
 			instance = new EncounterGenerator();
 		}
 		return instance;
@@ -45,7 +47,7 @@ public class EncounterGenerator {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream is = classloader.getResourceAsStream(Config.getInstance().monstersCsvPath);
 		InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
-		try(BufferedReader br = new BufferedReader(streamReader)) {
+		try (BufferedReader br = new BufferedReader(streamReader)) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] split = line.split(",");
@@ -95,9 +97,9 @@ public class EncounterGenerator {
 	 */
 	public @NotNull ArrayList<Monster> generateEncounteredMonsters(String environment, int xp) {
 		ArrayList<String[]> possibleMonsters = new ArrayList<>();
-		if(!(environment == null)) {
-			for(String[] monster : monsters) {
-				if(Objects.equals(monster[1], environment)) {
+		if (!(environment == null)) {
+			for (String[] monster : monsters) {
+				if (Objects.equals(monster[1], environment)) {
 					possibleMonsters.add(monster);
 				}
 			}
@@ -107,30 +109,30 @@ public class EncounterGenerator {
 		int xpMonsters = 0;
 		int xpLowerLimit = xp / 25;
 		ArrayList<String[]> encounteredMonsters = new ArrayList<>();
-		while(xpMonsters <= (xp - (3 * xpLowerLimit))) {
+		while (xpMonsters <= (xp - (3 * xpLowerLimit))) {
 			ArrayList<String[]> candidates = new ArrayList<>();
-			for(String[] monster : possibleMonsters) {
-				if(xpLowerLimit <= (Integer.parseInt(monster[4])) && (Integer.parseInt(monster[4])) <= (xp - xpMonsters)) {
+			for (String[] monster : possibleMonsters) {
+				if (xpLowerLimit <= (Integer.parseInt(monster[4])) && (Integer.parseInt(monster[4])) <= (xp - xpMonsters)) {
 					candidates.add(monster);
 				}
 			}
-			if(candidates.size() == 0) {
+			if (candidates.size() == 0) {
 				return new ArrayList<>();
 			}
 			int r = new Random().nextInt(candidates.size());
 			encounteredMonsters.add(candidates.get(r));
 			int monsterCounter = encounteredMonsters.size();
 			xpMonsters = 0;
-			for(String[] exp : encounteredMonsters) {
+			for (String[] exp : encounteredMonsters) {
 				xpMonsters += Integer.parseInt(exp[4]);
 			}
-			if(monsterCounter == 2) {
+			if (monsterCounter == 2) {
 				xpMonsters = (int) (xpMonsters * 1.5);
 			}
-			if(3 <= monsterCounter && monsterCounter <= 6) {
+			if (3 <= monsterCounter && monsterCounter <= 6) {
 				xpMonsters = xpMonsters * 2;
 			}
-			if(7 <= monsterCounter && monsterCounter <= 10) {
+			if (7 <= monsterCounter && monsterCounter <= 10) {
 				xpMonsters = (int) (xpMonsters * 2.5);
 			}
 		}
@@ -142,9 +144,9 @@ public class EncounterGenerator {
 	 */
 	private @NotNull ArrayList<Monster> monstersToMonster(@NotNull ArrayList<String[]> encounteredMonsters) {
 		ArrayList<Monster> monsters = new ArrayList<>();
-		for(String[] monster : encounteredMonsters) {
+		for (String[] monster : encounteredMonsters) {
 			// checking if this monster is somewhere in the cache
-			if(cachedMonsters.containsKey(monster[0])) {
+			if (cachedMonsters.containsKey(monster[0])) {
 				monsters.add(cachedMonsters.get(monster[0]));
 			} else {
 				monsters.add(new Monster(monster[0], monster[1], monster[2], monster[3], monster[4]));

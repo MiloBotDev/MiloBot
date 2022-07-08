@@ -1,7 +1,5 @@
 package api.dnd5e.models;
 
-import java.util.List;
-
 public class Action {
 
 	private String name;

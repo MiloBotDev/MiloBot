@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -211,7 +210,8 @@ public abstract class Command {
 
 		EmbedBuilder stats = new EmbedBuilder();
 		EmbedUtils.styleEmbed(stats, event.getAuthor());
-		stats.setTitle(String.format("Stats for %s", commandName));stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
+		stats.setTitle(String.format("Stats for %s", commandName));
+		stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
 
 		event.getChannel().sendTyping().queue();
 		event.getChannel().sendMessageEmbeds(stats.build()).setActionRow(

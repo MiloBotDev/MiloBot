@@ -40,66 +40,66 @@ public class DndApi {
 
 			JSONObject monsterAsJson = request.get();
 			Monster monster = new Monster();
-			if(monsterAsJson.get("index") != null) {
+			if (monsterAsJson.get("index") != null) {
 				monster.setIndex((String) monsterAsJson.get("index"));
 			}
-			if(monsterAsJson.get("name") != null) {
+			if (monsterAsJson.get("name") != null) {
 				monster.setName((String) monsterAsJson.get("name"));
 			}
-			if(monsterAsJson.get("url") != null) {
+			if (monsterAsJson.get("url") != null) {
 				monster.setUrl((String) monsterAsJson.get("url"));
 			}
-			if(monsterAsJson.get("charisma") != null) {
+			if (monsterAsJson.get("charisma") != null) {
 				monster.setCharisma((long) monsterAsJson.get("charisma"));
 			}
-			if(monsterAsJson.get("constitution") != null) {
+			if (monsterAsJson.get("constitution") != null) {
 				monster.setConstitution((long) monsterAsJson.get("constitution"));
 			}
-			if(monsterAsJson.get("dexterity") != null) {
+			if (monsterAsJson.get("dexterity") != null) {
 				monster.setDexterity((long) monsterAsJson.get("dexterity"));
 			}
-			if(monsterAsJson.get("intelligence") != null) {
+			if (monsterAsJson.get("intelligence") != null) {
 				monster.setIntelligence((long) monsterAsJson.get("intelligence"));
 			}
-			if(monsterAsJson.get("strength") != null) {
+			if (monsterAsJson.get("strength") != null) {
 				monster.setStrength((long) monsterAsJson.get("strength"));
 			}
-			if(monsterAsJson.get("wisdom") != null) {
+			if (monsterAsJson.get("wisdom") != null) {
 				monster.setWisdom((long) monsterAsJson.get("wisdom"));
 			}
-			if(monsterAsJson.get("actions") != null) {
+			if (monsterAsJson.get("actions") != null) {
 				ArrayList<Action> actions = new ArrayList<>();
 				for (Object o : (ArrayList<Object>) monsterAsJson.get("actions")) {
 					Action action = new Action();
 					JSONObject o1 = (JSONObject) o;
-					if(o1.get("name") != null) {
+					if (o1.get("name") != null) {
 						action.setName((String) o1.get("name"));
 					}
-					if(o1.get("desc") != null) {
+					if (o1.get("desc") != null) {
 						action.setDescription((String) o1.get("desc"));
 					}
 					Object options = o1.get("options");
-					if(options != null) {
+					if (options != null) {
 						Option option = new Option();
 						Object choose = ((JSONObject) options).get("choose");
-						if(choose != null) {
+						if (choose != null) {
 							option.setChoose((long) choose);
 						}
 						Object type = ((JSONObject) options).get("type");
-						if(type != null) {
+						if (type != null) {
 							option.setType((String) type);
 						}
 						Object from = ((JSONObject) options).get("from");
-						if(from != null) {
+						if (from != null) {
 							ArrayList<Choice> choices = new ArrayList<>();
 							int counter = 0;
 							for (Object o2 : (ArrayList<Object>) from) {
 								JSONObject o3 = (JSONObject) o2;
 								JSONObject jsonObject = (JSONObject) o3.get(String.valueOf(counter));
-								if(jsonObject != null) {
+								if (jsonObject != null) {
 									Choice choice = new Choice();
 									choice.setIndex(String.valueOf(counter));
-									if(jsonObject.get("name") != null) {
+									if (jsonObject.get("name") != null) {
 										choice.setName((String) jsonObject.get("name"));
 										choice.setCount((long) jsonObject.get("count"));
 									}
@@ -109,30 +109,30 @@ public class DndApi {
 							option.setFrom(choices);
 						}
 						action.setOptions(option);
-						if(o1.get("attack_bonus") != null) {
+						if (o1.get("attack_bonus") != null) {
 							action.setAttackBonus((long) o1.get("attack_bonus"));
 						}
-						if(o1.get("dc") != null) {
+						if (o1.get("dc") != null) {
 							Dice dice = new Dice();
 							JSONObject dc = (JSONObject) o1.get("dc");
-							if(dc.get("dc_type") != null) {
+							if (dc.get("dc_type") != null) {
 								DiceType diceType = new DiceType();
 								JSONObject dcType = (JSONObject) dc.get("dc_type");
-								if(dcType.get("index") != null) {
+								if (dcType.get("index") != null) {
 									diceType.setName((String) dcType.get("index"));
 								}
-								if(dcType.get("name") != null) {
+								if (dcType.get("name") != null) {
 									diceType.setName((String) dcType.get("name"));
 								}
-								if(dcType.get("url") != null) {
+								if (dcType.get("url") != null) {
 									diceType.setUrl((String) dcType.get("url"));
 								}
 								dice.setDiceType(diceType);
 							}
-							if(dc.get("dc_value") != null) {
+							if (dc.get("dc_value") != null) {
 								dice.setDiceValue((long) dc.get("dc_value"));
 							}
-							if(dc.get("success_type") != null) {
+							if (dc.get("success_type") != null) {
 								dice.setSuccessType((String) dc.get("success_type"));
 							}
 						}

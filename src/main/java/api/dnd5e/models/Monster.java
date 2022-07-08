@@ -43,11 +43,11 @@ public class Monster {
 			string.append("\t\tname: " + action.getName() + "\n");
 			string.append("\t\tdescription: " + action.getDescription() + "\n");
 			string.append("\t\tattack_bonus:" + action.getAttackBonus() + "\n");
-			if(action.getOptions() != null) {
+			if (action.getOptions() != null) {
 				string.append("\t\toptions: {\n");
 				string.append("\t\t\tchoose: " + action.getOptions().getChoose() + "\n");
 				string.append("\t\t\tfrom: [\n");
-				for(Choice choice : action.getOptions().getFrom()) {
+				for (Choice choice : action.getOptions().getFrom()) {
 					string.append("\t\t\t\t" + choice.getIndex() + ": {\n");
 					string.append("\t\t\t\t\tname: " + choice.getName() + "\n");
 					string.append("\t\t\t\t\tcount: " + choice.getCount() + "\n");
@@ -62,12 +62,12 @@ public class Monster {
 		return string.toString();
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public String getName() {
 		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getIndex() {
