@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
-import utility.EncounterGenerator;
 
 import java.util.List;
 

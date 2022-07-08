@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import database.DatabaseManager;
 import database.queries.UserTableQueries;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,7 @@ public class User {
 	 * @param userId     - The id of the user
 	 * @param experience - The amount of experience to add
 	 */
-	public void updateExperience(String userId, int experience, MessageReceivedEvent event) {
+	public void updateExperience(String userId, int experience, String asMention, MessageChannel channel) {
 		// load in their current experience and level
 		ArrayList<String> query = manager.query(UserTableQueries.getUserExperienceAndLevel, DatabaseManager.QueryTypes.RETURN, userId);
 		int currentExperience = Integer.parseInt(query.get(0));
@@ -97,8 +98,7 @@ public class User {
 						String.valueOf(newExperience), userId);
 				logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
 				// send a message to the channel the user leveled up in
-				String asMention = event.getAuthor().getAsMention();
-				event.getChannel().sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
+				channel.sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
 			} else {
 				// user didn't level up so just update their experience
 				manager.query(UserTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),

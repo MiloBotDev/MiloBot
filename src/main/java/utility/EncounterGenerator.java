@@ -1,14 +1,14 @@
 package utility;
 
+import models.Encounter;
+import models.Monster;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Generate a d&d encounter based on the average party level, the party size, the difficulty and the optional environment.
@@ -23,8 +23,10 @@ public class EncounterGenerator {
 	public static EncounterGenerator instance;
 
 	private ArrayList<String[]> monsters;
+	private final Map<String, Monster> cachedMonsters;
 
 	private EncounterGenerator() {
+		cachedMonsters = new HashMap<>();
 		loadMonsters();
 	}
 
@@ -33,10 +35,6 @@ public class EncounterGenerator {
 			instance = new EncounterGenerator();
 		}
 		return instance;
-	}
-
-	public static void main(String[] args) {
-		EncounterGenerator.getInstance().loadMonsters();
 	}
 
 	/**
@@ -63,8 +61,6 @@ public class EncounterGenerator {
 	/**
 	 * Calculates the xp threshold for a given party.
 	 * The difficulty is in range 1-4 for easy, medium, difficult, and deadly.
-	 *
-	 * @return the experience threshold.
 	 */
 	public int calculateXp(int partyLevel, int partySize, int difficulty) {
 		int[][] thresholds = {
@@ -95,11 +91,9 @@ public class EncounterGenerator {
 	}
 
 	/**
-	 * Creates the encounter based on the xp threshold and the list of possible monsters.
-	 *
-	 * @return the encountered monsters in an ArrayList<String[]> this will be empty if it can't generate an encounter.
+	 * Generates the list of monsters in the encounter.
 	 */
-	public @NotNull ArrayList<String[]> generateEncounteredMonsters(String environment, int xp) {
+	public @NotNull ArrayList<Monster> generateEncounteredMonsters(String environment, int xp) {
 		ArrayList<String[]> possibleMonsters = new ArrayList<>();
 		if(!(environment == null)) {
 			for(String[] monster : monsters) {
@@ -121,7 +115,7 @@ public class EncounterGenerator {
 				}
 			}
 			if(candidates.size() == 0) {
-				return candidates;
+				return new ArrayList<>();
 			}
 			int r = new Random().nextInt(candidates.size());
 			encounteredMonsters.add(candidates.get(r));
@@ -140,32 +134,33 @@ public class EncounterGenerator {
 				xpMonsters = (int) (xpMonsters * 2.5);
 			}
 		}
-		return encounteredMonsters;
+		return monstersToMonster(encounteredMonsters);
 	}
 
 	/**
-	 * Formats the encounter into a simple readable format.
-	 *
-	 * @return the formatted encounter as a String.
+	 * Converts the list of monsters to a list of Monster objects.
 	 */
-	public String formatEncounter(@NotNull ArrayList<String[]> encounteredMonsters, int xp) {
-		StringBuilder enc = new StringBuilder();
+	private @NotNull ArrayList<Monster> monstersToMonster(@NotNull ArrayList<String[]> encounteredMonsters) {
+		ArrayList<Monster> monsters = new ArrayList<>();
 		for(String[] monster : encounteredMonsters) {
-			enc.append(String.format("**%s**, type: %s, xp value of: %s (MM pg. %s) \n",
-					monster[0], monster[2], monster[4], monster[3]));
+			// checking if this monster is somewhere in the cache
+			if(cachedMonsters.containsKey(monster[0])) {
+				monsters.add(cachedMonsters.get(monster[0]));
+			} else {
+				monsters.add(new Monster(monster[0], monster[1], monster[2], monster[3], monster[4]));
+				// adding the monster to the cache
+				cachedMonsters.put(monster[0], monsters.get(monsters.size() - 1));
+			}
 		}
-		enc.append(String.format("XP threshold is: %dxp", xp));
-		return enc.toString();
+		return monsters;
 	}
 
 	/**
 	 * Generates a complete encounter.
-	 *
-	 * @return the encounter formatted as a string.
-	 */
-	public String generateEncounter(int partySize, int partyLevel, int difficulty, String environment) {
-		int xp = calculateXp(partyLevel, partySize, difficulty);
-		ArrayList<String[]> monsters = generateEncounteredMonsters(environment, xp);
-		return formatEncounter(monsters, xp);
+	 **/
+	public Encounter generateEncounter(int partySize, int partyLevel, String difficulty, String environment) {
+		int xp = calculateXp(partyLevel, partySize, Encounter.difficultyToInt(difficulty));
+		ArrayList<Monster> monsters = generateEncounteredMonsters(environment, xp);
+		return new Encounter(partySize, partyLevel, difficulty, xp, monsters, environment);
 	}
 }

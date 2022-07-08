@@ -18,5 +18,181 @@
   {
     "level" : 5,
     "experience" : 1000
+  },
+  {
+    "level" : 6,
+    "experience" : 1500
+  },
+  {
+    "level" : 7,
+    "experience" : 2100
+  },
+  {
+    "level" : 8,
+    "experience" : 2800
+  },
+  {
+    "level" : 9,
+    "experience" : 3600
+  },
+  {
+    "level" : 10,
+    "experience" : 4500
+  },
+  {
+    "level" : 11,
+    "experience" : 5500
+  },
+  {
+    "level" : 12,
+    "experience" : 6600
+  },
+  {
+    "level" : 13,
+    "experience" : 7800
+  },
+  {
+    "level" : 14,
+    "experience" : 9100
+  },
+  {
+    "level" : 15,
+    "experience" : 10500
+  },
+  {
+    "level" : 16,
+    "experience" : 12000
+  },
+  {
+    "level" : 17,
+    "experience" : 13600
+  },
+  {
+    "level" : 18,
+    "experience" : 15300
+  },
+  {
+    "level" : 19,
+    "experience" : 17100
+  },
+  {
+    "level" : 20,
+    "experience" : 19000
+  },
+  {
+    "level" : 21,
+    "experience" : 21000
+  },
+  {
+    "level" : 22,
+    "experience" : 23100
+  },
+  {
+    "level" : 23,
+    "experience" : 25300
+  },
+  {
+    "level" : 24,
+    "experience" : 27600
+  },
+  {
+    "level" : 25,
+    "experience" : 30000
+  },
+  {
+    "level" : 26,
+    "experience" : 32500
+  },
+  {
+    "level" : 27,
+    "experience" : 35100
+  },
+  {
+    "level" : 28,
+    "experience" : 37800
+  },
+  {
+    "level" : 29,
+    "experience" : 40600
+  },
+  {
+    "level" : 30,
+    "experience" : 43500
+  },
+  {
+    "level" : 31,
+    "experience" : 46500
+  },
+  {
+    "level" : 32,
+    "experience" : 49600
+  },
+  {
+    "level" : 33,
+    "experience" : 52800
+  },
+  {
+    "level" : 34,
+    "experience" : 56100
+  },
+  {
+    "level" : 35,
+    "experience" : 59500
+  },
+  {
+    "level" : 36,
+    "experience" : 63000
+  },
+  {
+    "level" : 37,
+    "experience" : 66600
+  },
+  {
+    "level" : 38,
+    "experience" : 70300
+  },
+  {
+    "level" : 39,
+    "experience" : 74100
+  },
+  {
+    "level" : 40,
+    "experience" : 78000
+  },
+  {
+    "level" : 41,
+    "experience" : 82000
+  },
+  {
+    "level" : 42,
+    "experience" : 86100
+  },
+  {
+    "level" : 43,
+    "experience" : 90300
+  },
+  {
+    "level" : 44,
+    "experience" : 94600
+  },
+  {
+    "level" : 45,
+    "experience" : 99000
+  },
+  {
+    "level" : 46,
+    "experience" : 103500
+  },
+  {
+    "level" : 47,
+    "experience" : 108100
+  },
+  {
+    "level" : 48,
+    "experience" : 112800
+  },
+  {
+    "level" : 49,
+    "experience" : 117600
   }
 ]

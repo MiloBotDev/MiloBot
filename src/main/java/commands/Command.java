@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
@@ -105,7 +106,7 @@ public abstract class Command {
 	 * The default implementation for every slash command.
 	 */
 	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
-		event.getChannel().sendMessage("This command has not yet been implemented.").queue();
+		event.reply("This command has not yet been implemented.").queue();
 	}
 
 	/**
@@ -121,7 +122,8 @@ public abstract class Command {
 		if (args.contains("--help")) {
 			EmbedBuilder embedBuilder = generateHelp(commandName, commandDescription, commandArgs, aliases, flags, cooldown, subCommands,
 					event.getGuild(), event.getAuthor());
-			event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
+			event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
+					Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 			flagPresent = true;
 		}
 		// checks if the --stats flag is present as an argument
@@ -212,7 +214,8 @@ public abstract class Command {
 		stats.setTitle(String.format("Stats for %s", commandName));stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
 
 		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessageEmbeds(stats.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
+		event.getChannel().sendMessageEmbeds(stats.build()).setActionRow(
+				Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 	}
 
 	/**
@@ -334,8 +337,8 @@ public abstract class Command {
 		info.setDescription(getArgumentsText(commandName, commandArgs, prefix));
 
 		event.getChannel().sendTyping().queue();
-		MessageAction messageAction = event.getChannel().sendMessageEmbeds(info.build());
-		messageAction.queue(EmbedUtils.deleteEmbedButton(event, consumerId));
+		event.getChannel().sendMessageEmbeds(info.build()).setActionRow(
+				Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 	}
 
 	/**
@@ -349,7 +352,8 @@ public abstract class Command {
 		embed.setDescription("This is the base command for all wordle related commands. Please use any of the " +
 				"commands listed below.");
 		embed.addField("Sub Commands", getSubCommandsText(commandName, subCommands, prefix).toString(), false);
-		event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
+		event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
+				Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 	}
 
 	/**
@@ -423,7 +427,8 @@ public abstract class Command {
 		}
 		embed.setDescription(missingPermissionsText.toString());
 		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
+		event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
+				Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 	}
 
 }

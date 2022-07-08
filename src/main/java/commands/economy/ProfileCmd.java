@@ -5,7 +5,9 @@ import database.DatabaseManager;
 import database.queries.UserTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 import utility.User;
@@ -37,11 +39,17 @@ public class ProfileCmd extends Command implements EconomyCmd {
 
 	@Override
 	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+		net.dv8tion.jda.api.entities.User author = event.getAuthor();
 		if (args.size() == 0) {
 			event.getChannel().sendTyping().queue();
-			String userId = event.getAuthor().getId();
-			String name = event.getAuthor().getName();
-			makeEmbed(event, userId, name);
+			String userId = author.getId();
+			String name = author.getName();
+			Optional<EmbedBuilder> embedBuilder = makeEmbed(userId, name, author);
+			if(embedBuilder.isPresent()) {
+				event.getChannel().sendMessageEmbeds(embedBuilder.get().build()).queue();
+			} else {
+				event.getChannel().sendMessage("Something went wrong.").queue();
+			}
 		} else {
 			String findUser = String.join(" ", args);
 			try {
@@ -54,7 +62,13 @@ public class ProfileCmd extends Command implements EconomyCmd {
 							} else {
 								String userId = usersByName.get(0).getId();
 								String name = usersByName.get(0).getUser().getName();
-								makeEmbed(event, userId, name);
+								Optional<EmbedBuilder> embed = makeEmbed(userId, name, author);
+								if (embed.isPresent()) {
+									event.getChannel().sendMessageEmbeds(embed.get().build()).setActionRow(
+											Button.secondary(author.getId() + ":delete", "Delete")).queue();
+								} else {
+									event.getChannel().sendMessage(String.format("User `%s` not found.", findUser)).queue();
+								}
 							}
 						});
 			} catch (IllegalStateException e) {
@@ -63,14 +77,17 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		}
 	}
 
+	@Override
+	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+
+	}
+
 	/**
-	 * Constructs and sends the embed for the Profile command.
+	 * Builds the embed for the Profile command.
 	 *
-	 * @param event  - MessageReceivedEvent
-	 * @param userId - The id of the User you want to get the profile of
-	 * @param name   - The name of the User you want to get the profile of
+	 * @return The embed for the Profile command.
 	 */
-	private void makeEmbed(MessageReceivedEvent event, String userId, String name) {
+	private Optional<EmbedBuilder> makeEmbed(String userId, String name, net.dv8tion.jda.api.entities.User author) {
 		ArrayList<String> resultSelectUser = manager.query(UserTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
 		ArrayList<String> resultGetUserRank = manager.query(UserTableQueries.getUserRankByExperience, DatabaseManager.QueryTypes.RETURN, userId);
 		ArrayList<String> resultGetUserAmount = manager.query(UserTableQueries.getUserAmount, DatabaseManager.QueryTypes.RETURN);
@@ -82,11 +99,11 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		String userAmount = resultGetUserAmount.get(0);
 
 		EmbedBuilder embed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(embed, event.getAuthor());
+		EmbedUtils.styleEmbed(embed, author);
 		embed.setTitle(name);
 
 		if (resultSelectUser.size() == 0) {
-			event.getChannel().sendMessage("User doesn't have a profile.").queue();
+			return Optional.empty();
 		}
 
 		StringBuilder levelDescription = new StringBuilder();
@@ -95,14 +112,14 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		levelDescription.append(String.format("**Experience:** `%s`\n", experience));
 		if (levelProgressBar.isPresent()) {
 			levelDescription.append("**Progress till next level:** ");
-			levelDescription.append(String.format("`%s`\n", levelProgressBar));
+			levelDescription.append(String.format("`%s`\n", levelProgressBar.get()));
 		} else {
 			levelDescription.append("You are at the maximum level.\n");
 		}
-		levelDescription.append(String.format("You are rank `%s` out of `%s` people.", rank, userAmount));
+		levelDescription.append(String.format("**Rank:** `%s`", rank));
 		embed.setDescription(levelDescription.toString());
 
-		event.getChannel().sendMessageEmbeds(embed.build()).queue();
+		return Optional.of(embed);
 	}
 
 	private @NotNull Optional<String> generateLevelProgressBar(int currentLevel, int currentExperience) {

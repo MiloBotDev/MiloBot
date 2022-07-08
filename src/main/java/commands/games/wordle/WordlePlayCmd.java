@@ -8,6 +8,7 @@ import games.Wordle;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -140,8 +141,8 @@ public class WordlePlayCmd extends Command implements SubCmd {
 							event.getMessage().delete().queue();
 							if (gameOver[0]) {
 								gameInstanceMap.remove(id);
-								message.editMessageEmbeds(newEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
-										event.getAuthor().getId()));
+								message.editMessageEmbeds(newEmbed.build()).setActionRow(
+										Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 							} else {
 								message.editMessageEmbeds(newEmbed.build()).queue();
 							}

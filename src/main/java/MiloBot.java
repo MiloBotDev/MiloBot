@@ -40,6 +40,7 @@ public class MiloBot {
 
 	private final static Logger logger = LoggerFactory.getLogger(MiloBot.class);
 
+
 	public static void main(String[] args) throws LoginException, InterruptedException {
 		DatabaseManager manager = DatabaseManager.getInstance();
 		Connection connect = manager.connect();
@@ -52,8 +53,6 @@ public class MiloBot {
 		// loads the config file
 		Config config = Config.getInstance();
 
-		CommandLoader.loadAllCommands();
-
 		JDA bot = JDABuilder.createDefault(config.botToken,
 						GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_EMOJIS, GatewayIntent.GUILD_VOICE_STATES,
 						GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_TYPING,
@@ -63,32 +62,7 @@ public class MiloBot {
 						new OnReadyEvent(), new OnUserUpdateNameEvent(), new OnButtonInteractionEvent())
 				.build().awaitReady();
 
-		CommandListUpdateAction commands = bot.updateCommands();
-
-		commands.addCommands(Commands.slash("help", "Shows the user a list of available commands.")
-				.addOption(OptionType.STRING, "command", "The command you want information about.", false))
-				.queue();
-
-		commands.addCommands(Commands.slash("encounter", "Generates a random D&D encounter.")
-				.addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
-						.setRequired(true)
-						.setRequiredRange(1, 10))
-				.addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
-						.setRequired(true)
-						.setRequiredRange(1, 20))
-				.addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
-						.setRequired(true)
-						.addChoices(new Command.Choice("easy", "easy"), new Command.Choice("medium", "medium"),
-								new Command.Choice("difficult", "difficult"), new Command.Choice("deadly", "deadly")))
-				.addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
-						.setRequired(false)
-						.addChoices(new Command.Choice("city", "city"), new Command.Choice("dungeon", "dungeon"),
-								new Command.Choice("forest", "forest"), new Command.Choice("nature", "nature"),
-								new Command.Choice("other plane", "other plane"), new Command.Choice("underground", "underground"),
-								new Command.Choice("water", "water")
-						))).queue();
-
-		commands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server.")).queue();
+		CommandLoader.loadAllCommands(bot);
 
 		loadPrefixes(manager, config, bot);
 		updateUserNames(manager, bot);

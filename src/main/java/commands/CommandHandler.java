@@ -121,7 +121,7 @@ public class CommandHandler extends ListenerAdapter {
 						manager.query(UserTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
 								event.getAuthor().getName(), "0", "1", "0");
 					}
-					user.updateExperience(userId, 50, event);
+					user.updateExperience(userId, 10, event.getAuthor().getAsMention(), event.getChannel());
 					// execute the command
 					command.executeCommand(event, receivedMessage);
 					logger.info(String.format("Executed command: %s | Author: %s.", fullCommandName,
@@ -144,6 +144,7 @@ public class CommandHandler extends ListenerAdapter {
 				Command command = CommandLoader.commandList.get(strings);
 				command.executeSlashCommand(event);
 				command.updateCommandTrackerUser(event.getName(), event.getUser().getId());
+				user.updateExperience(event.getUser().getId(), 10, event.getUser().getAsMention(), event.getChannel());
 			}
 		});
 
