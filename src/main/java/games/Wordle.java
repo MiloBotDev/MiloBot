@@ -36,7 +36,7 @@ public class Wordle {
 
 		this.guesses = 0;
 		this.guessed = false;
-		this.word = generateWord();
+		this.word = "abbar";
 	}
 
 	/**
@@ -60,19 +60,19 @@ public class Wordle {
 				result[i] = ":green_square:";
 				// letter is in the word but in the wrong position
 			} else if (this.word.indexOf(guessedWord[i]) != -1) {
-				int charInWordAmount = 0;
-				int amountGuessed = 0;
-				for (char c : word) {
-					if (c == guessedWord[i]) {
-						charInWordAmount++;
+				int totalYellowSquares = 0;
+				int yellowSquaresBefore = 0;
+				for (int j = 0; j < this.wordLength; j++) {
+					if (word[j] == guessedWord[i] && guessedWord[j] != word[j]) {
+						totalYellowSquares++;
 					}
 				}
-				for (char guessedLetter : guessedWord) {
-					if (guessedWord[i] == guessedLetter) {
-						amountGuessed++;
+				for (int j = 0; j < i; j++) {
+					if (guessedWord[j] == guessedWord[i] && guessedWord[j] != word[j]) {
+						yellowSquaresBefore++;
 					}
 				}
-				if (!(amountGuessed > charInWordAmount)) {
+				if (yellowSquaresBefore < totalYellowSquares) {
 					result[i] = ":yellow_square:";
 				} else {
 					result[i] = ":black_large_square:";
