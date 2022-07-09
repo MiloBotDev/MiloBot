@@ -36,7 +36,6 @@ public class Encounter {
 		return 0;
 	}
 
-
 	@Override
 	public String toString() {
 		StringBuilder enc = new StringBuilder();

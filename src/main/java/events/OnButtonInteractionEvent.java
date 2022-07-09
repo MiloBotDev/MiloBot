@@ -1,6 +1,6 @@
 package events;
 
-import commands.dnd.EncounterCmd;
+import commands.dnd.encounter.EncounterGeneratorCmd;
 import commands.utility.HelpCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -23,11 +23,11 @@ import java.util.List;
 public class OnButtonInteractionEvent extends ListenerAdapter {
 
 	private final HelpCmd helpCmd;
-	private final EncounterCmd encCmd;
+	private final EncounterGeneratorCmd encCmd;
 
 	public OnButtonInteractionEvent() {
 		this.helpCmd = HelpCmd.getInstance();
-		this.encCmd = EncounterCmd.getInstance();
+		this.encCmd = EncounterGeneratorCmd.getInstance();
 	}
 
 	@Override
@@ -82,11 +82,17 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 						.getButtons().get(1)).queue();
 				break;
 			case "regenerate":
-				EmbedBuilder embedBuilder = encCmd.regenerateEncounter(event.getMessage().getEmbeds().get(0));
-				EmbedUtils.styleEmbed(embedBuilder, event.getUser());
-				event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRows(
+				MessageEmbed build = encCmd.regenerateEncounter(event.getMessage().getEmbeds().get(0), event.getUser());
+				event.getHook().editOriginalEmbeds(build).setActionRows(
 						ActionRow.of(Button.primary(event.getUser().getId() + ":regenerate", "Regenerate"),
+								Button.primary(event.getUser().getId() + ":save", "Save"),
 								Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
+				break;
+			case "save":
+				event.getHook().editOriginalEmbeds(event.getMessage().getEmbeds()).setActionRows(ActionRow.of(
+						Button.primary(event.getUser().getId() + ":regenerate", "Regenerate"),
+						Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
+				encCmd.saveEncounter(event.getMessage().getEmbeds().get(0), event.getUser());
 				break;
 			case "previous":
 				event.getHook().editOriginalEmbeds(event.getMessage().getEmbeds()).setActionRows(helpCmd

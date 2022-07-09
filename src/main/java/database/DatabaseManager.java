@@ -1,9 +1,6 @@
 package database;
 
-import database.queries.CommandTrackerTableQueries;
-import database.queries.PrefixTableQueries;
-import database.queries.UserTableQueries;
-import database.queries.WordleTableQueries;
+import database.queries.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,6 +135,7 @@ public class DatabaseManager {
 		query(CommandTrackerTableQueries.createCommandUsageUserTable, QueryTypes.UPDATE);
 		query(UserTableQueries.createUserTable, QueryTypes.UPDATE);
 		query(WordleTableQueries.createWordleTable, QueryTypes.UPDATE);
+		query(EncounterTableQueries.creatEncounterTable, QueryTypes.UPDATE);
 	}
 
 	/**

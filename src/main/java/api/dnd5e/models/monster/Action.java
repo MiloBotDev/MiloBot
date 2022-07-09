@@ -1,4 +1,4 @@
-package api.dnd5e.models;
+package api.dnd5e.models.monster;
 
 public class Action {
 

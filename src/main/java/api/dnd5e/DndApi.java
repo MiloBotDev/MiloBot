@@ -1,6 +1,6 @@
 package api.dnd5e;
 
-import api.dnd5e.models.*;
+import api.dnd5e.models.monster.*;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

@@ -207,11 +207,13 @@ public abstract class Command {
 	public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
 		DatabaseManager manager = DatabaseManager.getInstance();
 		ArrayList<String> personalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, event.getAuthor().getId());
+		ArrayList<String> globalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageGlobalAmount, DatabaseManager.QueryTypes.RETURN, commandName);
 
 		EmbedBuilder stats = new EmbedBuilder();
 		EmbedUtils.styleEmbed(stats, event.getAuthor());
 		stats.setTitle(String.format("Stats for %s", commandName));
 		stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
+		stats.addField("Global Usages", String.format("This command has been used a total of %d times.", Integer.parseInt(globalAmount.get(0))), false);
 
 		event.getChannel().sendTyping().queue();
 		event.getChannel().sendMessageEmbeds(stats.build()).setActionRow(
@@ -225,7 +227,6 @@ public abstract class Command {
 									 String @NotNull [] aliases, String[] flags, int cooldown,
 									 @NotNull ArrayList<Command> subCommands, @NotNull Guild guild, @NotNull User author) {
 		String prefix = CommandHandler.prefixes.get(guild.getId());
-		String consumerId = author.getId();
 
 		EmbedBuilder info = new EmbedBuilder();
 		EmbedUtils.styleEmbed(info, author);

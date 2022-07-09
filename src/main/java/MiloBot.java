@@ -35,7 +35,6 @@ public class MiloBot {
 
 	private final static Logger logger = LoggerFactory.getLogger(MiloBot.class);
 
-
 	public static void main(String[] args) throws LoginException, InterruptedException {
 		DatabaseManager manager = DatabaseManager.getInstance();
 		Connection connect = manager.connect();

@@ -63,9 +63,8 @@ public class CommandHandler extends ListenerAdapter {
 					commandFound.set(true);
 
 					receivedMessage.remove(0);
-					String fullCommandName;
 					Command command = CommandLoader.commandList.get(strings);
-					fullCommandName = command.commandName;
+					String fullCommandName = command.commandName;
 					// check if the user is calling to a subcommand of this command
 					if (receivedMessage.size() > 0) {
 						for (Command subCommand : command.subCommands) {
@@ -139,11 +138,23 @@ public class CommandHandler extends ListenerAdapter {
 		}
 		AtomicBoolean commandFound = new AtomicBoolean(false);
 		CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
-			if (strings.contains(event.getName())) {
+			if (strings.contains(event.getName()) || strings.contains(event.getSubcommandName())) {
 				commandFound.set(true);
 				Command command = CommandLoader.commandList.get(strings);
+				String fullCommandName = command.commandName;
+				if(event.getSubcommandName() != null) {
+					for (Command subCommand : command.subCommands) {
+						if (event.getSubcommandName().toLowerCase(Locale.ROOT).equals(subCommand.commandName)) {
+							command = subCommand;
+							fullCommandName += String.format(" %s", subCommand.commandName);
+							break;
+						}
+					}
+				} else {
+					command = CommandLoader.commandList.get(strings);
+				}
 				command.executeSlashCommand(event);
-				command.updateCommandTrackerUser(event.getName(), event.getUser().getId());
+				command.updateCommandTrackerUser(fullCommandName, event.getUser().getId());
 				user.updateExperience(event.getUser().getId(), 10, event.getUser().getAsMention(), event.getChannel());
 			}
 		});

@@ -1,6 +1,9 @@
-package commands.dnd;
+package commands.dnd.encounter;
 
 import commands.Command;
+import commands.SubCmd;
+import database.DatabaseManager;
+import database.queries.EncounterTableQueries;
 import models.Encounter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -9,33 +12,30 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 import utility.EncounterGenerator;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Lets users generate a random d&d encounter.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class EncounterCmd extends Command implements DndCmd {
+public class EncounterGeneratorCmd extends Command implements SubCmd {
 
-	private final static Logger logger = LoggerFactory.getLogger(EncounterCmd.class);
-	private static EncounterCmd instance;
+	private final static Logger logger = LoggerFactory.getLogger(EncounterGeneratorCmd.class);
+	private static EncounterGeneratorCmd instance;
+	private final DatabaseManager manager;
 	private final String[] difficulties;
 	private final String[] environments;
 	private final EncounterGenerator gen;
+	private final Map<String, Encounter> encounterCache;
 
-	private EncounterCmd() {
-		this.commandName = "encounter";
+	private EncounterGeneratorCmd() {
+		this.commandName = "generate";
 		this.commandDescription = "Generate a random encounter for a given average party level, party size, " +
 				"difficulty and an optional environment.";
 		this.commandArgs = new String[]{"party size, party level, difficulty, *environment"};
@@ -43,11 +43,13 @@ public class EncounterCmd extends Command implements DndCmd {
 		this.difficulties = new String[]{"easy", "medium", "difficult", "deadly"};
 		this.environments = new String[]{"city", "dungeon", "forest", "nature", "other plane", "underground", "water"};
 		this.gen = EncounterGenerator.getInstance();
+		this.manager = DatabaseManager.getInstance();
+		this.encounterCache = new HashMap<>();
 	}
 
-	public static EncounterCmd getInstance() {
+	public static EncounterGeneratorCmd getInstance() {
 		if (instance == null) {
-			instance = new EncounterCmd();
+			instance = new EncounterGeneratorCmd();
 		}
 		return instance;
 	}
@@ -82,7 +84,6 @@ public class EncounterCmd extends Command implements DndCmd {
 					"%s, %s, %s, %s.", difficulty, difficulties[0], difficulties[1], difficulties[2], difficulties[3])).queue();
 			return;
 		}
-		int difficultyAsInt = Arrays.asList(difficulties).indexOf(difficulty.toLowerCase(Locale.ROOT)) + 1;
 		String environment = null;
 		if (args.size() > 3) {
 			environment = args.get(3);
@@ -102,10 +103,15 @@ public class EncounterCmd extends Command implements DndCmd {
 				return;
 			}
 		}
-		EmbedBuilder embed = buildEncounterEmbed(event.getAuthor(), partySize, partyLevel, difficulty, environment);
-		event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
+		Map<EmbedBuilder, Encounter> embedBuilderEncounterMap = buildEncounterEmbed(
+				event.getAuthor(), partySize, partyLevel, difficulty, environment);
+		EmbedBuilder embed = (EmbedBuilder) embedBuilderEncounterMap.keySet().toArray()[0];
+		MessageEmbed build = embed.build();
+		event.getChannel().sendMessageEmbeds(build).setActionRows(ActionRow.of(
 				Button.primary(event.getAuthor().getId() + ":regenerate", "Regenerate"),
+				Button.primary(event.getAuthor().getId() + ":save", "Save"),
 				Button.secondary(event.getAuthor().getId() + ":delete", "Delete"))).queue();
+		encounterCache.put(build.getFields().get(0).getValue(), embedBuilderEncounterMap.get(embed));
 	}
 
 	@Override
@@ -113,19 +119,24 @@ public class EncounterCmd extends Command implements DndCmd {
 		int partySize = Objects.requireNonNull(event.getOption("size")).getAsInt();
 		int partyLevel = Objects.requireNonNull(event.getOption("level")).getAsInt();
 		String difficulty = Objects.requireNonNull(event.getOption("difficulty")).getAsString();
-		int difficultyAsInt = Arrays.asList(difficulties).indexOf(difficulty.toLowerCase(Locale.ROOT)) + 1;
 		String environment = null;
 		if (!(event.getOption("environment") == null)) {
 			environment = Objects.requireNonNull(event.getOption("environment")).getAsString();
 		}
-		EmbedBuilder embedBuilder = buildEncounterEmbed(event.getUser(), partySize, partyLevel, difficulty, environment);
-		event.replyEmbeds(embedBuilder.build()).addActionRows(
-				ActionRow.of(Button.primary(event.getUser().getId() + ":regenerate", "Regenerate"),
-						Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
+		Map<EmbedBuilder, Encounter> embedBuilderEncounterMap = buildEncounterEmbed(
+				event.getUser(), partySize, partyLevel, difficulty, environment);
+		EmbedBuilder embed = (EmbedBuilder) embedBuilderEncounterMap.keySet().toArray()[0];
+		String id = event.getUser().getId();
+		MessageEmbed build = embed.build();
+		event.replyEmbeds(build).addActionRows(
+				ActionRow.of(Button.primary(id + ":regenerate", "Regenerate"),
+						Button.primary(id + ":save", "Save"),
+						Button.secondary(id + ":delete", "Delete"))).queue();
+		encounterCache.put(build.getFields().get(0).getValue(), embedBuilderEncounterMap.get(embed));
 	}
 
 	@NotNull
-	private EmbedBuilder buildEncounterEmbed(@NotNull User author, int partySize, int partyLevel, String difficulty, String environment) {
+	private @Unmodifiable Map<EmbedBuilder, Encounter> buildEncounterEmbed(@NotNull User author, int partySize, int partyLevel, String difficulty, String environment) {
 		Encounter encounter = gen.generateEncounter(partySize, partyLevel, difficulty, environment);
 		EmbedBuilder embed = new EmbedBuilder();
 		EmbedUtils.styleEmbed(embed, author);
@@ -137,34 +148,49 @@ public class EncounterCmd extends Command implements DndCmd {
 		}
 		embed.setDescription(desc);
 		embed.addField("Encounter", encounter.toString(), false);
-		return embed;
+		return Map.of(embed, encounter);
 	}
 
-	public @NotNull EmbedBuilder regenerateEncounter(@NotNull MessageEmbed embed) {
+	/**
+	 * Generates the encounter with the same inputs.
+	 */
+	public MessageEmbed regenerateEncounter(@NotNull MessageEmbed embed, User author) {
 		EmbedBuilder newEmbed = new EmbedBuilder();
+		EmbedUtils.styleEmbed(newEmbed, author);
 		newEmbed.setTitle(embed.getTitle());
 		String description = embed.getDescription();
 		newEmbed.setDescription(description);
 
-		int partySize;
-		int partyLevel;
-		String environment = null;
-		String difficulty;
+		Encounter encounter;
+		String oldDescription = embed.getFields().get(0).getValue();
+		encounter = encounterCache.get(oldDescription);
+		MessageEmbed build;
 
-		String s = description.replaceAll("[*\n]", "").replaceAll(" ", "");
-		partySize = Integer.parseInt(StringUtils.substringBetween(s, "PartySize:", "PartyLevel"));
-		partyLevel = Integer.parseInt(StringUtils.substringBetween(s, "PartyLevel:", "Difficulty"));
-		if (s.contains("Environment:")) {
-			difficulty = StringUtils.substringBetween(s, "Difficulty:", "Environment");
-			environment = s.substring(s.indexOf("nt:") + 3);
+		if (encounter == null) {
+			newEmbed.setDescription("Something went wrong!");
+			return newEmbed.build();
 		} else {
-			difficulty = s.substring(s.indexOf("ty:") + 3);
+			Encounter newEncounter = gen.generateEncounter(encounter.getPartySize(), encounter.getPartyLevel(),
+					encounter.getDifficulty(), encounter.getEnvironment());
+			newEmbed.addField("Encounter", newEncounter.toString(), false);
+			build = newEmbed.build();
+			encounterCache.remove(oldDescription);
+			encounterCache.put(build.getFields().get(0).getValue(), newEncounter);
+			return build;
 		}
+	}
 
-		Encounter encounter = gen.generateEncounter(partySize, partyLevel, difficulty, environment);
-		newEmbed.addField("Encounter", encounter.toString(), false);
-
-		return newEmbed;
+	/**
+	 * Saves the encounter to the database.
+	 */
+	public void saveEncounter(@NotNull MessageEmbed embed, @NotNull User author) {
+		String description = embed.getFields().get(0).getValue();
+		Encounter encounter = encounterCache.get(description);
+		if (encounter == null) {
+			return;
+		}
+		manager.query(EncounterTableQueries.saveEncounter, DatabaseManager.QueryTypes.UPDATE, author.getId(), String.valueOf(encounter.getPartySize()),
+				String.valueOf(encounter.getPartyLevel()), String.valueOf(encounter.getDifficulty()), description, encounter.getEnvironment());
 	}
 
 }

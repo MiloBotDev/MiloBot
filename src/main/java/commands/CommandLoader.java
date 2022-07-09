@@ -1,14 +1,16 @@
 package commands;
 
 import commands.bot.bug.BugCmd;
-import commands.dnd.EncounterCmd;
+import commands.dnd.encounter.EncounterCmd;
 import commands.economy.ProfileCmd;
 import commands.games.wordle.WordleCmd;
 import commands.utility.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 
 import java.util.ArrayList;
@@ -36,7 +38,7 @@ public class CommandLoader {
 		commands.add(new ProfileCmd());
 		commands.add(new WordleCmd());
 		commands.add(new BugCmd());
-		commands.add(EncounterCmd.getInstance());
+		commands.add(new EncounterCmd());
 
 		for (Command c : commands) {
 			ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));
@@ -44,31 +46,33 @@ public class CommandLoader {
 			commandList.put(keys, c);
 		}
 
+
 		CommandListUpdateAction slashCommands = bot.updateCommands();
 
 		slashCommands.addCommands(Commands.slash("help", "Shows the user a list of available commands.")
 						.addOption(OptionType.STRING, "command", "The command you want information about.", false))
 				.queue();
 
-		slashCommands.addCommands(Commands.slash("encounter", "Generates a random D&D encounter.")
-				.addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
-						.setRequired(true)
-						.setRequiredRange(1, 10))
-				.addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
-						.setRequired(true)
-						.setRequiredRange(1, 20))
-				.addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
-						.setRequired(true)
-						.addChoices(new net.dv8tion.jda.api.interactions.commands.Command.Choice("easy", "easy"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("medium", "medium"),
-								new net.dv8tion.jda.api.interactions.commands.Command.Choice("difficult", "difficult"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("deadly", "deadly")))
-				.addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
-						.setRequired(false)
-						.addChoices(new net.dv8tion.jda.api.interactions.commands.Command.Choice("city", "city"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("dungeon", "dungeon"),
-								new net.dv8tion.jda.api.interactions.commands.Command.Choice("forest", "forest"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("nature", "nature"),
-								new net.dv8tion.jda.api.interactions.commands.Command.Choice("other plane", "other plane"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("underground", "underground"),
-								new net.dv8tion.jda.api.interactions.commands.Command.Choice("water", "water")
-						))).queue();
-
+		slashCommands.addCommands(Commands.slash("encounter", "D&D 5e encounter generator.")
+				.addSubcommands(new SubcommandData("generate", "Generate a random encounter for the given inputs.")
+						.addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
+									.setRequired(true)
+									.setRequiredRange(1, 10))
+							.addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
+									.setRequired(true)
+									.setRequiredRange(1, 20))
+							.addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
+									.setRequired(true)
+									.addChoices(new Choice("easy", "easy"), new Choice("medium", "medium"),
+											new Choice("difficult", "difficult"), new Choice("deadly", "deadly")))
+							.addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
+									.setRequired(false)
+									.addChoices(new Choice("city", "city"), new Choice("dungeon", "dungeon"),
+											new Choice("forest", "forest"), new Choice("nature", "nature"),
+											new Choice("other plane", "other plane"), new Choice("underground", "underground"),
+											new Choice("water", "water")
+									))
+					)).queue();
 
 		slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server.")).queue();
 
