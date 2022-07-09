@@ -36,7 +36,7 @@ public class Wordle {
 
 		this.guesses = 0;
 		this.guessed = false;
-		this.word = "abbar";
+		this.word = generateWord();
 	}
 
 	/**
