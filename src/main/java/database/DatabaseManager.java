@@ -14,8 +14,6 @@ import java.util.ArrayList;
 /**
  * Manages queries sent to the database.
  * This class is a singleton.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class DatabaseManager {
 
@@ -130,7 +128,7 @@ public class DatabaseManager {
 	/**
 	 * Creates all tables.
 	 */
-	public void createAndFillAllTables() {
+	public void createAllTables() {
 		query(PrefixTableQueries.createPrefixTable, QueryTypes.UPDATE);
 		query(CommandTrackerTableQueries.createCommandUsageUserTable, QueryTypes.UPDATE);
 		query(UserTableQueries.createUserTable, QueryTypes.UPDATE);

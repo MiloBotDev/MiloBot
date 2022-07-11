@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
+import utility.Paginator;
 
 import java.util.List;
 
@@ -45,6 +46,18 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 		switch (type) {
 			case "delete":
 				event.getHook().deleteOriginal().queue();
+				break;
+			case "nextPage":
+				Paginator paginator = Paginator.paginatorInstances.get(event.getMessage().getId());
+				if(paginator != null) {
+					paginator.nextPage().ifPresent(embed -> event.getHook().editOriginalEmbeds(embed.build()).queue());
+				}
+				break;
+			case "previousPage":
+				Paginator paginator2 = Paginator.paginatorInstances.get(event.getMessage().getId());
+				if(paginator2 != null) {
+					paginator2.previousPage().ifPresent(embed -> event.getHook().editOriginalEmbeds(embed.build()).queue());
+				}
 				break;
 			case "categories":
 				EmbedBuilder categoryEmbed = helpCmd.getCategoryEmbed();

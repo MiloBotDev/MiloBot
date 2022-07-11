@@ -20,8 +20,7 @@ import java.util.Optional;
 
 /**
  * Shows the user their own profile or that of someone else.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
+
  */
 public class ProfileCmd extends Command implements EconomyCmd {
 
@@ -46,7 +45,8 @@ public class ProfileCmd extends Command implements EconomyCmd {
 			String name = author.getName();
 			Optional<EmbedBuilder> embedBuilder = makeEmbed(userId, name, author);
 			if (embedBuilder.isPresent()) {
-				event.getChannel().sendMessageEmbeds(embedBuilder.get().build()).queue();
+				event.getChannel().sendMessageEmbeds(embedBuilder.get().build()).setActionRow(
+						Button.secondary(author.getId() + ":delete", "Delete")).queue();
 			} else {
 				event.getChannel().sendMessage("Something went wrong.").queue();
 			}

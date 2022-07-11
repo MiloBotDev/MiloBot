@@ -42,8 +42,9 @@ public class MiloBot {
 		if (connect == null) {
 			logger.info("No existing database found.");
 			manager.createNewDatabase();
-			manager.createAndFillAllTables();
 		}
+		// create tables if necessary
+		manager.createAllTables();
 		// loads the config file
 		Config config = Config.getInstance();
 

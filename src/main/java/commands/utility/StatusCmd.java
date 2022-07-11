@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -13,8 +14,6 @@ import java.util.List;
 /**
  * The status command.
  * Shows some information on the bots current status.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class StatusCmd extends Command implements UtilityCmd {
 
@@ -50,7 +49,8 @@ public class StatusCmd extends Command implements UtilityCmd {
 				emoteTotal, roleTotal), false);
 
 		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
+		event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
+				Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 	}
 
 }
