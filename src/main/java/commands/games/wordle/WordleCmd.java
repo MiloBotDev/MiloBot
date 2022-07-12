@@ -10,22 +10,15 @@ import java.util.List;
 
 /**
  * Parent command for all Wordle sub commands.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class WordleCmd extends Command implements GamesCmd, ParentCmd {
 
 	public WordleCmd() {
 		this.commandName = "wordle";
-		this.commandDescription = "Play a game of wordle or view the leaderboards.";
+		this.commandDescription = "Wordle brought to discord.";
 		this.aliases = new String[]{"morble"};
 		this.subCommands.add(new WordlePlayCmd());
 		this.subCommands.add(new WordleLeaderboardCmd());
-
-	}
-
-	@Override
-	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 
 	}
 }

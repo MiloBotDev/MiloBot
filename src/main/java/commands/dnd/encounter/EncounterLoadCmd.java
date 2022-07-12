@@ -3,18 +3,11 @@ package commands.dnd.encounter;
 import commands.Command;
 import commands.SubCmd;
 import database.DatabaseManager;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
-import utility.EmbedUtils;
-import utility.Paginator;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Lets users load their saved encounters from the database.

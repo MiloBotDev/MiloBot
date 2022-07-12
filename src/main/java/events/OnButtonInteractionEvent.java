@@ -1,8 +1,11 @@
 package events;
 
 import commands.dnd.encounter.EncounterGeneratorCmd;
+import commands.games.wordle.WordleLeaderboardCmd;
 import commands.utility.HelpCmd;
+import database.queries.WordleTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
@@ -14,7 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 import utility.Paginator;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Triggers when a button is clicked by a user.
@@ -110,6 +115,30 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 			case "previous":
 				event.getHook().editOriginalEmbeds(event.getMessage().getEmbeds()).setActionRows(helpCmd
 						.getButtons().get(0)).queue();
+				break;
+			case "totalGamesPlayed":
+				ArrayList<EmbedBuilder> totalGamesPlayedEmbeds = WordleLeaderboardCmd.makeLeaderboardEmbeds(event.getUser(), "Top 100: total games played",
+						WordleTableQueries.wordleGetTopTotalGamesPlayed);
+				Paginator totalGamesPlayedPager = new Paginator(totalGamesPlayedEmbeds.get(0));
+				totalGamesPlayedEmbeds.remove(0);
+				totalGamesPlayedPager.addPages(totalGamesPlayedEmbeds);
+				event.getHook().editOriginalEmbeds(totalGamesPlayedPager.currentPage().build()).setActionRows(ActionRow.of(
+						Button.primary(event.getUser().getId() + ":previousPage", "Previous"),
+						Button.secondary(event.getUser().getId() + ":delete", "Delete"),
+						Button.primary(event.getUser().getId() + ":nextPage", "Next")
+						)).queue(message -> totalGamesPlayedPager.initialize(event.getMessageId()));
+				break;
+			case "highestStreak":
+				ArrayList<EmbedBuilder> highestStreakEmbeds = WordleLeaderboardCmd.makeLeaderboardEmbeds(event.getUser(),"Top 100: highest streak",
+						WordleTableQueries.wordleGetTopHighestStreak);
+				Paginator highestStreakPager = new Paginator(highestStreakEmbeds.get(0));
+				highestStreakEmbeds.remove(0);
+				highestStreakPager.addPages(highestStreakEmbeds);
+				event.getHook().editOriginalEmbeds(highestStreakPager.currentPage().build()).setActionRows(ActionRow.of(
+						Button.primary(event.getUser().getId() + ":previousPage", "Previous"),
+						Button.secondary(event.getUser().getId() + ":delete", "Delete"),
+						Button.primary(event.getUser().getId() + ":nextPage", "Next")
+				)).queue(message -> highestStreakPager.initialize(event.getMessageId()));
 				break;
 		}
 	}

@@ -25,6 +25,10 @@ public class Paginator {
 		pages.add(embed);
 	}
 
+	public void addPages(List<EmbedBuilder> embeds) {
+		pages.addAll(embeds);
+	}
+
 	public Optional<EmbedBuilder> nextPage() {
 		if(currentPage + 1 < pages.size()) {
 			currentPage++;
