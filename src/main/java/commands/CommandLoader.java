@@ -77,6 +77,9 @@ public class CommandLoader {
 		slashCommands.addCommands(Commands.slash("wordle", "Wordle brought to discord.")
 				.addSubcommands(new SubcommandData("leaderboard", "View the wordle leaderboards."))).queue();
 
+		slashCommands.addCommands(Commands.slash("bug", "Add bugs to the bots issue tracker, or view them.")
+				.addSubcommands(new SubcommandData("report", "Report a bug you found."))).queue();
+
 		slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server.")).queue();
 
 		slashCommands.addCommands(Commands.slash("profile", "View your own or someone else's profile.")

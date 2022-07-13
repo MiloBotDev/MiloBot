@@ -2,6 +2,10 @@ package commands.bot.bug;
 
 import commands.Command;
 import commands.SubCmd;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -10,13 +14,11 @@ import utility.GitHubBot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The Bug Command.
  * Report a bug you have found. The bug will be added to the issue tracker on the repository.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class BugReportCmd extends Command implements SubCmd {
 
@@ -26,7 +28,7 @@ public class BugReportCmd extends Command implements SubCmd {
 	public BugReportCmd() {
 		this.commandName = "report";
 		this.commandDescription = "Report a bug you found.";
-		this.cooldown = 120;
+		this.cooldown = 0;
 
 		this.questions = new ArrayList<>(List.of(new String[]{
 				"Please give me a short summary of the bug you found. You can type cancel at any time to stop the command.",
@@ -39,39 +41,62 @@ public class BugReportCmd extends Command implements SubCmd {
 
 	@Override
 	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-		String authorId = event.getAuthor().getId();
 		ArrayList<String> results = new ArrayList<>();
-		askQuestion(event, this.questions, authorId, results);
+		askQuestion(event.getJDA(), event.getChannel(), event.getAuthor(), this.questions, results, null);
+	}
+
+	@Override
+	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+		event.deferReply().queue();
+		ArrayList<String> results = new ArrayList<>();
+		askQuestion(event.getJDA(), event.getChannel(), event.getUser(), this.questions,  results, event);
 	}
 
 	/**
 	 * Asks the next question for the bug report. Calls itself recursively till all questions have been asked.
 	 */
-	private void askQuestion(@NotNull MessageReceivedEvent event, ArrayList<String> questions, String authorId,
-							 @NotNull ArrayList<String> results) {
+	private void askQuestion(JDA jda, MessageChannel channel, User author, ArrayList<String> questions,
+							 @NotNull ArrayList<String> results, SlashCommandInteractionEvent slashEvent) {
 		if (results.size() == 4) {
 			String bugIssue = gitHubBot.createBugIssue(results.get(0), results.get(1), results.get(2), results.get(3),
-					event.getAuthor().getName(), authorId);
-			event.getChannel().sendMessage(String.format("Your bug report has been submitted. " +
-					"You can view your submitted bug here: %s", bugIssue)).queue();
+					author.getName(), author.getId());
+			String format = String.format("Your bug report has been submitted. " +
+					"You can view your submitted bug here: %s", bugIssue);
+			if(slashEvent != null) {
+				slashEvent.getHook().sendMessage(format).queue();
+			} else {
+				channel.sendMessage(format).queue();
+			}
 		} else {
-			event.getChannel().sendMessage(questions.get(results.size())).queue(message -> {
+			channel.sendMessage(questions.get(results.size())).queue(message -> {
 				ListenerAdapter listener = new ListenerAdapter() {
 					@Override
 					public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-						if (event.getAuthor().getId().equals(authorId)) {
+						if (event.getAuthor().getId().equals(author.getId())) {
 							event.getJDA().removeEventListener(this);
 							if (event.getMessage().getContentRaw().toLowerCase(Locale.ROOT).equals("cancel")) {
-								event.getChannel().sendMessage("Bug report canceled.").queue();
+								if (slashEvent != null) {
+									slashEvent.getHook().sendMessage("Bug report canceled.").queue();
+								} else {
+									channel.sendMessage("Bug report canceled.").queue();
+								}
 							} else {
 								results.add(event.getMessage().getContentRaw());
-								askQuestion(event, questions, authorId, results);
+								askQuestion(jda, channel, author, questions, results, slashEvent);
 							}
 						}
 					}
 				};
-				message.getJDA().getRateLimitPool().schedule(() -> event.getJDA().removeEventListener(listener),
-						2, TimeUnit.MINUTES);
+
+				message.getJDA().getRateLimitPool().schedule(() -> {
+					if(jda.getRegisteredListeners().contains(listener)) {
+						jda.removeEventListener(listener);
+						if (slashEvent != null) {
+							slashEvent.getHook().sendMessage("Timed out!").queue();
+						} else {
+							channel.sendMessage("Timed out!").queue();
+						}
+					}},2, TimeUnit.MINUTES);
 				message.getJDA().addEventListener(listener);
 			});
 		}
