@@ -37,13 +37,15 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 
 		String description = "Select the leaderboard you want to view:\n" +
 				":one: total games played.\n" +
-				":two: highest streak.";
+				":two: highest streak. \n" +
+				":three: current streak.";
 		embed.setDescription(description);
 
 		String id = author.getId();
 		event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
 				Button.primary(id + ":totalGamesPlayed", Emoji.fromMarkdown("1️⃣")),
 				Button.primary(id + ":highestStreak", Emoji.fromMarkdown("2️⃣")),
+				Button.primary(id + ":currentStreak", Emoji.fromMarkdown("3️⃣")),
 				Button.secondary(id + ":delete", "Delete")
 		)).queue();
 	}
@@ -64,6 +66,7 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 		event.replyEmbeds(embed.build()).addActionRows(ActionRow.of(
 				Button.primary(id + ":totalGamesPlayed", Emoji.fromMarkdown("1️⃣")),
 				Button.primary(id + ":highestStreak", Emoji.fromMarkdown("2️⃣")),
+				Button.primary(id + ":currentStreak", Emoji.fromMarkdown("3️⃣")),
 				Button.secondary(id + ":delete", "Delete")
 		)).queue();
 	}

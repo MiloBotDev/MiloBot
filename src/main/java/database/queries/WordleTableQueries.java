@@ -7,4 +7,5 @@ public interface WordleTableQueries {
 	String selectUserWordle = "SELECT * FROM wordle WHERE userId = ?";
 	String wordleGetTopTotalGamesPlayed = "SELECT user.name, wordle.totalGames FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY CAST(wordle.totalGames AS int) DESC LIMIT 100;";
 	String wordleGetTopHighestStreak = "SELECT user.name, wordle.highestStreak FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY CAST(wordle.highestStreak AS int) DESC LIMIT 100;";
+	String wordleGetTopCurrentStreak = "SELECT user.name, wordle.streak FROM user JOIN wordle ON user.userId = wordle.userId ORDER BY CAST(wordle.streak AS int) DESC LIMIT 100;";
 }

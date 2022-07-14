@@ -23,8 +23,6 @@ import java.util.function.Consumer;
 
 /**
  * Triggers when a button is clicked by a user.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class OnButtonInteractionEvent extends ListenerAdapter {
 
@@ -139,6 +137,18 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 						Button.secondary(event.getUser().getId() + ":delete", "Delete"),
 						Button.primary(event.getUser().getId() + ":nextPage", "Next")
 				)).queue(message -> highestStreakPager.initialize(event.getMessageId()));
+				break;
+			case "currentStreak":
+				ArrayList<EmbedBuilder> currentStreakEmbeds = WordleLeaderboardCmd.makeLeaderboardEmbeds(event.getUser(),"Top 100: current streak",
+						WordleTableQueries.wordleGetTopCurrentStreak);
+				Paginator currentStreakPager = new Paginator(currentStreakEmbeds.get(0));
+				currentStreakEmbeds.remove(0);
+				currentStreakPager.addPages(currentStreakEmbeds);
+				event.getHook().editOriginalEmbeds(currentStreakPager.currentPage().build()).setActionRows(ActionRow.of(
+						Button.primary(event.getUser().getId() + ":previousPage", "Previous"),
+						Button.secondary(event.getUser().getId() + ":delete", "Delete"),
+						Button.primary(event.getUser().getId() + ":nextPage", "Next")
+				)).queue(message -> currentStreakPager.initialize(event.getMessageId()));
 				break;
 		}
 	}
