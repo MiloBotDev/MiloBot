@@ -19,9 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Loads in every command to a static map.
- *
- * @author Ruben Eekhof - rubeneehof@gmail.com
+ * Loads in every command.
  */
 public class CommandLoader {
 
@@ -45,7 +43,6 @@ public class CommandLoader {
 			keys.add(c.commandName);
 			commandList.put(keys, c);
 		}
-
 
 		CommandListUpdateAction slashCommands = bot.updateCommands();
 

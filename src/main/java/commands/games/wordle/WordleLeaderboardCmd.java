@@ -25,7 +25,7 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 
 	public WordleLeaderboardCmd() {
 		this.commandName = "leaderboard";
-		this.commandDescription = " n  ";
+		this.commandDescription = "View the wordle leaderboards.";
 	}
 
 	@Override

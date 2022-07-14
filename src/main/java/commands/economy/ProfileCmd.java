@@ -13,14 +13,10 @@ import utility.EmbedUtils;
 import utility.User;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Shows the user their own profile or that of someone else.
-
  */
 public class ProfileCmd extends Command implements EconomyCmd {
 
@@ -40,10 +36,8 @@ public class ProfileCmd extends Command implements EconomyCmd {
 	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 		net.dv8tion.jda.api.entities.User author = event.getAuthor();
 		if (args.size() == 0) {
-			event.getChannel().sendTyping().queue();
-			String userId = author.getId();
 			String name = author.getName();
-			Optional<EmbedBuilder> embedBuilder = makeEmbed(userId, name, author);
+			Optional<EmbedBuilder> embedBuilder = makeEmbed(name, author, author.getId());
 			if (embedBuilder.isPresent()) {
 				event.getChannel().sendMessageEmbeds(embedBuilder.get().build()).setActionRow(
 						Button.secondary(author.getId() + ":delete", "Delete")).queue();
@@ -54,15 +48,16 @@ public class ProfileCmd extends Command implements EconomyCmd {
 			String findUser = String.join(" ", args);
 			try {
 				List<Member> usersByName = new ArrayList<>();
-				event.getGuild().findMembers(e -> e.getUser().getName().toLowerCase(Locale.ROOT).equals(findUser))
+				event.getGuild().findMembers(e -> e.getUser().getName().toLowerCase(Locale.ROOT).equals(findUser)
+								|| e.getUser().getAsMention().equals(findUser) || (e.getNickname() != null && e.getNickname().equals(findUser)))
 						.onSuccess(members -> {
 							usersByName.addAll(members);
 							if (usersByName.size() == 0) {
 								event.getChannel().sendMessage(String.format("User `%s` not found.", findUser)).queue();
 							} else {
-								String userId = usersByName.get(0).getId();
-								String name = usersByName.get(0).getUser().getName();
-								Optional<EmbedBuilder> embed = makeEmbed(userId, name, author);
+								net.dv8tion.jda.api.entities.User user = usersByName.get(0).getUser();
+								String name = user.getName();
+								Optional<EmbedBuilder> embed = makeEmbed(name, author, user.getId());
 								if (embed.isPresent()) {
 									event.getChannel().sendMessageEmbeds(embed.get().build()).setActionRow(
 											Button.secondary(author.getId() + ":delete", "Delete")).queue();
@@ -79,18 +74,54 @@ public class ProfileCmd extends Command implements EconomyCmd {
 
 	@Override
 	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
-
+		event.deferReply().queue();
+		net.dv8tion.jda.api.entities.User author = event.getUser();
+		if(event.getOption("user") == null) {
+			String name = author.getName();
+			Optional<EmbedBuilder> embedBuilder = makeEmbed(name, author, author.getId());
+			if (embedBuilder.isPresent()) {
+				event.getHook().sendMessageEmbeds(embedBuilder.get().build()).addActionRow(
+						Button.secondary(author.getId() + ":delete", "Delete")).queue();
+			} else {
+				event.getHook().sendMessage("Something went wrong.").queue();
+			}
+		} else {
+			String findUser = Objects.requireNonNull(event.getOption("user")).getAsString();
+			try {
+				List<Member> usersByName = new ArrayList<>();
+				Objects.requireNonNull(event.getGuild()).findMembers(e -> e.getUser().getId().equals(findUser))
+						.onSuccess(members -> {
+							usersByName.addAll(members);
+							if (usersByName.size() == 0) {
+								event.getHook().sendMessage(String.format("User `%s` not found.", findUser)).queue();
+							} else {
+								net.dv8tion.jda.api.entities.User user = usersByName.get(0).getUser();
+								String name = user.getName();
+								Optional<EmbedBuilder> embed = makeEmbed(name, author, user.getId());
+								if (embed.isPresent()) {
+									event.getHook().sendMessageEmbeds(embed.get().build()).addActionRow(
+											Button.secondary(author.getId() + ":delete", "Delete")).queue();
+								} else {
+									event.getHook().sendMessage(String.format("Can't create a profile for `%s`.", name)).queue();
+								}
+							}
+						});
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
 	 * Builds the embed for the Profile command.
-	 *
-	 * @return The embed for the Profile command.
 	 */
-	private Optional<EmbedBuilder> makeEmbed(String userId, String name, net.dv8tion.jda.api.entities.User author) {
-		ArrayList<String> resultSelectUser = manager.query(UserTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
-		ArrayList<String> resultGetUserRank = manager.query(UserTableQueries.getUserRankByExperience, DatabaseManager.QueryTypes.RETURN, userId);
+	private Optional<EmbedBuilder> makeEmbed(String name, net.dv8tion.jda.api.entities.User author, String id) {
+		ArrayList<String> resultSelectUser = manager.query(UserTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, id);
+		ArrayList<String> resultGetUserRank = manager.query(UserTableQueries.getUserRankByExperience, DatabaseManager.QueryTypes.RETURN, id);
 		ArrayList<String> resultGetUserAmount = manager.query(UserTableQueries.getUserAmount, DatabaseManager.QueryTypes.RETURN);
+		if(resultSelectUser.size() == 0 || resultGetUserRank.size() == 0) {
+			return Optional.empty();
+		}
 		String userName = resultSelectUser.get(1);
 		String currency = resultSelectUser.get(2);
 		String level = resultSelectUser.get(3);
@@ -101,10 +132,6 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		EmbedBuilder embed = new EmbedBuilder();
 		EmbedUtils.styleEmbed(embed, author);
 		embed.setTitle(name);
-
-		if (resultSelectUser.size() == 0) {
-			return Optional.empty();
-		}
 
 		StringBuilder levelDescription = new StringBuilder();
 		Optional<String> levelProgressBar = generateLevelProgressBar(Integer.parseInt(level), Integer.parseInt(experience));
@@ -122,6 +149,9 @@ public class ProfileCmd extends Command implements EconomyCmd {
 		return Optional.of(embed);
 	}
 
+	/**
+	 * Generates a progress bar based on the amount of experience is needed for the next level.
+	 */
 	private @NotNull Optional<String> generateLevelProgressBar(int currentLevel, int currentExperience) {
 		int nextLevel = currentLevel + 1;
 		if (nextLevel > user.maxLevel) {
