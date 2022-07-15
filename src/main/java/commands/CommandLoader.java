@@ -90,6 +90,9 @@ public class CommandLoader {
 		slashCommands.addCommands(Commands.slash("profile", "View your own or someone else's profile.")
 						.addOption(OptionType.USER, "user", "The user you want to view the profile of.", false))
 				.queue();
+
+		slashCommands.addCommands(Commands.slash("prefix", "Change the prefix of the guild you're in.")
+				.addOption(OptionType.STRING, "prefix", "The new prefix.", true)).queue();
 	}
 
 }

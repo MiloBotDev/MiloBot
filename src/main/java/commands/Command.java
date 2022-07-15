@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -22,8 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Basic implementation of a command.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public abstract class Command {
 
@@ -110,8 +109,6 @@ public abstract class Command {
 
 	/**
 	 * The default implementation for checking if a flag is present.
-	 *
-	 * @return true if a flag was present, false if no flag was present.
 	 */
 	public boolean checkForFlags(MessageReceivedEvent event, @NotNull List<String> args, String commandName,
 								 String commandDescription, String[] commandArgs, String[] aliases, String[] flags,
@@ -135,8 +132,6 @@ public abstract class Command {
 
 	/**
 	 * Checks if the user is using the command again before the cooldown is over.
-	 *
-	 * @return true if the command is on cooldown, false if otherwise
 	 */
 	public boolean checkCooldown(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> cooldownMap) {
 		OffsetDateTime currentTime = event.getMessage().getTimeCreated();
@@ -161,8 +156,6 @@ public abstract class Command {
 
 	/**
 	 * Checks if the user is using the command again when its only allowed to have 1 instance open.
-	 *
-	 * @return true if the command already has an instance open, false if otherwise
 	 */
 	public boolean checkInstanceOpen(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> gameInstanceMap, String commandName) {
 		OffsetDateTime currentTime = event.getMessage().getTimeCreated();
@@ -206,6 +199,7 @@ public abstract class Command {
 	 */
 	public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
 		DatabaseManager manager = DatabaseManager.getInstance();
+		System.out.println(commandName);
 		ArrayList<String> personalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, event.getAuthor().getId());
 		ArrayList<String> globalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageGlobalAmount, DatabaseManager.QueryTypes.RETURN, commandName);
 
@@ -282,8 +276,6 @@ public abstract class Command {
 
 	/**
 	 * Builds a String that explains the sub commands a command has.
-	 *
-	 * @return the String as a StringBuilder instance.
 	 */
 	@NotNull
 	private StringBuilder getSubCommandsText(String commandName, @NotNull ArrayList<Command> subCommands, String prefix) {
@@ -302,8 +294,6 @@ public abstract class Command {
 
 	/**
 	 * Builds a String that explains the usage of a command.
-	 *
-	 * @return the String as a StringBuilder instance
 	 */
 	@NotNull
 	private StringBuilder getArgumentsText(String commandName, String @NotNull [] commandArgs, String prefix) {
@@ -377,9 +367,14 @@ public abstract class Command {
 	 *
 	 * @return true if the user has the required permissions, false otherwise.
 	 */
-	public boolean checkRequiredPermissions(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, Permission> permissions) {
+	public boolean checkRequiredPermissions(@NotNull Event event, @NotNull HashMap<String, Permission> permissions) {
 		AtomicBoolean hasPermission = new AtomicBoolean(false);
-		Member member = event.getMember();
+		Member member = null;
+		if(event instanceof MessageReceivedEvent) {
+			member = ((MessageReceivedEvent) event).getMember();
+		} else if(event instanceof SlashCommandInteractionEvent) {
+			member = ((SlashCommandInteractionEvent) event).getMember();
+		}
 		if (member == null) {
 			hasPermission.set(false);
 			return hasPermission.get();
@@ -387,8 +382,9 @@ public abstract class Command {
 		if (permissions.isEmpty()) {
 			hasPermission.set(true);
 		} else {
+			Member finalMember = member;
 			permissions.forEach((s, p) -> {
-				hasPermission.set(member.getPermissions().contains(p));
+				hasPermission.set(finalMember.getPermissions().contains(p));
 			});
 		}
 		return hasPermission.get();
@@ -397,14 +393,25 @@ public abstract class Command {
 	/**
 	 * Generates and sends a message for when a user is missing the required permissions to use the command.
 	 */
-	public void sendMissingPermissions(@NotNull MessageReceivedEvent event, String commandName,
+	public void sendMissingPermissions(@NotNull Event event, String commandName,
 									   @NotNull HashMap<String, Permission> permissions, String prefix) {
-		Member member = event.getMember();
+		Member member = null;
+		User user = null;
+		if(event instanceof MessageReceivedEvent) {
+			member = ((MessageReceivedEvent) event).getMember();
+			user = ((MessageReceivedEvent) event).getAuthor();
+		} else if(event instanceof SlashCommandInteractionEvent) {
+			member = ((SlashCommandInteractionEvent) event).getMember();
+			user =  ((SlashCommandInteractionEvent) event).getUser();
+		}
 		ArrayList<String> missingPermissions = new ArrayList<>();
 		if (member == null) {
 			// this should never happen
-			event.getChannel().sendTyping().queue();
-			event.getChannel().sendMessage("Something went wrong. We're sorry about that").queue();
+			if(event instanceof MessageReceivedEvent) {
+				((MessageReceivedEvent) event).getChannel().sendMessage("Something went wrong. We're sorry about that").queue();
+			} else if(event instanceof SlashCommandInteractionEvent) {
+				((SlashCommandInteractionEvent) event).reply("Something went wrong. We're sorry about that").queue();
+			}
 			return;
 		}
 		EnumSet<Permission> memberPermissions = member.getPermissions();
@@ -414,7 +421,6 @@ public abstract class Command {
 			}
 		});
 		EmbedBuilder embed = new EmbedBuilder();
-		EmbedUtils.styleEmbed(embed, event.getAuthor());
 		embed.setTitle(String.format("Missing required permissions for: %s%s", prefix, commandName));
 		StringBuilder missingPermissionsText = new StringBuilder();
 		missingPermissionsText.append("You are missing the following permission(s): ");
@@ -427,9 +433,14 @@ public abstract class Command {
 			}
 		}
 		embed.setDescription(missingPermissionsText.toString());
-		event.getChannel().sendTyping().queue();
-		event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
-				Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+		EmbedUtils.styleEmbed(embed, user);
+		if(event instanceof MessageReceivedEvent) {
+			((MessageReceivedEvent) event).getChannel().sendMessageEmbeds(embed.build()).setActionRow(
+					Button.secondary(((MessageReceivedEvent) event).getAuthor().getId() + ":delete", "Delete")).queue();
+		} else {
+			((SlashCommandInteractionEvent) event).replyEmbeds(embed.build()).addActionRow(
+					Button.secondary(((SlashCommandInteractionEvent) event).getUser().getId() + ":delete", "Delete")).queue();
+		}
 	}
 
 }

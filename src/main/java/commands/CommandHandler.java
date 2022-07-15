@@ -78,7 +78,7 @@ public class CommandHandler extends ListenerAdapter {
 					}
 					// check for flags if one or multiple arguments are present
 					if (receivedMessage.size() > 0) {
-						if (command.checkForFlags(event, receivedMessage, command.commandName, command.commandDescription,
+						if (command.checkForFlags(event, receivedMessage, fullCommandName, command.commandDescription,
 								command.commandArgs, command.aliases, command.flags, command.cooldown, command.subCommands)) {
 							return;
 						}
@@ -152,6 +152,11 @@ public class CommandHandler extends ListenerAdapter {
 					}
 				} else {
 					command = CommandLoader.commandList.get(strings);
+				}
+				String prefix = prefixes.get(event.getGuild().getId());
+				if (!command.checkRequiredPermissions(event, command.permissions)) {
+					command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
+					return;
 				}
 				command.executeSlashCommand(event);
 				command.updateCommandTrackerUser(fullCommandName, event.getUser().getId());
