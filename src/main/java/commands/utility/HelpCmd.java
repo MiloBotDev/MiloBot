@@ -26,8 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Shows the user an overview of every command, or detailed information on a specific command.
  * This class is a singleton.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
+
  */
 public class HelpCmd extends Command implements UtilityCmd {
 
@@ -165,15 +164,15 @@ public class HelpCmd extends Command implements UtilityCmd {
 
 		CommandLoader.commandList.forEach((key, value) -> {
 			if (value instanceof UtilityCmd) {
-				utilityEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
+				utilityEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof EconomyCmd) {
-				economyEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
+				economyEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof GamesCmd) {
-				gamesEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
+				gamesEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof BotCmd) {
-				botEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
+				botEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof DndCmd) {
-				dndEmbed.addField(String.format("%s%s", prefix, value.commandName), value.commandDescription, true);
+				dndEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			}
 		});
 	}

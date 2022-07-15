@@ -20,8 +20,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Play a game of wordle.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class WordlePlayCmd extends Command implements SubCmd {
 

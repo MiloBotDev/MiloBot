@@ -3,19 +3,23 @@ package commands.bot.bug;
 import commands.Command;
 import commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Emoji;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
 import utility.EmbedUtils;
 import utility.GitHubBot;
+import utility.Paginator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Displays all issues labeled as a bug.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class BugListCmd extends Command implements SubCmd {
 
@@ -23,32 +27,52 @@ public class BugListCmd extends Command implements SubCmd {
 
 	public BugListCmd() {
 		this.commandName = "list";
-		this.commandDescription = "Shows a list of all reported and unfinished bugs.";
+		this.commandDescription = "Shows a list of all reported bugs.";
 
 		this.gitHubBot = GitHubBot.getInstance();
 	}
 
 	@Override
 	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-		ArrayList<EmbedBuilder> pages = createPages();
-
+		ArrayList<EmbedBuilder> pages = createPages(event.getAuthor());
 		EmbedBuilder startingEmbed = pages.get(0);
 		EmbedUtils.styleEmbed(startingEmbed, event.getAuthor());
-		event.getChannel().sendMessageEmbeds(startingEmbed.build()).queue(message ->
-				EmbedUtils.createPaginator(event, "Bugs", pages, message, event.getAuthor().getId()));
+		Paginator paginator = new Paginator(startingEmbed);
+		paginator.addPages(pages);
+		String id = event.getAuthor().getId();
+		event.getChannel().sendMessageEmbeds(startingEmbed.build()).setActionRows(ActionRow.of(
+				Button.primary(id + ":previousPage", "Previous"),
+				Button.secondary(id + ":delete", "Delete"),
+				Button.primary(id + ":nextPage", "Next")
+		)).queue(message -> paginator.initialize(message.getId()));
+	}
+
+	@Override
+	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+		event.deferReply().queue();
+		ArrayList<EmbedBuilder> pages = createPages(event.getUser());
+		EmbedBuilder startingEmbed = pages.get(0);
+		EmbedUtils.styleEmbed(startingEmbed, event.getUser());
+		Paginator paginator = new Paginator(startingEmbed);
+		paginator.addPages(pages);
+		String id = event.getUser().getId();
+		event.getHook().sendMessageEmbeds(startingEmbed.build()).addActionRows(ActionRow.of(
+				Button.primary(id + ":previousPage", "Previous"),
+				Button.secondary(id + ":delete", "Delete"),
+				Button.primary(id + ":nextPage", "Next")
+		)).queue();
 	}
 
 	/**
 	 * Creates all pages for the paginator.
-	 *
-	 * @return The pages in an ArrayList<EmbedBuilder>.
 	 */
-	private @NotNull ArrayList<EmbedBuilder> createPages() {
+	private @NotNull ArrayList<EmbedBuilder> createPages(User user) {
 		ArrayList<EmbedBuilder> pages = new ArrayList<>();
 		ArrayList<GHIssue> allBugs = gitHubBot.getAllBugs();
 		StringBuilder description = new StringBuilder();
 
 		EmbedBuilder page = new EmbedBuilder();
+		EmbedUtils.styleEmbed(page, user);
 		page.setTitle("Bugs");
 
 		int rowCount = 0;
@@ -66,6 +90,7 @@ public class BugListCmd extends Command implements SubCmd {
 				page.setDescription(description.toString());
 				pages.add(page);
 				page = new EmbedBuilder();
+				EmbedUtils.styleEmbed(page, user);
 				page.setTitle("Bugs");
 				description = new StringBuilder();
 			}

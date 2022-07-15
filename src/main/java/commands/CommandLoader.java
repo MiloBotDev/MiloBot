@@ -75,7 +75,12 @@ public class CommandLoader {
 				.addSubcommands(new SubcommandData("leaderboard", "View the wordle leaderboards."))).queue();
 
 		slashCommands.addCommands(Commands.slash("bug", "Add bugs to the bots issue tracker, or view them.")
-				.addSubcommands(new SubcommandData("report", "Report a bug you found."))).queue();
+				.addSubcommands(List.of(
+						new SubcommandData("report", "Report a bug you found."),
+						new SubcommandData("list", "Shows a list of all reported bugs."),
+						new SubcommandData("view", "Lookup a specific bug on the issue tracker.").addOptions(
+								new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
+						)))).queue();
 
 		slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server.")).queue();
 
