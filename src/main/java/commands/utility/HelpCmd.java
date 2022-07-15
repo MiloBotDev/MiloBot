@@ -33,12 +33,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 	private static HelpCmd instance;
 
 	private ArrayList<List<ActionRow>> buttons;
-	private EmbedBuilder categoryEmbed;
-	private EmbedBuilder utilityEmbed;
-	private EmbedBuilder botEmbed;
-	private EmbedBuilder gamesEmbed;
-	private EmbedBuilder economyEmbed;
-	private EmbedBuilder dndEmbed;
+	private EmbedBuilder help;
 
 	private HelpCmd() {
 		this.commandName = "help";
@@ -77,10 +72,9 @@ public class HelpCmd extends Command implements UtilityCmd {
 				event.getChannel().sendMessage(String.format("%s not found.", arg)).queue();
 			}
 		} else {
-			createButtons(authorId);
-			createEmbeds(event.getAuthor(), event.getGuild());
-			EmbedUtils.styleEmbed(categoryEmbed, event.getAuthor());
-			event.getChannel().sendMessageEmbeds(categoryEmbed.build()).setActionRows(buttons.get(0)).queue();
+			createEmbed(event.getAuthor(), event.getGuild());
+			EmbedUtils.styleEmbed(help, event.getAuthor());
+			event.getChannel().sendMessageEmbeds(help.build()).setActionRow(Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 		}
 	}
 
@@ -103,105 +97,45 @@ public class HelpCmd extends Command implements UtilityCmd {
 				event.reply(String.format("%s not found.", command)).queue();
 			}
 		} else {
-			createButtons(authorId);
-			createEmbeds(event.getUser(), Objects.requireNonNull(event.getGuild()));
-			EmbedUtils.styleEmbed(categoryEmbed, event.getUser());
-			event.replyEmbeds(categoryEmbed.build()).addActionRows(buttons.get(0)).queue();
+			createEmbed(event.getUser(), Objects.requireNonNull(event.getGuild()));
+			EmbedUtils.styleEmbed(help, event.getUser());
+			event.replyEmbeds(help.build()).addActionRow(Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
 		}
-	}
-
-	/**
-	 * Creates the buttons to attach to the help embed.
-	 */
-	private void createButtons(String authorId) {
-		this.buttons = new ArrayList<>();
-
-		buttons.add(List.of(ActionRow.of(
-				Button.primary(authorId + ":categories", "Categories 📝"),
-				Button.primary(authorId + ":utility", "Utility 🔨"),
-				Button.primary(authorId + ":economy", "Economy 💰"),
-				Button.primary(authorId + ":games", "Games 🎮"),
-				Button.secondary(authorId + ":next", "Next"))
-		));
-
-		buttons.add(List.of(ActionRow.of(
-				Button.secondary(authorId + ":previous", "Previous"),
-				Button.primary(authorId + ":bot", "Bot 🤖"),
-				Button.primary(authorId + ":dnd", "DnD 🐉"),
-				Button.secondary(authorId + ":delete", "Delete"))
-		));
 	}
 
 	/**
 	 * Builds the embeds for the help command.
 	 */
-	private void createEmbeds(@NotNull User author, @NotNull Guild guild) {
+	private void createEmbed(@NotNull User author, @NotNull Guild guild) {
 		String prefix = CommandHandler.prefixes.get(guild.getId());
 
-		this.categoryEmbed = new EmbedBuilder();
-		categoryEmbed.setTitle("Categories 📝");
-		categoryEmbed.setDescription("Use the buttons to navigate through the commands.");
-		categoryEmbed.addField("Utility 🔨", UtilityCmd.description, true);
-		categoryEmbed.addField("Economy 💰", EconomyCmd.description, true);
-		categoryEmbed.addField("Games 🎮", GamesCmd.description, true);
-		categoryEmbed.addField("Bot 🤖", BotCmd.description, true);
-		categoryEmbed.addField("Dungeons & Dragons 🐉", DndCmd.description, true);
-
-		this.utilityEmbed = new EmbedBuilder();
-		utilityEmbed.setTitle("Utility Commands 🔨");
-
-		this.economyEmbed = new EmbedBuilder();
-		economyEmbed.setTitle("Economy Commands 💰");
-
-		this.gamesEmbed = new EmbedBuilder();
-		gamesEmbed.setTitle("Game Commands 🎮");
-
-		this.botEmbed = new EmbedBuilder();
-		botEmbed.setTitle("Bot Commands 🤖");
-
-		this.dndEmbed = new EmbedBuilder();
-		dndEmbed.setTitle("Dungeons & Dragons commands 🐉");
+		StringBuilder utility = new StringBuilder();
+		StringBuilder economy = new StringBuilder();
+		StringBuilder games = new StringBuilder();
+		StringBuilder bot = new StringBuilder();
+		StringBuilder dnd = new StringBuilder();
 
 		CommandLoader.commandList.forEach((key, value) -> {
 			if (value instanceof UtilityCmd) {
-				utilityEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
+				utility.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof EconomyCmd) {
-				economyEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
+				economy.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof GamesCmd) {
-				gamesEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
+				games.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof BotCmd) {
-				botEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
+				bot.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof DndCmd) {
-				dndEmbed.getDescriptionBuilder().append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
+				dnd.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			}
 		});
+
+		this.help = new EmbedBuilder();
+		help.setTitle("Commands");
+		help.addField("Utility", utility.toString(), false);
+		help.addField("Economy", economy.toString(), false);
+		help.addField("Games", games.toString(), false);
+		help.addField("Bot", bot.toString(), false);
+		help.addField("Dungeons & Dragons", dnd.toString(), false);
 	}
 
-	public ArrayList<List<ActionRow>> getButtons() {
-		return buttons;
-	}
-
-	public EmbedBuilder getCategoryEmbed() {
-		return categoryEmbed;
-	}
-
-	public EmbedBuilder getUtilityEmbed() {
-		return utilityEmbed;
-	}
-
-	public EmbedBuilder getBotEmbed() {
-		return botEmbed;
-	}
-
-	public EmbedBuilder getGamesEmbed() {
-		return gamesEmbed;
-	}
-
-	public EmbedBuilder getEconomyEmbed() {
-		return economyEmbed;
-	}
-
-	public EmbedBuilder getDndEmbed() {
-		return dndEmbed;
-	}
 }

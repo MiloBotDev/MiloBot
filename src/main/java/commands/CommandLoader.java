@@ -72,7 +72,10 @@ public class CommandLoader {
 					)).queue();
 
 		slashCommands.addCommands(Commands.slash("wordle", "Wordle brought to discord.")
-				.addSubcommands(new SubcommandData("leaderboard", "View the wordle leaderboards."))).queue();
+				.addSubcommands(List.of(
+						new SubcommandData("leaderboard", "View the wordle leaderboards."),
+						new SubcommandData("play", "Play a game of wordle.")
+				))).queue();
 
 		slashCommands.addCommands(Commands.slash("bug", "Add bugs to the bots issue tracker, or view them.")
 				.addSubcommands(List.of(
