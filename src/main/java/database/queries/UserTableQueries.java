@@ -16,4 +16,6 @@ public interface UserTableQueries {
 	String getUserAmount = "SELECT count(*) FROM user;";
 	String updateUserName = "UPDATE user SET name = ? WHERE userId = ?;";
 	String getAllUserIdsAndNames = "SELECT userId, name FROM user";
+	String getUserCurrency = "SELECT currency FROM user WHERE userId = ?;";
+	String updateUserCurrency = "UPDATE user SET currency = ? WHERE userId = ?;";
 }

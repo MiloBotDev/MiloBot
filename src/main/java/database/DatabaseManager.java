@@ -134,6 +134,7 @@ public class DatabaseManager {
 		query(UserTableQueries.createUserTable, QueryTypes.UPDATE);
 		query(WordleTableQueries.createWordleTable, QueryTypes.UPDATE);
 		query(EncounterTableQueries.creatEncounterTable, QueryTypes.UPDATE);
+		query(BlackjackTableQueries.createBlackjackTable, QueryTypes.UPDATE);
 	}
 
 	/**

@@ -1,9 +1,13 @@
 package events;
 
 import commands.dnd.encounter.EncounterGeneratorCmd;
+import commands.games.blackjack.BlackjackPlayCmd;
 import commands.games.wordle.WordleLeaderboardCmd;
-import commands.utility.HelpCmd;
+import database.DatabaseManager;
+import database.queries.UserTableQueries;
 import database.queries.WordleTableQueries;
+import games.Blackjack;
+import models.BlackjackStates;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -13,23 +17,21 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
-import utility.EmbedUtils;
 import utility.Paginator;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Triggers when a button is clicked by a user.
  */
 public class OnButtonInteractionEvent extends ListenerAdapter {
 
-	private final HelpCmd helpCmd;
 	private final EncounterGeneratorCmd encCmd;
+	private final DatabaseManager dbManager;
 
 	public OnButtonInteractionEvent() {
-		this.helpCmd = HelpCmd.getInstance();
 		this.encCmd = EncounterGeneratorCmd.getInstance();
+		this.dbManager = DatabaseManager.getInstance();
 	}
 
 	@Override
@@ -108,6 +110,76 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 						Button.secondary(event.getUser().getId() + ":delete", "Delete"),
 						Button.primary(event.getUser().getId() + ":nextPage", "Next")
 				)).queue(message -> currentStreakPager.initialize(event.getMessageId()));
+				break;
+			case "hit":
+				Blackjack game = BlackjackPlayCmd.blackjackGames.get(event.getUser().getId());
+				if(game.isFinished() || game.isPlayerStand()) {
+					break;
+				}
+				game.playerHit();
+				BlackjackStates blackjackStates = game.checkWin(false);
+				EmbedBuilder newEmbed;
+				if(blackjackStates.equals(BlackjackStates.DEALER_WIN)) {
+					game.checkWin(true);
+					newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
+					event.getHook().editOriginalEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
+							Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
+							Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
+					BlackjackPlayCmd.blackjackGames.remove(user.getId());
+				} else {
+					newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
+					event.getHook().editOriginalEmbeds(newEmbed.build()).queue();
+				}
+				break;
+			case "stand":
+				Blackjack blackjack = BlackjackPlayCmd.blackjackGames.get(event.getUser().getId());
+				if(blackjack.isFinished() || blackjack.isPlayerStand()) {
+					break;
+				}
+				blackjack.setPlayerStand(true);
+				blackjack.dealerMoves();
+				blackjack.setDealerStand(true);
+				blackjackStates = blackjack.checkWin(true);
+				EmbedBuilder embedBuilder = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
+				event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
+						Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
+						Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
+				BlackjackPlayCmd.blackjackGames.remove(user.getId());
+				break;
+			case "replayBlackjack":
+				if(BlackjackPlayCmd.blackjackGames.containsKey(authorId)) {
+					break;
+				}
+				String description = event.getMessage().getEmbeds().get(0).getDescription();
+				Blackjack value;
+				if(description == null) {
+					value = new Blackjack(authorId);
+				} else {
+					String s = description.replaceAll("[^0-9]", "");
+					int bet = Integer.parseInt(s);
+					ArrayList<String> result = dbManager.query(UserTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, user.getId());
+					int wallet = Integer.parseInt(result.get(0));
+					if(bet > wallet) {
+						event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();
+						break;
+					}
+					value = new Blackjack(authorId, bet);
+				}
+				value.initializeGame();
+				BlackjackPlayCmd.blackjackGames.put(event.getUser().getId(), value);
+				BlackjackStates state = value.checkWin(false);
+				EmbedBuilder embed;
+				if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+					value.dealerHit();
+					blackjackStates = value.checkWin(true);
+					embed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
+				} else {
+					embed =  BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
+				}
+				event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
+						Button.primary(authorId + ":stand", "Stand"),
+						Button.primary(authorId + ":hit", "Hit")
+				)).queue();
 				break;
 		}
 	}

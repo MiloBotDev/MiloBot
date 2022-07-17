@@ -1,13 +1,16 @@
 package commands;
 
+import commands.bot.StatusCmd;
 import commands.bot.bug.BugCmd;
 import commands.dnd.encounter.EncounterCmd;
 import commands.economy.ProfileCmd;
+import commands.economy.WalletCmd;
+import commands.games.blackjack.BlackjackCmd;
 import commands.games.wordle.WordleCmd;
 import commands.utility.*;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -37,6 +40,8 @@ public class CommandLoader {
 		commands.add(new WordleCmd());
 		commands.add(new BugCmd());
 		commands.add(new EncounterCmd());
+		commands.add(new BlackjackCmd());
+		commands.add(new WalletCmd());
 
 		for (Command c : commands) {
 			ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));

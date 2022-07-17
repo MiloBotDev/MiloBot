@@ -1,6 +1,7 @@
+[![wakatime](https://wakatime.com/badge/user/b1703001-fd79-463f-98bb-45bdcf205f22/project/cac0a06d-c6c3-4127-8130-5b45b970ac11.svg)](https://wakatime.com/badge/user/b1703001-fd79-463f-98bb-45bdcf205f22/project/cac0a06d-c6c3-4127-8130-5b45b970ac11)
 # Milo Bot
 
-A discord bot written in Java that aims to build a collection of commands for fun as well as organizational purposes.
+A discord bot written in Java that aims to build a collection of commands for fun as well as organizational purposes. <br>
 
 ## Current Features
 

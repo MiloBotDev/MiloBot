@@ -1,4 +1,4 @@
-package commands.utility;
+package commands.bot;
 
 import commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -15,7 +15,7 @@ import java.util.List;
  * The status command.
  * Shows some information on the bots current status.
  */
-public class StatusCmd extends Command implements UtilityCmd {
+public class StatusCmd extends Command implements BotCmd {
 
 	public StatusCmd() {
 		this.commandName = "status";
@@ -43,7 +43,7 @@ public class StatusCmd extends Command implements UtilityCmd {
 		embed.addField("Servers", String.format("The bot is running in %d servers for a total of %d members.",
 				amountOfGuilds, memberTotal), false);
 		embed.addField("Channels", String.format("The bot is looking for commands in %d text channels, " +
-						"in %d different categories and can see %d voice channels. Isn't that impressive?", textChannels,
+						"in %d different categories and can see %d voice channels.", textChannels,
 				categories, voiceChannels), false);
 		embed.addField("Random Information", String.format("The bot can see %d emotes and %d roles.",
 				emoteTotal, roleTotal), false);
