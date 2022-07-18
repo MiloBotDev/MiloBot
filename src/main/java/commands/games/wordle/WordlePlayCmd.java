@@ -84,14 +84,20 @@ public class WordlePlayCmd extends Command implements SubCmd {
 
 					editDescription.append(wordleEmbed.getDescriptionBuilder());
 					String guess = event.getMessage().getContentRaw().toLowerCase(Locale.ROOT);
-					if (!(guess.toCharArray().length > wordle.wordLength || guess.toCharArray().length < wordle.wordLength)) {
+					char[] chars = guess.toCharArray();
+					if (!(chars.length > wordle.wordLength || chars.length < wordle.wordLength)) {
 						String[] result = wordle.guessWord(guess);
-						editDescription.append("\u200E \u200E \u200E");
-						for (char letter : guess.toCharArray()) {
-							editDescription.append(String.format("%s", letter));
-							editDescription.append("\u200E \u200E \u200E \u200E ");
+						editDescription.append("` ");
+						int count = 0;
+						for (char letter : chars) {
+							if(count + 1 == chars.length) {
+								editDescription.append(String.format("%s ", letter));
+							} else {
+								editDescription.append(String.format("%s  ", letter));
+							}
+							count++;
 						}
-						editDescription.append("\n");
+						editDescription.append("`\n");
 						for (String check : result) {
 							editDescription.append(String.format("%s ", check));
 						}
