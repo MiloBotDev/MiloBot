@@ -1,5 +1,6 @@
 import commands.CommandHandler;
 import commands.CommandLoader;
+import commands.games.blackjack.BlackjackPlayCmd;
 import database.DatabaseManager;
 import database.queries.PrefixTableQueries;
 import database.queries.UserTableQueries;
@@ -8,12 +9,11 @@ import events.OnReadyEvent;
 import events.OnUserUpdateNameEvent;
 import events.guild.OnGuildJoinEvent;
 import events.guild.OnGuildLeaveEvent;
+import games.Blackjack;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -21,15 +21,16 @@ import org.slf4j.LoggerFactory;
 import utility.Config;
 
 import javax.security.auth.login.LoginException;
+import java.awt.*;
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The Main class from where the bot is started.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class MiloBot {
 
@@ -61,6 +62,59 @@ public class MiloBot {
 
 		loadPrefixes(manager, config, bot);
 		updateUserNames(manager, bot);
+
+		Timer timer = new Timer();
+		TimerTask clearBlackjackInstances = getClearBlackjackInstancesTask(bot);
+		timer.schedule(clearBlackjackInstances, 1000 * 60 * 60, 1000 * 60 * 60);
+	}
+
+	/**
+	 * Clears blackjack instances that haven't been used for 15 minutes every hour.
+	 */
+	@NotNull
+	private static TimerTask getClearBlackjackInstancesTask(JDA bot) {
+		return new TimerTask() {
+			@Override
+			public void run() {
+				logger.info("Attempting to clear blackjack instances.");
+
+				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+				TextChannel logs = Objects.requireNonNull(bot.getGuildById(Config.getInstance().testGuildId))
+						.getTextChannelsByName(Config.getInstance().loggingChannelName, true).get(0);
+				long currentNanoTime = System.nanoTime();
+
+				Map<String, Blackjack> blackjackGames = BlackjackPlayCmd.blackjackGames;
+				List<String> instancesToRemove = new ArrayList<>();
+				blackjackGames.forEach(
+						(s, blackjack) -> {
+							long startTime = blackjack.getStartTime();
+							long elapsedTime = currentNanoTime - startTime;
+							long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
+							if (elapsedTimeSeconds > 900) {
+								logger.info(String.format("Blackjack instance by: %s timed out. Time elapsed %d seconds.",
+										s, elapsedTimeSeconds));
+								instancesToRemove.add(s);
+							}
+						}
+				);
+
+				if(instancesToRemove.size() == 0) {
+					logger.info("No blackjack instances timed out.");
+				} else {
+					for(String s : instancesToRemove) {
+						blackjackGames.remove(s);
+					}
+					logger.info(String.format("Removed %d blackjack instances.", instancesToRemove.size()));
+				}
+
+				EmbedBuilder logEmbed = new EmbedBuilder();
+				logEmbed.setTitle("Blackjack Instance Cleanup");
+				logEmbed.setColor(Color.green);
+				logEmbed.setFooter(dtf.format(LocalDateTime.now()));
+				logEmbed.setDescription(String.format("Removed %d blackjack instances.", instancesToRemove.size()));
+				logs.sendMessageEmbeds(logEmbed.build()).queue();
+			}
+		};
 	}
 
 	/**

@@ -25,6 +25,7 @@ public class Blackjack {
 	private boolean dealerStand;
 	private boolean finished;
 	private int winnings;
+	private final long startTime;
 
 	public Blackjack(String userId) {
 		this.playerHand = new ArrayList<>();
@@ -34,6 +35,7 @@ public class Blackjack {
 		this.userId = userId;
 		this.playerBet = 0;
 		this.winnings = 0;
+		this.startTime = System.nanoTime();
 	}
 
 	public Blackjack(String userId, int bet) {
@@ -45,6 +47,7 @@ public class Blackjack {
 		this.playerBet = bet;
 		this.winnings = 0;
 		updateWallet(null);
+		this.startTime = System.nanoTime();
 	}
 
 	public void initializeGame() {
@@ -210,6 +213,10 @@ public class Blackjack {
 
 	public int getWinnings() {
 		return winnings;
+	}
+
+	public long getStartTime() {
+		return startTime;
 	}
 
 	public void setPlayerStand(boolean playerStand) {

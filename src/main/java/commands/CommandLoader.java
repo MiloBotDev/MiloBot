@@ -52,8 +52,7 @@ public class CommandLoader {
 		CommandListUpdateAction slashCommands = bot.updateCommands();
 
 		slashCommands.addCommands(Commands.slash("help", "Shows the user a list of available commands.")
-						.addOption(OptionType.STRING, "command", "The command you want information about.", false))
-				.queue();
+						.addOption(OptionType.STRING, "command", "The command you want information about.", false));
 
 		slashCommands.addCommands(Commands.slash("encounter", "D&D 5e encounter generator.")
 				.addSubcommands(new SubcommandData("generate", "Generate a random encounter for the given inputs.")
@@ -74,13 +73,13 @@ public class CommandLoader {
 											new Choice("other plane", "other plane"), new Choice("underground", "underground"),
 											new Choice("water", "water")
 									))
-					)).queue();
+					));
 
 		slashCommands.addCommands(Commands.slash("wordle", "Wordle brought to discord.")
 				.addSubcommands(List.of(
 						new SubcommandData("leaderboard", "View the wordle leaderboards."),
 						new SubcommandData("play", "Play a game of wordle.")
-				))).queue();
+				)));
 
 		slashCommands.addCommands(Commands.slash("bug", "Add bugs to the bots issue tracker, or view them.")
 				.addSubcommands(List.of(
@@ -88,16 +87,17 @@ public class CommandLoader {
 						new SubcommandData("list", "Shows a list of all reported bugs."),
 						new SubcommandData("view", "Lookup a specific bug on the issue tracker.").addOptions(
 								new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
-						)))).queue();
+						))));
 
-		slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server.")).queue();
+		slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server."));
 
 		slashCommands.addCommands(Commands.slash("profile", "View your own or someone else's profile.")
-						.addOption(OptionType.USER, "user", "The user you want to view the profile of.", false))
-				.queue();
+						.addOption(OptionType.USER, "user", "The user you want to view the profile of.", false));
 
 		slashCommands.addCommands(Commands.slash("prefix", "Change the prefix of the guild you're in.")
-				.addOption(OptionType.STRING, "prefix", "The new prefix.", true)).queue();
+				.addOption(OptionType.STRING, "prefix", "The new prefix.", true));
+
+		slashCommands.queue();
 	}
 
 }
