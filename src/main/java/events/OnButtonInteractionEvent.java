@@ -171,15 +171,21 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 				EmbedBuilder embed;
 				if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
 					value.dealerHit();
+					value.setDealerStand(true);
 					blackjackStates = value.checkWin(true);
 					embed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
+					BlackjackPlayCmd.blackjackGames.remove(authorId);
+					event.getHook().editOriginalEmbeds(embed.build()).setActionRows(ActionRow.of(
+							Button.primary(authorId + ":replayBlackjack", "Replay"),
+							Button.secondary(authorId + ":delete", "Delete")
+					)).queue();
 				} else {
 					embed =  BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
+					event.getHook().editOriginalEmbeds(embed.build()).setActionRows(ActionRow.of(
+							Button.primary(authorId + ":stand", "Stand"),
+							Button.primary(authorId + ":hit", "Hit")
+					)).queue();
 				}
-				event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
-						Button.primary(authorId + ":stand", "Stand"),
-						Button.primary(authorId + ":hit", "Hit")
-				)).queue();
 				break;
 		}
 	}

@@ -82,15 +82,21 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 		EmbedBuilder embed;
 		if(blackjackStates.equals(BlackjackStates.PLAYER_BLACKJACK)) {
 			blackJack.dealerHit();
+			blackJack.setDealerStand(true);
 			blackjackStates = blackJack.checkWin(true);
 			embed = generateBlackjackEmbed(event.getAuthor(), blackjackStates);
+			BlackjackPlayCmd.blackjackGames.remove(authorId);
+			event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
+					Button.primary(authorId + ":replayBlackjack", "Replay"),
+					Button.secondary(authorId + ":delete", "Delete")
+			)).queue();
 		} else {
 			embed = generateBlackjackEmbed(event.getAuthor(), null);
+			event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
+					Button.primary(authorId + ":stand", "Stand"),
+					Button.primary(authorId + ":hit", "Hit")
+			)).queue();
 		}
-		event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
-				Button.primary(authorId + ":stand", "Stand"),
-				Button.primary(authorId + ":hit", "Hit")
-		)).queue();
 	}
 
 	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
@@ -124,28 +130,48 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 		if(state != null) {
 			if(!game.isDealerStand()) {
 				if(state.equals(BlackjackStates.DEALER_WIN)) {
-					embed.addField("------------", "**Dealer Wins!**", false);
+					String value = "**Dealer Wins!**";
+					if(game.getPlayerBet() > 0) {
+						value += String.format("You lost `%d` morbcoins!\n", game.getWinnings());
+					}
+					embed.addField("------------", value, false);
 					game.setFinished(true);
 				}
 			} else {
 				if(state.equals(BlackjackStates.PLAYER_WIN)) {
-					embed.addField("------------", String.format("**%s** wins!\nYou win `%d` morbcoins.",
-							user.getName(), game.getWinnings()), false);
+					String format = String.format("**%s** wins!\n", user.getName());
+					if(game.getPlayerBet() > 0) {
+						format += String.format("You won `%d` morbcoins!", game.getWinnings());
+					}
+					embed.addField("------------", format, false);
 					game.setFinished(true);
 				} else if(state.equals(BlackjackStates.DRAW)) {
-					embed.addField("------------", "Its a draw!\nYou lose nothing.", false);
+					String value = "Its a draw!\n";
+					if(game.getPlayerBet() > 0) {
+						value += "You lose nothing.";
+					}
+					embed.addField("------------", value, false);
 					game.setFinished(true);
 				} else if(state.equals(BlackjackStates.DEALER_WIN)) {
-					embed.addField("------------", String.format("Dealer wins!\nYou lose `%d` morbcoins.",
-							game.getWinnings()), false);
+					String format = "Dealer wins!\n";
+					if(game.getPlayerBet() > 0) {
+						format += String.format("You lost `%d` morbcoins!", game.getWinnings());
+					}
+					embed.addField("------------", format, false);
 					game.setFinished(true);
 				} else if(state.equals(BlackjackStates.DEALER_BLACKJACK)) {
-					embed.addField("------------", String.format("Dealer wins with blackjack!\nYou lose `%d` morbcoins.",
-							game.getWinnings()), false);
+					String format = "Dealer wins with blackjack!\n";
+					if(game.getPlayerBet() > 0) {
+						format += String.format("You lost `%d` morbcoins!", game.getWinnings());
+					}
+					embed.addField("------------", format, false);
 					game.setFinished(true);
 				} else if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
-					embed.addField("------------", String.format("**%s** wins with blackjack!\nYou win `%d` morbcoins.",
-							user.getName(), game.getWinnings()), false);
+					String format = String.format("**%s** wins with blackjack!\n", user.getName());
+					if(game.getPlayerBet() > 0) {
+						format += String.format("You won `%d` morbcoins!", game.getWinnings());
+					}
+					embed.addField("------------", format, false);
 					game.setFinished(true);
 				}
 			}

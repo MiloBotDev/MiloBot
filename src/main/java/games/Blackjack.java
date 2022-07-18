@@ -66,9 +66,6 @@ public class Blackjack {
 			if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
 				this.winnings = (int) Math.ceil(((double) playerBet) * 1.5d);
 				newWallet = playerWallet  + (int) Math.ceil(((double) playerBet) * 2.5d);
-				System.out.println("Old wallet: " + playerWallet);
-				System.out.println("New wallet: " + newWallet);
-				System.out.println("Winnings: " + (int) Math.ceil(((double) playerBet) * 2.5d));
 			} else if(state.equals(BlackjackStates.PLAYER_WIN)) {
 				this.winnings = playerBet;
 				newWallet = playerWallet + (winnings * 2);
@@ -174,7 +171,7 @@ public class Blackjack {
 					newTotalGames, newTotalDraws, String.valueOf(Integer.parseInt(totalEarnings)), userId);
 		} else if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
 			dbManager.query(BlackjackTableQueries.updateUserWin, DatabaseManager.QueryTypes.UPDATE,
-					newStreak, newTotalGames, newTotalWins, String.valueOf(Integer.parseInt(totalEarnings) - this.winnings),
+					newStreak, newTotalGames, newTotalWins, String.valueOf(Integer.parseInt(totalEarnings) + this.winnings),
 					newHighestStreak, userId);
 		} else if(state.equals(BlackjackStates.PLAYER_WIN)) {
 			dbManager.query(BlackjackTableQueries.updateUserWin, DatabaseManager.QueryTypes.UPDATE,
