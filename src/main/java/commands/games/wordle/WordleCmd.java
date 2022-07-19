@@ -19,6 +19,6 @@ public class WordleCmd extends Command implements GamesCmd, ParentCmd {
 		this.aliases = new String[]{"morble"};
 		this.subCommands.add(new WordlePlayCmd());
 		this.subCommands.add(new WordleLeaderboardCmd());
-
+		this.subCommands.add(new WordleStatsCmd());
 	}
 }

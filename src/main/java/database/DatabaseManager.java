@@ -31,6 +31,7 @@ public class DatabaseManager {
 	private DatabaseManager() {
 		this.sqliteConfig = new SQLiteConfig();
 		this.sqliteConfig.resetOpenMode(SQLiteOpenMode.CREATE);
+		this.sqliteConfig.setPragma(SQLiteConfig.Pragma.FOREIGN_KEYS, "ON");
 		Config config = Config.getInstance();
 		this.connectionUrl = config.connectionUrl;
 	}

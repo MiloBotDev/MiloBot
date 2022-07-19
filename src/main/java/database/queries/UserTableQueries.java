@@ -6,8 +6,20 @@ package database.queries;
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public interface UserTableQueries {
+	String createUserTable = "CREATE TABLE IF NOT EXISTS user" +
+			"(" +
+			"    userId     varchar(255) not null " +
+			"        constraint user_pk " +
+			"            primary key, " +
+			"    name       varchar(255), " +
+			"    currency   varchar(255), " +
+			"    level      varchar(255), " +
+			"    experience varchar(255) " +
+			");" +
+			"CREATE UNIQUE INDEX IF NOT EXISTS user_userId_uindex " +
+			"    on user (userId);";
+	String removeUser = "DELETE FROM user WHERE userId = ?;";
 	String selectUser = "SELECT * FROM user WHERE userId = ?;";
-	String createUserTable = "CREATE TABLE IF NOT EXISTS user (userId varchar(255), name varchar(255), currency varchar(255), level varchar(255), experience varchar(255));";
 	String addUser = "INSERT INTO user(userId, name, currency, level, experience) VALUES(?, ?, ?, ?, ?);";
 	String updateUserExperience = "UPDATE user SET experience = ? WHERE userId = ?;";
 	String updateUserLevelAndExperience = "UPDATE user SET level = ?, experience = ? WHERE userId = ?;";

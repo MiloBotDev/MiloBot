@@ -22,10 +22,8 @@ import java.util.Collections;
 import java.util.HashMap;
 
 /**
- * All functions related to users.
+ * All methods related to users.
  * This class is a singleton.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class User {
 

@@ -60,7 +60,7 @@ public class BugListCmd extends Command implements SubCmd {
 				Button.primary(id + ":previousPage", "Previous"),
 				Button.secondary(id + ":delete", "Delete"),
 				Button.primary(id + ":nextPage", "Next")
-		)).queue();
+		)).queue(message -> paginator.initialize(message.getId()));
 	}
 
 	/**

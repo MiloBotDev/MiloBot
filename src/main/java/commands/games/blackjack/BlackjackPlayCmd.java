@@ -17,10 +17,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class BlackjackPlayCmd extends Command implements SubCmd {
 
@@ -43,16 +40,16 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 			try {
 				int playerBet = Integer.parseInt(args.get(0));
 				if(playerBet < 0) {
-					event.getChannel().sendMessage("You can't bet a negative amount of morbcoins.").queue();
+					event.getChannel().sendMessage("You can't bet a negative amount of Morbcoins.").queue();
 					return;
 				} else if(playerBet == 0) {
-					event.getChannel().sendMessage("You can't bet `0` morbcoins.").queue();
+					event.getChannel().sendMessage("You can't bet `0` Morbcoins.").queue();
 					return;
 				} else {
 					ArrayList<String> query = dbManager.query(UserTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
 					int playerWallet = Integer.parseInt(query.get(0));
 					if(playerBet > playerWallet) {
-						event.getChannel().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", playerBet, playerWallet)).queue();
+						event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", playerBet, playerWallet)).queue();
 						return;
 					} else {
 						bet = playerBet;
@@ -100,6 +97,58 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 	}
 
 	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+		event.deferReply().queue();
+		String authorId = event.getUser().getId();
+		int bet;
+		if(event.getOption("bet") == null) {
+			bet = 0;
+		} else {
+			bet = Objects.requireNonNull(event.getOption("bet")).getAsInt();
+			if(bet == 0) {
+				event.getHook().sendMessage("You can't bet `0` Morbcoins.").queue();
+				return;
+			} else {
+				ArrayList<String> query = dbManager.query(UserTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
+				int playerWallet = Integer.parseInt(query.get(0));
+				if(bet > playerWallet) {
+					event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
+					return;
+				}
+			}
+		}
+		ArrayList<String> result = dbManager.query(BlackjackTableQueries.checkIfUserExists, DatabaseManager.QueryTypes.RETURN, authorId);
+		if(result.size() == 0) {
+			dbManager.query(BlackjackTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, authorId);
+		}
+		if(blackjackGames.containsKey(authorId)) {
+			event.getHook().sendMessage("You are already in a game of blackjack.").queue();
+			return;
+		}
+
+		Blackjack blackJack = new Blackjack(authorId, bet);
+		blackJack.initializeGame();
+
+		blackjackGames.put(authorId, blackJack);
+
+		BlackjackStates blackjackStates = blackJack.checkWin(false);
+		EmbedBuilder embed;
+		if(blackjackStates.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+			blackJack.dealerHit();
+			blackJack.setDealerStand(true);
+			blackjackStates = blackJack.checkWin(true);
+			embed = generateBlackjackEmbed(event.getUser(), blackjackStates);
+			BlackjackPlayCmd.blackjackGames.remove(authorId);
+			event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
+					Button.primary(authorId + ":replayBlackjack", "Replay"),
+					Button.secondary(authorId + ":delete", "Delete")
+			)).queue();
+		} else {
+			embed = generateBlackjackEmbed(event.getUser(), null);
+			event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
+					Button.primary(authorId + ":stand", "Stand"),
+					Button.primary(authorId + ":hit", "Hit")
+			)).queue();
+		}
 	}
 
 	public static @NotNull EmbedBuilder generateBlackjackEmbed(@NotNull User user, BlackjackStates state) {
@@ -110,7 +159,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 		embed.setTitle("Blackjack");
 
 		if(game.getPlayerBet() > 0) {
-			embed.setDescription("You have bet `" + game.getPlayerBet() + "` morbcoins.");
+			embed.setDescription("You have bet `" + game.getPlayerBet() + "` Morbcoins.");
 		}
 
 		embed.addField("------------", "**Dealer Hand**", false);
@@ -132,7 +181,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 				if(state.equals(BlackjackStates.DEALER_WIN)) {
 					String value = "**Dealer Wins!**";
 					if(game.getPlayerBet() > 0) {
-						value += String.format("You lost `%d` morbcoins!\n", game.getWinnings());
+						value += String.format("You lost `%d` Morbcoins!\n", game.getWinnings());
 					}
 					embed.addField("------------", value, false);
 					game.setFinished(true);
@@ -141,7 +190,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 				if(state.equals(BlackjackStates.PLAYER_WIN)) {
 					String format = String.format("**%s** wins!\n", user.getName());
 					if(game.getPlayerBet() > 0) {
-						format += String.format("You won `%d` morbcoins!", game.getWinnings());
+						format += String.format("You won `%d` Morbcoins!", game.getWinnings());
 					}
 					embed.addField("------------", format, false);
 					game.setFinished(true);
@@ -155,21 +204,21 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 				} else if(state.equals(BlackjackStates.DEALER_WIN)) {
 					String format = "Dealer wins!\n";
 					if(game.getPlayerBet() > 0) {
-						format += String.format("You lost `%d` morbcoins!", game.getWinnings());
+						format += String.format("You lost `%d` Morbcoins!", game.getWinnings());
 					}
 					embed.addField("------------", format, false);
 					game.setFinished(true);
 				} else if(state.equals(BlackjackStates.DEALER_BLACKJACK)) {
 					String format = "Dealer wins with blackjack!\n";
 					if(game.getPlayerBet() > 0) {
-						format += String.format("You lost `%d` morbcoins!", game.getWinnings());
+						format += String.format("You lost `%d` Morbcoins!", game.getWinnings());
 					}
 					embed.addField("------------", format, false);
 					game.setFinished(true);
 				} else if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
 					String format = String.format("**%s** wins with blackjack!\n", user.getName());
 					if(game.getPlayerBet() > 0) {
-						format += String.format("You won `%d` morbcoins!", game.getWinnings());
+						format += String.format("You won `%d` Morbcoins!", game.getWinnings());
 					}
 					embed.addField("------------", format, false);
 					game.setFinished(true);

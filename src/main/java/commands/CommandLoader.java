@@ -2,7 +2,9 @@ package commands;
 
 import commands.bot.StatusCmd;
 import commands.bot.bug.BugCmd;
+import commands.botadmin.RemoveUserCmd;
 import commands.dnd.encounter.EncounterCmd;
+import commands.economy.DailyCmd;
 import commands.economy.ProfileCmd;
 import commands.economy.WalletCmd;
 import commands.games.blackjack.BlackjackCmd;
@@ -26,78 +28,90 @@ import java.util.Map;
  */
 public class CommandLoader {
 
-	public static Map<List<String>, Command> commandList = new HashMap<>();
+    public static Map<List<String>, Command> commandList = new HashMap<>();
 
-	public static void loadAllCommands(JDA bot) {
-		ArrayList<Command> commands = new ArrayList<>();
-		commands.add(HelpCmd.getInstance());
-		commands.add(new InviteCmd());
-		commands.add(new StatusCmd());
-		commands.add(new PrefixCmd());
-		commands.add(new UsageCmd());
-		commands.add(new UserCmd());
-		commands.add(new ProfileCmd());
-		commands.add(new WordleCmd());
-		commands.add(new BugCmd());
-		commands.add(new EncounterCmd());
-		commands.add(new BlackjackCmd());
-		commands.add(new WalletCmd());
+    public static void loadAllCommands(JDA bot) {
+        ArrayList<Command> commands = new ArrayList<>();
+        commands.add(HelpCmd.getInstance());
+        commands.add(new InviteCmd());
+        commands.add(new StatusCmd());
+        commands.add(new PrefixCmd());
+        commands.add(new UsageCmd());
+        commands.add(new UserCmd());
+        commands.add(new ProfileCmd());
+        commands.add(new WordleCmd());
+        commands.add(new BugCmd());
+        commands.add(new EncounterCmd());
+        commands.add(new BlackjackCmd());
+        commands.add(new WalletCmd());
+        commands.add(new DailyCmd());
+        commands.add(new RemoveUserCmd());
 
-		for (Command c : commands) {
-			ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));
-			keys.add(c.commandName);
-			commandList.put(keys, c);
-		}
+        for (Command c : commands) {
+            ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));
+            keys.add(c.commandName);
+            commandList.put(keys, c);
+        }
 
-		CommandListUpdateAction slashCommands = bot.updateCommands();
+        CommandListUpdateAction slashCommands = bot.updateCommands();
 
-		slashCommands.addCommands(Commands.slash("help", "Shows the user a list of available commands.")
-						.addOption(OptionType.STRING, "command", "The command you want information about.", false));
+        slashCommands.addCommands(Commands.slash("help", "Shows the user a list of available commands.")
+                .addOption(OptionType.STRING, "command", "The command you want information about.", false));
 
-		slashCommands.addCommands(Commands.slash("encounter", "D&D 5e encounter generator.")
-				.addSubcommands(new SubcommandData("generate", "Generate a random encounter for the given inputs.")
-						.addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
-									.setRequired(true)
-									.setRequiredRange(1, 10))
-							.addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
-									.setRequired(true)
-									.setRequiredRange(1, 20))
-							.addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
-									.setRequired(true)
-									.addChoices(new Choice("easy", "easy"), new Choice("medium", "medium"),
-											new Choice("difficult", "difficult"), new Choice("deadly", "deadly")))
-							.addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
-									.setRequired(false)
-									.addChoices(new Choice("city", "city"), new Choice("dungeon", "dungeon"),
-											new Choice("forest", "forest"), new Choice("nature", "nature"),
-											new Choice("other plane", "other plane"), new Choice("underground", "underground"),
-											new Choice("water", "water")
-									))
-					));
+        slashCommands.addCommands(Commands.slash("encounter", "D&D 5e encounter generator.")
+                .addSubcommands(new SubcommandData("generate", "Generate a random encounter for the given inputs.")
+                        .addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
+                                .setRequired(true)
+                                .setRequiredRange(1, 10))
+                        .addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
+                                .setRequired(true)
+                                .setRequiredRange(1, 20))
+                        .addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
+                                .setRequired(true)
+                                .addChoices(new Choice("easy", "easy"), new Choice("medium", "medium"),
+                                        new Choice("difficult", "difficult"), new Choice("deadly", "deadly")))
+                        .addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
+                                .setRequired(false)
+                                .addChoices(new Choice("city", "city"), new Choice("dungeon", "dungeon"),
+                                        new Choice("forest", "forest"), new Choice("nature", "nature"),
+                                        new Choice("other plane", "other plane"), new Choice("underground", "underground"),
+                                        new Choice("water", "water")
+                                ))
+                ));
 
-		slashCommands.addCommands(Commands.slash("wordle", "Wordle brought to discord.")
-				.addSubcommands(List.of(
-						new SubcommandData("leaderboard", "View the wordle leaderboards."),
-						new SubcommandData("play", "Play a game of wordle.")
-				)));
+        slashCommands.addCommands(Commands.slash("wordle", "Wordle brought to discord.")
+                .addSubcommands(
+                        new SubcommandData("leaderboard", "View the wordle leaderboards.")
+                                .addOptions(new OptionData(OptionType.STRING, "leaderboard", "The leaderboard you want to view.", true).addChoices(
+                                        new Choice("total games played", "totalGamesPlayed"),
+                                        new Choice("highest streak", "highestStreak"),
+                                        new Choice("current streak", "currentStreak")
+                                )),
+                        new SubcommandData("play", "Play a game of wordle."),
+                        new SubcommandData("stats", "View your own blackjack statistics.")));
 
-		slashCommands.addCommands(Commands.slash("bug", "Add bugs to the bots issue tracker, or view them.")
-				.addSubcommands(List.of(
-						new SubcommandData("report", "Report a bug you found."),
-						new SubcommandData("list", "Shows a list of all reported bugs."),
-						new SubcommandData("view", "Lookup a specific bug on the issue tracker.").addOptions(
-								new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
-						))));
+        slashCommands.addCommands(Commands.slash("bug", "Add bugs to the bots issue tracker, or view them.")
+                .addSubcommands(List.of(
+                        new SubcommandData("report", "Report a bug you found."),
+                        new SubcommandData("list", "Shows a list of all reported bugs."),
+                        new SubcommandData("view", "Lookup a specific bug on the issue tracker.").addOptions(
+                                new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
+                        ))));
 
-		slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server."));
+        slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server."));
 
-		slashCommands.addCommands(Commands.slash("profile", "View your own or someone else's profile.")
-						.addOption(OptionType.USER, "user", "The user you want to view the profile of.", false));
+        slashCommands.addCommands(Commands.slash("profile", "View your own or someone else's profile.")
+                .addOption(OptionType.USER, "user", "The user you want to view the profile of.", false));
 
-		slashCommands.addCommands(Commands.slash("prefix", "Change the prefix of the guild you're in.")
-				.addOption(OptionType.STRING, "prefix", "The new prefix.", true));
+        slashCommands.addCommands(Commands.slash("prefix", "Change the prefix of the guild you're in.")
+                .addOption(OptionType.STRING, "prefix", "The new prefix.", true));
 
-		slashCommands.queue();
-	}
+        slashCommands.addCommands(Commands.slash("blackjack", "Blackjack brought to discord").addSubcommands(
+                new SubcommandData("play", "Play a game of blackjack on discord.")
+                        .addOption(OptionType.INTEGER, "bet", "The amount of Morbcoins you want to bet.", false),
+                new SubcommandData("stats", "View your own blackjack statistics.")
+        ));
 
+        slashCommands.queue();
+    }
 }

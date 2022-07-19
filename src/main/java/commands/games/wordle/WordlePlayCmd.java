@@ -48,7 +48,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
 		EmbedUtils.styleEmbed(wordleEmbed, event.getAuthor());
 
 		event.getChannel().sendMessageEmbeds(wordleEmbed.build()).queue(message -> {
-			extracted(event, null, timeStarted, authorId, wordle, editDescription, gameOver, wordleEmbed, message);
+			extracted(null, timeStarted, authorId, wordle, editDescription, gameOver, wordleEmbed, message);
 		});
 	}
 
@@ -66,11 +66,11 @@ public class WordlePlayCmd extends Command implements SubCmd {
 		EmbedUtils.styleEmbed(wordleEmbed, event.getUser());
 
 		event.getHook().sendMessageEmbeds(wordleEmbed.build()).queue(message -> {
-			extracted(null, event, timeStarted, authorId, wordle, editDescription, gameOver, wordleEmbed, message);
+			extracted(event, timeStarted, authorId, wordle, editDescription, gameOver, wordleEmbed, message);
 		});
 	}
 
-	private void extracted(MessageReceivedEvent messageReceivedEvent, SlashCommandInteractionEvent slashCommandInteractionEvent,
+	private void extracted(SlashCommandInteractionEvent slashCommandInteractionEvent,
 						   OffsetDateTime timeStarted, String authorId, Wordle wordle, StringBuilder editDescription,
 						   boolean[] gameOver, EmbedBuilder wordleEmbed, Message message) {
 		ListenerAdapter listener = new ListenerAdapter() {
