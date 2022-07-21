@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WalletCmd extends Command implements EconomyCmd {
+public class WalletCmd extends Command implements MorbconomyCmd {
 
 	private final DatabaseManager dbManager;
 

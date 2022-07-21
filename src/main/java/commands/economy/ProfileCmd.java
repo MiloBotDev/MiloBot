@@ -18,7 +18,7 @@ import java.util.*;
 /**
  * Shows the user their own profile or that of someone else.
  */
-public class ProfileCmd extends Command implements EconomyCmd {
+public class ProfileCmd extends Command implements MorbconomyCmd {
 
 	private final DatabaseManager manager;
 	private final User user;

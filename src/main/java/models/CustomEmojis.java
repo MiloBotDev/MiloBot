@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.Emoji;
 
 public enum CustomEmojis {
 
+	// playing card emojis
 	BLACK_ACE(Emoji.fromEmote("bA", 623575870375985162L, false)),
 	BLACK_TWO(Emoji.fromEmote("b2", 623564440574623774L, false)),
 	BLACK_THREE(Emoji.fromEmote("b3", 623564440545263626L, false)),
@@ -34,6 +35,8 @@ public enum CustomEmojis {
 	SPADES(Emoji.fromEmote("espades", 623564441094586378L, false)),
 	HEARTS(Emoji.fromEmote("ehearts", 623564441065226267L, false)),
 	DIAMONDS(Emoji.fromEmote("ediamonds", 623564440926683148L, false));
+
+	// uno emojis
 
 	private final Emoji emoji;
 

@@ -60,7 +60,7 @@ public class BlackjackStatsCmd extends Command implements SubCmd {
             embed.addField("Total Losses", totalLosses, true);
             embed.addField("Current Streak", currentStreak, true);
             embed.addField("Highest Streak", highestStreak, true);
-            embed.addField("Total Earnings", totalEarnings + " Morbcoins", true);
+            embed.addField("Total Earnings", totalEarnings + " morbcoins", true);
         } else {
             embed.setDescription("No blackjack statistics on record.");
         }

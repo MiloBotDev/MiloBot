@@ -112,6 +112,8 @@ public class CommandLoader {
                 new SubcommandData("stats", "View your own blackjack statistics.")
         ));
 
+        slashCommands.addCommands(Commands.slash("daily", "Collect your daily reward."));
+
         slashCommands.queue();
     }
 }

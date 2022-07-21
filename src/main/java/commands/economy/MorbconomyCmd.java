@@ -1,5 +1,5 @@
 package commands.economy;
 
-public interface EconomyCmd {
+public interface MorbconomyCmd {
 	String description = "Check your profile and view your wallet.";
 }

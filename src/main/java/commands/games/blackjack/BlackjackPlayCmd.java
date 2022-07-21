@@ -179,9 +179,9 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 		if(state != null) {
 			if(!game.isDealerStand()) {
 				if(state.equals(BlackjackStates.DEALER_WIN)) {
-					String value = "**Dealer Wins!**";
+					String value = "**Dealer Wins!**\n";
 					if(game.getPlayerBet() > 0) {
-						value += String.format("You lost `%d` Morbcoins!\n", game.getWinnings());
+						value += String.format("You lose `%d` Morbcoins!\n", game.getWinnings());
 					}
 					embed.addField("------------", value, false);
 					game.setFinished(true);
@@ -190,7 +190,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 				if(state.equals(BlackjackStates.PLAYER_WIN)) {
 					String format = String.format("**%s** wins!\n", user.getName());
 					if(game.getPlayerBet() > 0) {
-						format += String.format("You won `%d` Morbcoins!", game.getWinnings());
+						format += String.format("You win `%d` Morbcoins!", game.getWinnings());
 					}
 					embed.addField("------------", format, false);
 					game.setFinished(true);
@@ -204,21 +204,21 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 				} else if(state.equals(BlackjackStates.DEALER_WIN)) {
 					String format = "Dealer wins!\n";
 					if(game.getPlayerBet() > 0) {
-						format += String.format("You lost `%d` Morbcoins!", game.getWinnings());
+						format += String.format("You lose `%d` Morbcoins!", game.getWinnings());
 					}
 					embed.addField("------------", format, false);
 					game.setFinished(true);
 				} else if(state.equals(BlackjackStates.DEALER_BLACKJACK)) {
 					String format = "Dealer wins with blackjack!\n";
 					if(game.getPlayerBet() > 0) {
-						format += String.format("You lost `%d` Morbcoins!", game.getWinnings());
+						format += String.format("You lose `%d` Morbcoins!", game.getWinnings());
 					}
 					embed.addField("------------", format, false);
 					game.setFinished(true);
 				} else if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
 					String format = String.format("**%s** wins with blackjack!\n", user.getName());
 					if(game.getPlayerBet() > 0) {
-						format += String.format("You won `%d` Morbcoins!", game.getWinnings());
+						format += String.format("You win `%d` Morbcoins!", game.getWinnings());
 					}
 					embed.addField("------------", format, false);
 					game.setFinished(true);

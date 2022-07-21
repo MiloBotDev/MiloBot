@@ -5,7 +5,7 @@ import commands.CommandHandler;
 import commands.CommandLoader;
 import commands.bot.BotCmd;
 import commands.dnd.DndCmd;
-import commands.economy.EconomyCmd;
+import commands.economy.MorbconomyCmd;
 import commands.games.GamesCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -110,7 +110,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 		String prefix = CommandHandler.prefixes.get(guild.getId());
 
 		StringBuilder utility = new StringBuilder();
-		StringBuilder economy = new StringBuilder();
+		StringBuilder morbconomy = new StringBuilder();
 		StringBuilder games = new StringBuilder();
 		StringBuilder bot = new StringBuilder();
 		StringBuilder dnd = new StringBuilder();
@@ -118,8 +118,8 @@ public class HelpCmd extends Command implements UtilityCmd {
 		CommandLoader.commandList.forEach((key, value) -> {
 			if (value instanceof UtilityCmd) {
 				utility.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
-			} else if (value instanceof EconomyCmd) {
-				economy.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
+			} else if (value instanceof MorbconomyCmd) {
+				morbconomy.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof GamesCmd) {
 				games.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
 			} else if (value instanceof BotCmd) {
@@ -132,7 +132,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 		this.help = new EmbedBuilder();
 		help.setTitle("Commands");
 		help.addField("Utility", utility.toString(), false);
-		help.addField("Economy", economy.toString(), false);
+		help.addField("Morbconomy", morbconomy.toString(), false);
 		help.addField("Games", games.toString(), false);
 		help.addField("Bot", bot.toString(), false);
 		help.addField("Dungeons & Dragons", dnd.toString(), false);

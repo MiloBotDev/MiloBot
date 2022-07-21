@@ -1,6 +1,7 @@
 package commands;
 
 import database.DatabaseManager;
+import database.queries.DailiesTableQueries;
 import database.queries.PrefixTableQueries;
 import database.queries.UserTableQueries;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -117,8 +118,7 @@ public class CommandHandler extends ListenerAdapter {
 					command.updateCommandTrackerUser(fullCommandName, userId);
 					// check if this user exists in the database otherwise add it
 					if (!user.checkIfUserExists(userId)) {
-						manager.query(UserTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
-								event.getAuthor().getName(), "0", "1", "0");
+						addUserToDatabase(event.getAuthor());
 					}
 					user.updateExperience(userId, 10, event.getAuthor().getAsMention(), event.getChannel());
 					// execute the command
@@ -158,12 +158,22 @@ public class CommandHandler extends ListenerAdapter {
 					command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
 					return;
 				}
+				if (!user.checkIfUserExists(event.getUser().getId())) {
+					addUserToDatabase(event.getUser());
+				}
 				command.executeSlashCommand(event);
 				command.updateCommandTrackerUser(fullCommandName, event.getUser().getId());
 				user.updateExperience(event.getUser().getId(), 10, event.getUser().getAsMention(), event.getChannel());
 			}
 		});
 
+	}
+
+	private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) {
+		String userId = user.getId();
+		manager.query(UserTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
+				user.getName(), "0", "1", "0");
+		manager.query(DailiesTableQueries.addUserDaily, DatabaseManager.QueryTypes.UPDATE, userId);
 	}
 
 }

@@ -95,6 +95,7 @@ public class DatabaseManager {
 				stmt = conn.createStatement();
 				if (args.length == 0) {
 					stmt.executeUpdate(query);
+					logger.info(String.format("Executed query: %s", stmt));
 				} else {
 					stmt = conn.prepareStatement(query);
 					for (int i = 0; i < args.length; i++) {
@@ -136,6 +137,7 @@ public class DatabaseManager {
 		query(WordleTableQueries.createWordleTable, QueryTypes.UPDATE);
 		query(EncounterTableQueries.creatEncounterTable, QueryTypes.UPDATE);
 		query(BlackjackTableQueries.createBlackjackTable, QueryTypes.UPDATE);
+		query(DailiesTableQueries.createDailiesTable, QueryTypes.UPDATE);
 	}
 
 	/**
