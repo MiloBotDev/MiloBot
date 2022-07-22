@@ -34,9 +34,32 @@ public enum CustomEmojis {
 	CLUBS(Emoji.fromEmote("eclubs", 623564441224740866L, false)),
 	SPADES(Emoji.fromEmote("espades", 623564441094586378L, false)),
 	HEARTS(Emoji.fromEmote("ehearts", 623564441065226267L, false)),
-	DIAMONDS(Emoji.fromEmote("ediamonds", 623564440926683148L, false));
+	DIAMONDS(Emoji.fromEmote("ediamonds", 623564440926683148L, false)),
 
 	// uno emojis
+	UNO_BLANK(Emoji.fromEmote("BLANK", 999687978236510218L, false)),
+	UNO_BLUE_ZERO(Emoji.fromEmote("B0", 999687962331725854L, false)),
+	UNO_BLUE_ONE(Emoji.fromEmote("B1", 999687963799736350L, false)),
+	UNO_BLUE_TWO(Emoji.fromEmote("B2", 999687964948959353L, false)),
+	UNO_BLUE_THREE(Emoji.fromEmote("B3", 99968796604787100L, false)),
+	UNO_BLUE_FOUR(Emoji.fromEmote("B4", 999687967465554062L, false)),
+	UNO_BLUE_FIVE(Emoji.fromEmote("B5", 999687969013235832L, false)),
+	UNO_BLUE_SIX(Emoji.fromEmote("B6", 999687971311726642L, false)),
+	UNO_BLUE_SEVEN(Emoji.fromEmote("B7", 999687972532261006L, false)),
+	UNO_BLUE_EIGHT(Emoji.fromEmote("B8", 999687973907992576L, false)),
+	UNO_BLUE_NINE(Emoji.fromEmote("B9", 999687975434735687L, false)),
+	UNO_BLUE_SKIP(Emoji.fromEmote("BS", 999687981147357286L, false)),
+	UNO_BLUE_REVERSE(Emoji.fromEmote("BR", 999687979440287847L, false)),
+	UNO_BLUE_DRAW_TWO(Emoji.fromEmote("BA2", 999687976852393984L, false)),
+	UNO_GREEN_ZERO(Emoji.fromEmote("G0", 999687982653128756L, false)),
+	UNO_GREEN_ONE(Emoji.fromEmote("G1", 999687983542321183L, false)),
+	UNO_GREEN_TWO(Emoji.fromEmote("G2", 999687985266163864L, false)),
+	UNO_GREEN_THREE(Emoji.fromEmote("G3", 999687986520272936L, false)),
+	UNO_GREEN_FOUR(Emoji.fromEmote("G4", 999687988097323099L, false)),
+	UNO_GREEN_FIVE(Emoji.fromEmote("G5", 999687989343039539L, false)),
+	UNO_GREEN_SIX(Emoji.fromEmote("G6", 999687991159160995L, false)),
+	UNO_GREEN_SEVEN(Emoji.fromEmote("G7", 999687992786554960L, false));
+
 
 	private final Emoji emoji;
 

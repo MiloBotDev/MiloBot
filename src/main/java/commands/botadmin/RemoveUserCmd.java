@@ -1,8 +1,7 @@
 package commands.botadmin;
 
 import commands.Command;
-import database.DatabaseManager;
-import database.queries.UserTableQueries;
+import models.CustomEmojis;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +15,7 @@ public class RemoveUserCmd extends Command {
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
-        DatabaseManager.getInstance().query(UserTableQueries.removeUser, DatabaseManager.QueryTypes.UPDATE, args.get(0));
-        event.getChannel().sendMessage(args.get(0)).queue();
+//        DatabaseManager.getInstance().query(UserTableQueries.removeUser, DatabaseManager.QueryTypes.UPDATE, args.get(0));
+        event.getChannel().sendMessage(String.format("%s", CustomEmojis.UNO_BLUE_SIX.getEmoji())).queue();
     }
 }
