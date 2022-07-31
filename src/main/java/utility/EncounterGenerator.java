@@ -16,8 +16,6 @@ import java.util.*;
 /**
  * Generate a d&d encounter based on the average party level, the party size, the difficulty and the optional environment.
  * This class is a singleton.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class EncounterGenerator {
 
@@ -45,7 +43,7 @@ public class EncounterGenerator {
 	public void loadMonsters() {
 		this.monsters = new ArrayList<>();
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream is = classloader.getResourceAsStream(Config.getInstance().monstersCsvPath);
+		InputStream is = classloader.getResourceAsStream(Config.getInstance().getMonstersCsvPath());
 		InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
 		try (BufferedReader br = new BufferedReader(streamReader)) {
 			String line;

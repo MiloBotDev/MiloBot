@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import database.DatabaseManager;
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,13 +32,12 @@ public class User {
 	private static User instance;
 	public final HashMap<Integer, Integer> levels;
 	private final DatabaseManager manager;
-	private final String levelsJsonPath;
 	public int maxLevel;
 
 	private User() {
 		this.manager = DatabaseManager.getInstance();
 		Config config = Config.getInstance();
-		this.levelsJsonPath = config.levelsJsonPath;
+		String levelsJsonPath = config.getLevelsJsonPath();
 		this.levels = new HashMap<>();
 		loadLevelsAsMap();
 	}
@@ -63,7 +62,7 @@ public class User {
 	 */
 	public boolean checkIfUserExists(String userId) {
 		boolean exists = false;
-		ArrayList<String> result = manager.query(UserTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
+		ArrayList<String> result = manager.query(UsersTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
 		if (result.size() > 0) {
 			exists = true;
 		}
@@ -78,7 +77,7 @@ public class User {
 	 */
 	public void updateExperience(String userId, int experience, String asMention, MessageChannel channel) {
 		// load in their current experience and level
-		ArrayList<String> query = manager.query(UserTableQueries.getUserExperienceAndLevel, DatabaseManager.QueryTypes.RETURN, userId);
+		ArrayList<String> query = manager.query(UsersTableQueries.getUserExperienceAndLevel, DatabaseManager.QueryTypes.RETURN, userId);
 		int currentExperience = Integer.parseInt(query.get(0));
 		int currentLevel = Integer.parseInt(query.get(1));
 		int newExperience = currentExperience + experience;
@@ -88,19 +87,19 @@ public class User {
 			int nextLevelExperience = levels.get(nextLevel);
 			if (newExperience >= nextLevelExperience) {
 				// user leveled up so update their level and experience
-				manager.query(UserTableQueries.updateUserLevelAndExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(nextLevel),
+				manager.query(UsersTableQueries.updateUserLevelAndExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(nextLevel),
 						String.valueOf(newExperience), userId);
 				logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
 				// send a message to the channel the user leveled up in
 				channel.sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
 			} else {
 				// user didn't level up so just update their experience
-				manager.query(UserTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
+				manager.query(UsersTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
 						userId);
 			}
 		} else {
 			// user didn't level up so just update their experience
-			manager.query(UserTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
+			manager.query(UsersTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
 					userId);
 		}
 	}
@@ -111,7 +110,7 @@ public class User {
 	private void loadLevelsAsMap() {
 		// see https://stackoverflow.com/a/48298758
 		try {
-			URI uri = getClass().getResource(Config.getInstance().levelsJsonPath).toURI();
+			URI uri = getClass().getResource(Config.getInstance().getLevelsJsonPath()).toURI();
 			if ("jar".equals(uri.getScheme())) {
 				for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
 					if (provider.getScheme().equalsIgnoreCase("jar")) {

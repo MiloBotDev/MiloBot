@@ -31,8 +31,8 @@ public class OnGuildJoinEvent extends ListenerAdapter {
 		DatabaseManager manager = DatabaseManager.getInstance();
 		Config config = Config.getInstance();
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.testGuildId))
-				.getTextChannelsByName(config.loggingChannelName, true).get(0);
+		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))
+				.getTextChannelsByName(config.getLoggingChannelName(), true).get(0);
 
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.setImage(event.getGuild().getIconUrl());

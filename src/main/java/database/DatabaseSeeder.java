@@ -1,6 +1,6 @@
 package database;
 
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import database.queries.WordleTableQueries;
 
 import java.util.Locale;
@@ -24,7 +24,7 @@ public class DatabaseSeeder {
 			String totalGames = String.valueOf(random.nextInt(100));
 			String highestStreak = String.valueOf(random.nextInt(7));
 			String wonLastGame = "true";
-			manager.query(UserTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId, name, currency, level, experience);
+			manager.query(UsersTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId, name, currency, level, experience);
 			manager.query(WordleTableQueries.addUserWordle, DatabaseManager.QueryTypes.UPDATE, userId, fastestTime, wonLastGame,
 					streak, totalGames, highestStreak);
 		}

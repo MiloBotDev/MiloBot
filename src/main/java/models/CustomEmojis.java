@@ -18,6 +18,7 @@ public enum CustomEmojis {
 	BLACK_JACK(Emoji.fromEmote("bJ", 623564440951980084L, false)),
 	BLACK_QUEEN(Emoji.fromEmote("bQ", 623564440851185679L, false)),
 	BLACK_KING(Emoji.fromEmote("bK", 623564440880807956L, false)),
+
 	RED_ACE(Emoji.fromEmote("rA", 623575868672835584L, false)),
 	RED_TWO(Emoji.fromEmote("r2", 623564440989859851L, false)),
 	RED_THREE(Emoji.fromEmote("r3", 623564440880545798L, false)),
@@ -31,6 +32,7 @@ public enum CustomEmojis {
 	RED_JACK(Emoji.fromEmote("rJ", 623564440582881282L, false)),
 	RED_QUEEN(Emoji.fromEmote("rQ", 623564440880807936L, false)),
 	RED_KING(Emoji.fromEmote("rK", 623564441073614848L, false)),
+
 	CLUBS(Emoji.fromEmote("eclubs", 623564441224740866L, false)),
 	SPADES(Emoji.fromEmote("espades", 623564441094586378L, false)),
 	HEARTS(Emoji.fromEmote("ehearts", 623564441065226267L, false)),
@@ -38,6 +40,7 @@ public enum CustomEmojis {
 
 	// uno emojis
 	UNO_BLANK(Emoji.fromEmote("BLANK", 999687978236510218L, false)),
+
 	UNO_BLUE_ZERO(Emoji.fromEmote("B0", 999687962331725854L, false)),
 	UNO_BLUE_ONE(Emoji.fromEmote("B1", 999687963799736350L, false)),
 	UNO_BLUE_TWO(Emoji.fromEmote("B2", 999687964948959353L, false)),
@@ -51,6 +54,7 @@ public enum CustomEmojis {
 	UNO_BLUE_SKIP(Emoji.fromEmote("BS", 999687981147357286L, false)),
 	UNO_BLUE_REVERSE(Emoji.fromEmote("BR", 999687979440287847L, false)),
 	UNO_BLUE_DRAW_TWO(Emoji.fromEmote("BA2", 999687976852393984L, false)),
+
 	UNO_GREEN_ZERO(Emoji.fromEmote("G0", 999687982653128756L, false)),
 	UNO_GREEN_ONE(Emoji.fromEmote("G1", 999687983542321183L, false)),
 	UNO_GREEN_TWO(Emoji.fromEmote("G2", 999687985266163864L, false)),
@@ -58,7 +62,30 @@ public enum CustomEmojis {
 	UNO_GREEN_FOUR(Emoji.fromEmote("G4", 999687988097323099L, false)),
 	UNO_GREEN_FIVE(Emoji.fromEmote("G5", 999687989343039539L, false)),
 	UNO_GREEN_SIX(Emoji.fromEmote("G6", 999687991159160995L, false)),
-	UNO_GREEN_SEVEN(Emoji.fromEmote("G7", 999687992786554960L, false));
+	UNO_GREEN_SEVEN(Emoji.fromEmote("G7", 999687992786554960L, false)),
+	UNO_GREEN_EIGHT(Emoji.fromEmote("G8", 999687994237788161L, false)),
+	UNO_GREEN_NINE(Emoji.fromEmote("G9", 999687996687257701L, false)),
+	UNO_GREEN_SKIP(Emoji.fromEmote("GS", 999688000810270842L, false)),
+	UNO_GREEN_REVERSE(Emoji.fromEmote("GR", 999687999702970449L, false)),
+	UNO_GREEN_DRAW_TWO(Emoji.fromEmote("GA2", 999687998310453372L, false)),
+
+	UNO_RED_ZERO(Emoji.fromEmote("R0",999688003272323102L, false)),
+	UNO_RED_ONE(Emoji.fromEmote("R1", 999688004882923701L, false)),
+	UNO_RED_TWO(Emoji.fromEmote("R2", 999688006346752121L, false)),
+	UNO_RED_THREE(Emoji.fromEmote("R3", 999688007793786970L, false)),
+	UNO_RED_FOUR(Emoji.fromEmote("R4", 999688009249214496L, false)),
+	UNO_RED_FIVE(Emoji.fromEmote("R5", 999688011426041907L, false)),
+	UNO_RED_SIX(Emoji.fromEmote("R6", 999688013078593576L, false)),
+	UNO_RED_SEVEN(Emoji.fromEmote("R7", 999688014542418002L, false)),
+	UNO_RED_EIGHT(Emoji.fromEmote("R8", 528389554655199242L, false)),
+	UNO_RED_NINE(Emoji.fromEmote("R9", 999688018430533663L, false)),
+	UNO_RED_SKIP(Emoji.fromEmote("RS", 999688023178481684L, false)),
+	UNO_RED_REVERSE(Emoji.fromEmote("RR", 999688021525934230L, false)),
+	UNO_RED_DRAW_TWO(Emoji.fromEmote("RA2", 999688020104069251L, false)),
+
+	UNO_YELLOW_ZERO(Emoji.fromEmote("Y0", 999688027372785724L, false)),
+	UNO_YELLOW_ONE(Emoji.fromEmote("Y1", 999688028761104547L, false)),
+	UNO_YELLOW_TWO(Emoji.fromEmote("Y2", 999688029952299140L, false));
 
 
 	private final Emoji emoji;

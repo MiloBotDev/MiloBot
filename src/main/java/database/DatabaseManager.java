@@ -1,6 +1,5 @@
 package database;
 
-import database.queries.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +21,9 @@ public class DatabaseManager {
 	private static DatabaseManager instance;
 
 	private final String connectionUrl;
+	private final String user;
+	private final String password;
+
 	private final SQLiteConfig sqliteConfig;
 
 
@@ -33,13 +35,13 @@ public class DatabaseManager {
 		this.sqliteConfig.resetOpenMode(SQLiteOpenMode.CREATE);
 		this.sqliteConfig.setPragma(SQLiteConfig.Pragma.FOREIGN_KEYS, "ON");
 		Config config = Config.getInstance();
-		this.connectionUrl = config.connectionUrl;
+		this.connectionUrl = config.getConnectionUrl();
+		this.user = config.getUser();
+		this.password = config.getPassword();
 	}
 
 	/**
 	 * Returns the DatabaseManager and makes an instance of it if needed.
-	 *
-	 * @return The DatabaseManger object
 	 */
 	public static DatabaseManager getInstance() {
 		if (instance == null) {
@@ -50,23 +52,21 @@ public class DatabaseManager {
 
 	/**
 	 * Makes a connection to the database.
-	 *
-	 * @return the connection as a Connection object
 	 */
 	public Connection connect() {
 		Connection conn = null;
 		try {
-			conn = DriverManager.getConnection(connectionUrl, sqliteConfig.toProperties());
-		} catch (SQLException e) {
-			logger.info("Could not connect to the database.");
+			Class.forName("com.mysql.jdbc.Driver");
+			conn = DriverManager.getConnection(this.connectionUrl, this.user, this.password);
+			conn.setClientInfo(sqliteConfig.toProperties());
+		} catch (SQLException | ClassNotFoundException e) {
+			e.printStackTrace();
 		}
 		return conn;
 	}
 
 	/**
 	 * Send a query to the database.
-	 *
-	 * @return ArrayList<String> with the result of the query, null if no result
 	 */
 	public ArrayList<String> query(String query, @NotNull QueryTypes types, String... args) {
 		ArrayList<String> result = null;
@@ -111,33 +111,6 @@ public class DatabaseManager {
 			System.out.println(e.getMessage());
 		}
 		return result;
-	}
-
-	/**
-	 * Creates a new database.
-	 */
-	public void createNewDatabase() {
-		try {
-			Connection conn = DriverManager.getConnection(connectionUrl);
-			if (conn != null) {
-				logger.info("Created a new database.");
-			}
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-		}
-	}
-
-	/**
-	 * Creates all tables.
-	 */
-	public void createAllTables() {
-		query(PrefixTableQueries.createPrefixTable, QueryTypes.UPDATE);
-		query(CommandTrackerTableQueries.createCommandUsageUserTable, QueryTypes.UPDATE);
-		query(UserTableQueries.createUserTable, QueryTypes.UPDATE);
-		query(WordleTableQueries.createWordleTable, QueryTypes.UPDATE);
-		query(EncounterTableQueries.creatEncounterTable, QueryTypes.UPDATE);
-		query(BlackjackTableQueries.createBlackjackTable, QueryTypes.UPDATE);
-		query(DailiesTableQueries.createDailiesTable, QueryTypes.UPDATE);
 	}
 
 	/**

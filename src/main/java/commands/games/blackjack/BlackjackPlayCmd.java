@@ -4,7 +4,7 @@ import commands.Command;
 import commands.SubCmd;
 import database.DatabaseManager;
 import database.queries.BlackjackTableQueries;
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import games.Blackjack;
 import models.BlackjackStates;
 import models.PlayingCards;
@@ -46,7 +46,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 					event.getChannel().sendMessage("You can't bet `0` Morbcoins.").queue();
 					return;
 				} else {
-					ArrayList<String> query = dbManager.query(UserTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
+					ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
 					int playerWallet = Integer.parseInt(query.get(0));
 					if(playerBet > playerWallet) {
 						event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", playerBet, playerWallet)).queue();
@@ -108,7 +108,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 				event.getHook().sendMessage("You can't bet `0` Morbcoins.").queue();
 				return;
 			} else {
-				ArrayList<String> query = dbManager.query(UserTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
+				ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
 				int playerWallet = Integer.parseInt(query.get(0));
 				if(bet > playerWallet) {
 					event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();

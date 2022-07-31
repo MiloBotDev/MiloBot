@@ -12,24 +12,28 @@ import java.util.HashMap;
 /**
  * Holds the configuration data for the bot.
  * This class is a singleton.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class Config {
 
 	final static Logger logger = LoggerFactory.getLogger(Config.class);
 	public static Config instance;
 
-	public final String botToken;
-	public final String testGuildId;
-	public final String loggingChannelName;
-	public final String levelsJsonPath;
-	public final String connectionUrl;
-	public final String wordleWordsPath;
-	public final String defaultPrefix;
-	public final String personalAccessToken;
-	public final String repositoryName;
-	public final String monstersCsvPath;
+	// bot
+	private final String defaultPrefix;
+	private final String botToken;
+	private final String testGuildId;
+	private final String loggingChannelName;
+	//github
+	private final String personalAccessToken;
+	private final String repositoryName;
+	// paths
+	private final String levelsJsonPath;
+	private final String wordleWordsPath;
+	private final String monstersCsvPath;
+	// database
+	private final String connectionUrl;
+	private final String user;
+	private final String password;
 
 	/**
 	 * Instantiates all the configuration fields.
@@ -46,18 +50,22 @@ public class Config {
 		this.testGuildId = Long.toString(((Long) data.get("testGuildId")));
 		this.loggingChannelName = (String) data.get("loggingChannelName");
 		this.levelsJsonPath = (String) data.get("levelsJsonPath");
+
 		this.connectionUrl = (String) data.get("connectionUrl");
+		this.user = (String) data.get("user");
+		this.password = (String) data.get("password");
+
 		this.wordleWordsPath = (String) data.get("wordleWordsPath");
 		this.defaultPrefix = (String) data.get("prefix");
 		this.personalAccessToken = (String) data.get("personalAccessToken");
 		this.repositoryName = (String) data.get("repositoryName");
 		this.monstersCsvPath = (String) data.get("monstersCsvPath");
+
+
 	}
 
 	/**
 	 * Returns the only existing instance of Config or creates a new one if no instance exists.
-	 *
-	 * @return Config instance
 	 */
 	public static Config getInstance() {
 		try {
@@ -71,5 +79,53 @@ public class Config {
 			logger.error(e.getMessage());
 			throw new IllegalStateException("config.yml file not found.");
 		}
+	}
+
+	public String getBotToken() {
+		return botToken;
+	}
+
+	public String getTestGuildId() {
+		return testGuildId;
+	}
+
+	public String getLoggingChannelName() {
+		return loggingChannelName;
+	}
+
+	public String getLevelsJsonPath() {
+		return levelsJsonPath;
+	}
+
+	public String getConnectionUrl() {
+		return connectionUrl;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public String getWordleWordsPath() {
+		return wordleWordsPath;
+	}
+
+	public String getDefaultPrefix() {
+		return defaultPrefix;
+	}
+
+	public String getPersonalAccessToken() {
+		return personalAccessToken;
+	}
+
+	public String getRepositoryName() {
+		return repositoryName;
+	}
+
+	public String getMonstersCsvPath() {
+		return monstersCsvPath;
 	}
 }

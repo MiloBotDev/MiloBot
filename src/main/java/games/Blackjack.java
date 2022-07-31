@@ -2,7 +2,7 @@ package games;
 
 import database.DatabaseManager;
 import database.queries.BlackjackTableQueries;
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import models.BlackjackStates;
 import models.CardDeck;
 import models.PlayingCards;
@@ -60,7 +60,7 @@ public class Blackjack {
 	}
 
 	public void updateWallet(@Nullable BlackjackStates state) {
-		ArrayList<String> query = dbManager.query(UserTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, userId);
+		ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, userId);
 		int playerWallet = Integer.parseInt(query.get(0));
 		int newWallet;
 		if(state == null) {
@@ -80,7 +80,7 @@ public class Blackjack {
 				newWallet = playerWallet;
 			}
 		}
-		dbManager.query(UserTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newWallet), userId);
+		dbManager.query(UsersTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newWallet), userId);
 	}
 
 	public void playerHit() {

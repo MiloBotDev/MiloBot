@@ -1,7 +1,7 @@
 package events;
 
 import database.DatabaseManager;
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import events.guild.OnGuildLeaveEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -30,7 +30,7 @@ public class OnUserUpdateNameEvent extends ListenerAdapter {
 		String newName = event.getNewName();
 		String oldName = event.getOldName();
 		String userId = event.getUser().getId();
-		manager.query(UserTableQueries.updateUserName, DatabaseManager.QueryTypes.UPDATE, newName, userId);
+		manager.query(UsersTableQueries.updateUserName, DatabaseManager.QueryTypes.UPDATE, newName, userId);
 		logger.info(String.format("%s changed their name to: %s.", oldName, newName));
 	}
 }

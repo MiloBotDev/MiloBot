@@ -28,8 +28,8 @@ public class GitHubBot {
 	private GitHubBot() {
 		try {
 			Config config = Config.getInstance();
-			this.gitHub = new GitHubBuilder().withOAuthToken(config.personalAccessToken).build();
-			setRepository(config.repositoryName);
+			this.gitHub = new GitHubBuilder().withOAuthToken(config.getPersonalAccessToken()).build();
+			setRepository(config.getRepositoryName());
 			logger.info(String.format("Created a %s instance.", this.getClass().getName()));
 		} catch (IOException e) {
 			logger.error(e.getMessage());

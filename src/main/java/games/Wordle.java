@@ -15,8 +15,6 @@ import java.util.Scanner;
 
 /**
  * Representation of a Wordle game.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class Wordle {
 
@@ -102,7 +100,7 @@ public class Wordle {
 	 */
 	private void loadWordsAsList() {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream is = classloader.getResourceAsStream(Config.getInstance().wordleWordsPath);
+		InputStream is = classloader.getResourceAsStream(Config.getInstance().getWordleWordsPath());
 		InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
 		Scanner s = new Scanner(streamReader);
 		ArrayList<String> list = new ArrayList<>();

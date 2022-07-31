@@ -16,8 +16,6 @@ import java.util.Objects;
 
 /**
  * An event triggered when the bot is ready.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class OnReadyEvent extends ListenerAdapter {
 
@@ -27,8 +25,8 @@ public class OnReadyEvent extends ListenerAdapter {
 	public void onReady(@Nonnull ReadyEvent event) {
 		Config config = Config.getInstance();
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.testGuildId))
-				.getTextChannelsByName(config.loggingChannelName, true).get(0);
+		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))
+				.getTextChannelsByName(config.getLoggingChannelName(), true).get(0);
 
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.setColor(Color.green);

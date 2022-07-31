@@ -1,9 +1,9 @@
-package commands.economy;
+package commands.morbconomy;
 
 import commands.Command;
 import database.DatabaseManager;
 import database.queries.DailiesTableQueries;
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -58,7 +58,6 @@ public class DailyCmd extends Command implements MorbconomyCmd {
         } else {
             LocalDateTime lastDailyTime = LocalDateTime.parse(lastDailyDate);
             long minutesSinceLastDaily = MINUTES.between(lastDailyTime, currentTime);
-            System.out.println(minutesSinceLastDaily);
             if(minutesSinceLastDaily < 1440) {
                 // 24 hours haven't passed yet
                 long minutesTillNextDaily = 1440 - minutesSinceLastDaily;
@@ -82,7 +81,7 @@ public class DailyCmd extends Command implements MorbconomyCmd {
                 if(streak == 1) {
                     result.append(String.format("You earn `%d` morbcoins.", reward));
                 } else {
-                    int bonusMorbcoins = 5 * random.nextInt(100) + 25;
+                    int bonusMorbcoins = streak * random.nextInt(100) + 25;
                     result.append(String.format("You earn `%d` morboins plus an additional `%d` morbcoins for being on a " +
                             "streak of `%d` day(s).", reward, bonusMorbcoins, streak));
                     reward += bonusMorbcoins;
@@ -91,8 +90,8 @@ public class DailyCmd extends Command implements MorbconomyCmd {
         }
         dbManager.query(DailiesTableQueries.updateUserDaily, DatabaseManager.QueryTypes.UPDATE,
                 currentTime.toString(), String.valueOf(streak), String.valueOf(totalClaimed), userId);
-        ArrayList<String> currency = dbManager.query(UserTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, userId);
-        dbManager.query(UserTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, String.valueOf(Integer.parseInt(currency.get(0) + reward)), userId);
+        ArrayList<String> currency = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, userId);
+        dbManager.query(UsersTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, String.valueOf(Float.parseFloat(currency.get(0)) + reward), userId);
         return result.toString();
     }
 

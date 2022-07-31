@@ -1,8 +1,8 @@
-package commands.economy;
+package commands.morbconomy;
 
 import commands.Command;
 import database.DatabaseManager;
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -116,9 +116,9 @@ public class ProfileCmd extends Command implements MorbconomyCmd {
 	 * Builds the embed for the Profile command.
 	 */
 	private Optional<EmbedBuilder> makeEmbed(String name, net.dv8tion.jda.api.entities.User author, String id) {
-		ArrayList<String> resultSelectUser = manager.query(UserTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, id);
-		ArrayList<String> resultGetUserRank = manager.query(UserTableQueries.getUserRankByExperience, DatabaseManager.QueryTypes.RETURN, id);
-		ArrayList<String> resultGetUserAmount = manager.query(UserTableQueries.getUserAmount, DatabaseManager.QueryTypes.RETURN);
+		ArrayList<String> resultSelectUser = manager.query(UsersTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, id);
+		ArrayList<String> resultGetUserRank = manager.query(UsersTableQueries.getUserRankByExperience, DatabaseManager.QueryTypes.RETURN, id);
+		ArrayList<String> resultGetUserAmount = manager.query(UsersTableQueries.getUserAmount, DatabaseManager.QueryTypes.RETURN);
 		if(resultSelectUser.size() == 0 || resultGetUserRank.size() == 0) {
 			return Optional.empty();
 		}

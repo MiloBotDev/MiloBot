@@ -3,7 +3,7 @@ package commands;
 import database.DatabaseManager;
 import database.queries.DailiesTableQueries;
 import database.queries.PrefixTableQueries;
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -171,7 +171,7 @@ public class CommandHandler extends ListenerAdapter {
 
 	private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) {
 		String userId = user.getId();
-		manager.query(UserTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
+		manager.query(UsersTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
 				user.getName(), "0", "1", "0");
 		manager.query(DailiesTableQueries.addUserDaily, DatabaseManager.QueryTypes.UPDATE, userId);
 	}

@@ -3,7 +3,7 @@ package events;
 import commands.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
 import database.DatabaseManager;
-import database.queries.UserTableQueries;
+import database.queries.UsersTableQueries;
 import games.Blackjack;
 import models.BlackjackStates;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -119,7 +119,7 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 				} else {
 					String s = description.replaceAll("[^0-9]", "");
 					int bet = Integer.parseInt(s);
-					ArrayList<String> result = dbManager.query(UserTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, user.getId());
+					ArrayList<String> result = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, user.getId());
 					int wallet = Integer.parseInt(result.get(0));
 					if(bet > wallet) {
 						event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();

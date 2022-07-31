@@ -9,12 +9,14 @@ public class Paginator {
 	public final static Map<String, Paginator> paginatorInstances = new HashMap<>();
 
 	private final List<EmbedBuilder> pages;
+	private final long startTime;
 	private int currentPage;
 
 	public Paginator(EmbedBuilder embed) {
 		pages = new ArrayList<>();
 		pages.add(embed);
 		this.currentPage = 0;
+		this.startTime = System.nanoTime();
 	}
 
 	public void initialize(String messageId) {
@@ -47,5 +49,9 @@ public class Paginator {
 
 	public EmbedBuilder currentPage() {
 		return pages.get(currentPage);
+	}
+
+	public long getStartTime() {
+		return startTime;
 	}
 }
