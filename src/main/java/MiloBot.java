@@ -10,6 +10,7 @@ import events.OnUserUpdateNameEvent;
 import events.guild.OnGuildJoinEvent;
 import events.guild.OnGuildLeaveEvent;
 import games.Blackjack;
+import games.hungergames.models.Item;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;

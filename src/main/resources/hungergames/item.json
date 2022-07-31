@@ -1,0 +1,31 @@
+{
+  "sword": {
+    "type": "weapon",
+    "damage": 10,
+    "rarity": 20
+  },
+  "gun": {
+    "type": "weapon",
+    "damage": 50,
+    "rarity": 5
+  },
+  "bow": {
+    "type": "weapon",
+    "damage": 5,
+    "rarity": 30
+  },
+  "apple": {
+    "type": "food",
+    "heal": 5,
+    "rarity": 50
+  },
+  "band aid": {
+    "type": "usable",
+    "heal": 15,
+    "rarity": 50
+  },
+  "thanos gauntlet": {
+    "type": "usable",
+    "rarity": 1
+  }
+}

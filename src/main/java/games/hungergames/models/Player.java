@@ -1,4 +1,4 @@
-package games.hungergames;
+package games.hungergames.models;
 
 public class Player {
 

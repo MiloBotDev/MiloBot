@@ -1,15 +1,19 @@
 package games.hungergames;
 
+import games.hungergames.models.Player;
+
 import java.util.ArrayList;
 import java.util.Objects;
 
 public class HungerGames {
 
-    public ArrayList<Player> players;
-    public boolean startedGame;
+    private ArrayList<Player> players;
+    private boolean startedGame;
+    private final long startTime;
 
     public HungerGames() {
         this.startedGame = false;
+        this.startTime = System.nanoTime();
     }
 
     public void addPlayer(Player player) {
