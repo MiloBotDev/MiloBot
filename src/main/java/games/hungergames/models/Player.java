@@ -53,12 +53,25 @@ public class Player {
         this.health -= amount;
         if (this.health <= 0) {
             this.health = 0;
+        }
+    }
+
+    public void onDeath() {
+        if (this.inventory.stream().anyMatch(item -> item.getName().equals("totem of not being dead"))) {
+            this.game.log(String.format("%s has used their 'totem of not being dead', and is now back alive!", this.getUserName()));
+            this.health = 50;
+            this.removeItem(this.inventory.stream().filter(item -> item.getName().equals("totem of not being dead")).findFirst().get());
+        } else {
             this.game.killPlayer(this);
         }
     }
 
     public void addItem(Item item) {
         this.inventory.add(item);
+    }
+
+    public void removeItem(Item item) {
+        this.inventory.remove(item);
     }
 
     public void doAction() {

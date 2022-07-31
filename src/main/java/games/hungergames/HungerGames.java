@@ -1,6 +1,11 @@
 package games.hungergames;
 
+import games.hungergames.models.Item;
 import games.hungergames.models.Player;
+import org.luaj.vm2.Globals;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +17,7 @@ public class HungerGames {
     private final List<Player> players;
     private final List<Player> alivePlayers;
     private final List<String> messages;
+    private final List<Item> items;
     private boolean startedGame;
     private final long startTime;
 
@@ -21,6 +27,7 @@ public class HungerGames {
         this.players = new ArrayList<>();
         this.alivePlayers = new ArrayList<>();
         this.messages = new ArrayList<>();
+        this.items = new ArrayList<>();
     }
 
     public void addPlayer(Player player) {
@@ -58,22 +65,56 @@ public class HungerGames {
                 .get(rand.nextInt(this.alivePlayers.size() - 1));
     }
 
+    public Item getRandomItem() {
+        int total = items
+                .stream()
+                .map(Item::getRarity)
+                .reduce(0, Integer::sum);
+
+        Random rand = new Random();
+        int chosen = rand.nextInt(total);
+        int current = 0;
+        for (Item item : items) {
+            current += item.getRarity();
+            if (current > chosen) {
+                return item;
+            }
+        }
+
+        return null; // should not happen
+    }
+
     public void startGame() {
         this.startedGame = true;
-        for (int i=0; i<100; i++) {
+
+        Globals globals = JsePlatform.standardGlobals();
+        LuaValue gameLua = CoerceJavaToLua.coerce(this);
+        globals.set("game", gameLua);
+
+        int round = 1;
+        while (this.alivePlayers.size() > 1) {
+            log(String.format("Round %d", round));
+            round += 1;
+
             for (Player player : this.players) {
-                if (alivePlayers.contains(player)) {
+                if (this.alivePlayers.contains(player)) {
                     player.doAction();
                 }
             }
 
             // reviving
             for (Player player : this.players) {
-                if (!alivePlayers.contains(player)) {
-
+                if (!this.alivePlayers.contains(player)) {
                 }
             }
         }
+
+        if (this.alivePlayers.size() == 1) {
+            log(String.format("%s has won the game!", this.alivePlayers.get(0).getUserName()));
+        } else {
+            log("no one has won the game :(");
+        }
+
         for (String message : this.messages) {
             System.out.println(message);
         }
@@ -85,11 +126,24 @@ public class HungerGames {
 
     public static void main(String[] args) {
         HungerGames game = new HungerGames();
-        game.addPlayer(new Player("PIEMEN", "69"));
+        Player piemen = new Player("PIEMEN", "69");
         game.addPlayer(new Player("ruben", "43"));
         game.addPlayer(new Player("Mr. Obama", "102"));
         game.addPlayer(new Player("Morbious", "420"));
-        game.startGame();
+
+        LuaValue callResult = chunk.call();
+        System.out.println();
+
+        for (String message : game.messages) {
+            System.out.println(message);
+        }
+
+//        HungerGames game = new HungerGames();
+//        game.addPlayer(new Player("PIEMEN", "69"));
+//        game.addPlayer(new Player("ruben", "43"));
+//        game.addPlayer(new Player("Mr. Obama", "102"));
+//        game.addPlayer(new Player("Morbious", "420"));
+//        game.startGame();
     }
 
 }
