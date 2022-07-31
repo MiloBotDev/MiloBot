@@ -20,11 +20,15 @@
     "rarity": 50
   },
   "band aid": {
-    "type": "usable",
+    "type": "food",
     "heal": 15,
     "rarity": 50
   },
   "thanos gauntlet": {
+    "type": "usable",
+    "rarity": 1
+  },
+  "totem of not being dead": {
     "type": "usable",
     "rarity": 1
   }
