@@ -5,6 +5,7 @@ import commands.bot.bug.BugCmd;
 import commands.botadmin.RemoveUserCmd;
 import commands.dnd.encounter.EncounterCmd;
 import commands.games.hungergames.HungerGamesCmd;
+import commands.games.poker.PokerCmd;
 import commands.morbconomy.DailyCmd;
 import commands.morbconomy.ProfileCmd;
 import commands.morbconomy.WalletCmd;
@@ -48,6 +49,7 @@ public class CommandLoader {
         commands.add(new DailyCmd());
         commands.add(new RemoveUserCmd());
         commands.add(new HungerGamesCmd());
+        commands.add(new PokerCmd());
 
         for (Command c : commands) {
             ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));
