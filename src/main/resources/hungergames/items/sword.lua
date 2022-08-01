@@ -4,7 +4,7 @@ return {
     name = "sword",
     rarity = 20,
     onUse = function(self, player)
-        victim = game:getRandomPlayer()
+        victim = game:getRandomPlayer(player)
         if victim:damage(damage) then
             game:log(string.format("%s killed %s using their %s.",
                     player:getUserName(), victim:getUserName(), self.name))
