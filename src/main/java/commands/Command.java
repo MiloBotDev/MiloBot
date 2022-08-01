@@ -199,7 +199,6 @@ public abstract class Command {
 	 */
 	public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
 		DatabaseManager manager = DatabaseManager.getInstance();
-		System.out.println(commandName);
 		ArrayList<String> personalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, event.getAuthor().getId());
 		ArrayList<String> globalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageGlobalAmount, DatabaseManager.QueryTypes.RETURN, commandName);
 
@@ -320,7 +319,6 @@ public abstract class Command {
 	 */
 	public void sendCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
 		String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
-		String consumerId = event.getAuthor().getId();
 
 		EmbedBuilder info = new EmbedBuilder();
 		EmbedUtils.styleEmbed(info, event.getAuthor());
@@ -340,7 +338,7 @@ public abstract class Command {
 		EmbedBuilder embed = new EmbedBuilder();
 		EmbedUtils.styleEmbed(embed, event.getAuthor());
 		embed.setTitle(commandName);
-		embed.setDescription("This is the base command for all wordle related commands. Please use any of the " +
+		embed.setDescription("This is the base command for all " + commandName + " related commands. Please use any of the " +
 				"commands listed below.");
 		embed.addField("Sub Commands", getSubCommandsText(commandName, subCommands, prefix).toString(), false);
 		event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(

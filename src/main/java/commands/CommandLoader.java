@@ -4,6 +4,7 @@ import commands.bot.StatusCmd;
 import commands.bot.bug.BugCmd;
 import commands.botadmin.RemoveUserCmd;
 import commands.dnd.encounter.EncounterCmd;
+import commands.games.hungergames.HungerGamesCmd;
 import commands.morbconomy.DailyCmd;
 import commands.morbconomy.ProfileCmd;
 import commands.morbconomy.WalletCmd;
@@ -46,6 +47,7 @@ public class CommandLoader {
         commands.add(new WalletCmd());
         commands.add(new DailyCmd());
         commands.add(new RemoveUserCmd());
+        commands.add(new HungerGamesCmd());
 
         for (Command c : commands) {
             ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));
@@ -108,7 +110,8 @@ public class CommandLoader {
 
         slashCommands.addCommands(Commands.slash("blackjack", "Blackjack brought to discord").addSubcommands(
                 new SubcommandData("play", "Play a game of blackjack on discord.")
-                        .addOption(OptionType.INTEGER, "bet", "The amount of Morbcoins you want to bet.", false),
+                        .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", true)
+                                .setRequiredRange(1, 10000)),
                 new SubcommandData("stats", "View your own blackjack statistics.")
         ));
 

@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class BlackjackPlayCmd extends Command implements SubCmd {
@@ -45,15 +46,23 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 				} else if(playerBet == 0) {
 					event.getChannel().sendMessage("You can't bet `0` Morbcoins.").queue();
 					return;
+				} else if (playerBet > 10000) {
+					event.getChannel().sendMessage("You can't bet more than `10000` Morbcoins.").queue();
+					return;
 				} else {
 					ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
-					int playerWallet = Integer.parseInt(query.get(0));
-					if(playerBet > playerWallet) {
+					BigInteger playerWallet = new BigInteger(query.get(0));
+					char c = playerWallet.subtract(BigInteger.valueOf(playerBet)).toString().toCharArray()[0];
+					try {
+						int integer = Integer.parseInt(String.valueOf(c));
+						if(integer < 0) {
+							event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", playerBet, playerWallet)).queue();							return;
+						}
+					} catch (NumberFormatException e) {
 						event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", playerBet, playerWallet)).queue();
 						return;
-					} else {
-						bet = playerBet;
 					}
+					bet = playerBet;
 				}
 			} catch(NumberFormatException e) {
 				event.getChannel().sendMessage("Invalid bet amount.").queue();
@@ -104,16 +113,17 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 			bet = 0;
 		} else {
 			bet = Objects.requireNonNull(event.getOption("bet")).getAsInt();
-			if(bet == 0) {
-				event.getHook().sendMessage("You can't bet `0` Morbcoins.").queue();
-				return;
-			} else {
-				ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
-				int playerWallet = Integer.parseInt(query.get(0));
-				if(bet > playerWallet) {
-					event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
-					return;
+			ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
+			BigInteger playerWallet = new BigInteger(query.get(0));
+			char c = playerWallet.subtract(BigInteger.valueOf(bet)).toString().toCharArray()[0];
+			try {
+				int integer = Integer.parseInt(String.valueOf(c));
+				if(integer < 0) {
+					event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();							return;
 				}
+			} catch (NumberFormatException e) {
+				event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
+				return;
 			}
 		}
 		ArrayList<String> result = dbManager.query(BlackjackTableQueries.checkIfUserExists, DatabaseManager.QueryTypes.RETURN, authorId);

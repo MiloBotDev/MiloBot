@@ -6,6 +6,7 @@ import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class WalletCmd extends Command implements MorbconomyCmd {
 		String authorId = event.getAuthor().getId();
 
 		ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
-		int wallet = Integer.parseInt(query.get(0));
+		BigInteger wallet = new BigInteger(query.get(0));
 
 		event.getChannel().sendMessage(String.format("You have `%d` morbcoins in your wallet.", wallet)).queue();
 	}

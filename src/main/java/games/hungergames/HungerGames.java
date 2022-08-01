@@ -84,41 +84,41 @@ public class HungerGames {
         return null; // should not happen
     }
 
-    public void startGame() {
-        this.startedGame = true;
-
-        Globals globals = JsePlatform.standardGlobals();
-        LuaValue gameLua = CoerceJavaToLua.coerce(this);
-        globals.set("game", gameLua);
-
-        int round = 1;
-        while (this.alivePlayers.size() > 1) {
-            log(String.format("Round %d", round));
-            round += 1;
-
-            for (Player player : this.players) {
-                if (this.alivePlayers.contains(player)) {
-                    player.doAction();
-                }
-            }
-
-            // reviving
-            for (Player player : this.players) {
-                if (!this.alivePlayers.contains(player)) {
-                }
-            }
-        }
-
-        if (this.alivePlayers.size() == 1) {
-            log(String.format("%s has won the game!", this.alivePlayers.get(0).getUserName()));
-        } else {
-            log("no one has won the game :(");
-        }
-
-        for (String message : this.messages) {
-            System.out.println(message);
-        }
-    }
+//    public void startGame() {
+//        this.startedGame = true;
+//
+//        Globals globals = JsePlatform.standardGlobals();
+//        LuaValue gameLua = CoerceJavaToLua.coerce(this);
+//        globals.set("game", gameLua);
+//
+//        int round = 1;
+//        while (this.alivePlayers.size() > 1) {
+//            log(String.format("Round %d", round));
+//            round += 1;
+//
+//            for (Player player : this.players) {
+//                if (this.alivePlayers.contains(player)) {
+//                    player.doAction();
+//                }
+//            }
+//
+//            // reviving
+//            for (Player player : this.players) {
+//                if (!this.alivePlayers.contains(player)) {
+//                }
+//            }
+//        }
+//
+//        if (this.alivePlayers.size() == 1) {
+//            log(String.format("%s has won the game!", this.alivePlayers.get(0).getUserName()));
+//        } else {
+//            log("no one has won the game :(");
+//        }
+//
+//        for (String message : this.messages) {
+//            System.out.println(message);
+//        }
+//    }
 
     public void log(String message) {
         this.messages.add(message);
@@ -131,7 +131,6 @@ public class HungerGames {
         game.addPlayer(new Player("Mr. Obama", "102"));
         game.addPlayer(new Player("Morbious", "420"));
 
-        LuaValue callResult = chunk.call();
         System.out.println();
 
         for (String message : game.messages) {

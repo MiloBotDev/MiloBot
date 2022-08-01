@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +92,8 @@ public class DailyCmd extends Command implements MorbconomyCmd {
         dbManager.query(DailiesTableQueries.updateUserDaily, DatabaseManager.QueryTypes.UPDATE,
                 currentTime.toString(), String.valueOf(streak), String.valueOf(totalClaimed), userId);
         ArrayList<String> currency = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, userId);
-        dbManager.query(UsersTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, String.valueOf(Float.parseFloat(currency.get(0)) + reward), userId);
+        String newTotalCurrency = new BigInteger(currency.get(0)).add(BigInteger.valueOf(reward)).toString();
+        dbManager.query(UsersTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, newTotalCurrency, userId);
         return result.toString();
     }
 

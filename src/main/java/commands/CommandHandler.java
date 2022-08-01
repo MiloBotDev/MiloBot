@@ -18,8 +18,6 @@ import java.util.stream.Collectors;
 
 /**
  * Handles the incoming commands.
- *
- * @author - Ruben Eekhof
  */
 public class CommandHandler extends ListenerAdapter {
 

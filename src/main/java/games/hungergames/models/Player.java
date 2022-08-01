@@ -74,16 +74,16 @@ public class Player {
         this.inventory.remove(item);
     }
 
-    public void doAction() {
-        Random rand = new Random();
-        if (rand.nextInt(10) < 7 && !this.inventory.isEmpty()) {
-            int itemNumber = rand.nextInt(this.inventory.size());
-            Item chosenItem = this.inventory.get(itemNumber);
-            chosenItem.use(this);
-        } else {
-            Item item = Item.getRandomItem();
-            this.inventory.add(item);
-            this.game.log(String.format("%s has found a %s.", this.userName, item.getName()));
-        }
-    }
+//    public void doAction() {
+//        Random rand = new Random();
+//        if (rand.nextInt(10) < 7 && !this.inventory.isEmpty()) {
+//            int itemNumber = rand.nextInt(this.inventory.size());
+//            Item chosenItem = this.inventory.get(itemNumber);
+//            chosenItem.use(this);
+//        } else {
+//            Item item = Item.getRandomItem();
+//            this.inventory.add(item);
+//            this.game.log(String.format("%s has found a %s.", this.userName, item.getName()));
+//        }
+//    }
 }

@@ -9,6 +9,7 @@ import models.PlayingCards;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,26 +62,28 @@ public class Blackjack {
 
 	public void updateWallet(@Nullable BlackjackStates state) {
 		ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, userId);
-		int playerWallet = Integer.parseInt(query.get(0));
-		int newWallet;
+		BigInteger playerWallet = new BigInteger(query.get(0));
+		BigInteger newWallet;
 		if(state == null) {
-			newWallet = playerWallet - playerBet;
+			newWallet = playerWallet.subtract(BigInteger.valueOf(playerBet));
 		} else {
 			if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
 				this.winnings = (int) Math.ceil(((double) playerBet) * 1.5d);
-				newWallet = playerWallet  + (int) Math.ceil(((double) playerBet) * 2.5d);
+				int ceil = (int) Math.ceil(((double) playerBet) * 2.5d);
+				newWallet = playerWallet.add(BigInteger.valueOf(ceil));
 			} else if(state.equals(BlackjackStates.PLAYER_WIN)) {
 				this.winnings = playerBet;
-				newWallet = playerWallet + (winnings * 2);
+				int i = winnings * 2;
+				newWallet = playerWallet.add(BigInteger.valueOf(i));
 			} else if(state.equals(BlackjackStates.DRAW)) {
 				this.winnings = playerBet;
-				newWallet = playerWallet + playerBet;
+				newWallet = playerWallet.add(BigInteger.valueOf(playerBet));
 			} else {
 				this.winnings = playerBet;
 				newWallet = playerWallet;
 			}
 		}
-		dbManager.query(UsersTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newWallet), userId);
+		dbManager.query(UsersTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, newWallet.toString(), userId);
 	}
 
 	public void playerHit() {
@@ -171,19 +174,23 @@ public class Blackjack {
 		updateWallet(state);
 		if(state.equals(BlackjackStates.DRAW)) {
 			dbManager.query(BlackjackTableQueries.updateUserDraw, DatabaseManager.QueryTypes.UPDATE,
-					newTotalGames, newTotalDraws, String.valueOf(Integer.parseInt(totalEarnings)), userId);
-		} else if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
-			dbManager.query(BlackjackTableQueries.updateUserWin, DatabaseManager.QueryTypes.UPDATE,
-					newStreak, newTotalGames, newTotalWins, String.valueOf(Integer.parseInt(totalEarnings) + this.winnings),
-					newHighestStreak, userId);
-		} else if(state.equals(BlackjackStates.PLAYER_WIN)) {
-			dbManager.query(BlackjackTableQueries.updateUserWin, DatabaseManager.QueryTypes.UPDATE,
-					newStreak, newTotalGames, newTotalWins, String.valueOf(Integer.parseInt(totalEarnings) + this.winnings),
-					newHighestStreak, userId);
+					newTotalGames, newTotalDraws, totalEarnings, userId);
 		} else {
-			// it's a loss;
-			dbManager.query(BlackjackTableQueries.updateUserLoss, DatabaseManager.QueryTypes.UPDATE,
-					newTotalGames, String.valueOf(Integer.parseInt(totalEarnings) - this.winnings), userId);
+			String newTotalEarnings = new BigInteger(totalEarnings).add(BigInteger.valueOf(this.winnings)).toString();
+			if(state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+				dbManager.query(BlackjackTableQueries.updateUserWin, DatabaseManager.QueryTypes.UPDATE,
+						newStreak, newTotalGames, newTotalWins, newTotalEarnings,
+						newHighestStreak, userId);
+			} else if(state.equals(BlackjackStates.PLAYER_WIN)) {
+				dbManager.query(BlackjackTableQueries.updateUserWin, DatabaseManager.QueryTypes.UPDATE,
+						newStreak, newTotalGames, newTotalWins, newTotalEarnings,
+						newHighestStreak, userId);
+			} else {
+				// it's a loss;
+				String newEarnings = new BigInteger(totalEarnings).subtract(BigInteger.valueOf(this.winnings)).toString();
+				dbManager.query(BlackjackTableQueries.updateUserLoss, DatabaseManager.QueryTypes.UPDATE,
+						newTotalGames, newEarnings, userId);
+			}
 		}
 	}
 

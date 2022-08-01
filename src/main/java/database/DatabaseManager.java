@@ -108,6 +108,7 @@ public class DatabaseManager {
 			stmt.close();
 			conn.close();
 		} catch (SQLException e) {
+			// TODO: handle exception
 			System.out.println(e.getMessage());
 		}
 		return result;

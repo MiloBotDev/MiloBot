@@ -1,10 +1,20 @@
-token: PASTE TOKEN HERE
-testGuildId: GUILD TEST ID HERE
-loggingChannelName: NAME OF LOGGING CHANNEL HERE
-levelsJsonPath: PATH TO JSON FILE WITH LEVELS HERE
-connectionURL: THE URL TO THE DATABASE HERE
-wordleWordsPath: PATH TO WORDLE WORDS HERE
-prefix: DEFAULT PREFIX HERE
-personalAccessToken: PERSONAL ACCESS TOKEN FOR GITHUB ACCOUNT HERE
-repositoryName: REPOSITORY NAME HERE LIKE SO: USERNAME/REPOSITORY
-monstersCsvPath: PATH TO THE MONSTERS.csv FILE
+# bot
+prefix: ";"
+token:
+testGuildId:
+loggingChannelName:
+
+# github
+personalAccessToken:
+repositoryName: ""
+
+# paths
+levelsJsonPath: /levels.json
+wordleWordsPath: wordle_words.txt
+monstersCsvPath: monsters.csv
+hungerGamesJsonPath: /hungergames/item.json
+
+# database
+connectionUrl: "jdbc:mysql://localhost/milobot"
+user: "root"
+password: ""

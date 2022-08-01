@@ -1,13 +1,10 @@
 package games.hungergames.models;
 
-import games.hungergames.HungerGames;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 
-import java.util.HashMap;
-import java.util.Random;
-
 public class Item {
+
     private final LuaValue chunk;
     private final String name;
     private final int rarity;
