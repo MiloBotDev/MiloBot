@@ -2,6 +2,7 @@ package games.hungergames.models;
 
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 public class Item {
 
@@ -15,8 +16,24 @@ public class Item {
         this.rarity = this.chunk.get("rarity").toint();
     }
 
-    public void use(Player player) {
+    public boolean onUse(Player player) {
+        if (this.chunk.get("onUse").isnil()) {
+            return false;
+        }
+        this.chunk.get("onUse").call(this.chunk, CoerceJavaToLua.coerce(player));
+        return true;
+    }
 
+    // returns true if the player should be brought back to live
+    public boolean onDeath(Player player) {
+        if (this.chunk.get("onDeath").isnil()) {
+            return false;
+        }
+        LuaValue result = this.chunk.get("onDeath").call(this.chunk, CoerceJavaToLua.coerce(player));
+        if (result.isnil()) {
+            return false;
+        }
+        return result.toboolean();
     }
 
     public String getName() {

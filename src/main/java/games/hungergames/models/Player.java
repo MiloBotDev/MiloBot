@@ -49,41 +49,47 @@ public class Player {
         }
     }
 
-    public void damage(int amount) {
+    public boolean damage(int amount) {
         this.health -= amount;
         if (this.health <= 0) {
             this.health = 0;
+            return true;
         }
+        return false;
     }
 
     public void onDeath() {
-        if (this.inventory.stream().anyMatch(item -> item.getName().equals("totem of not being dead"))) {
-            this.game.log(String.format("%s has used their 'totem of not being dead', and is now back alive!", this.getUserName()));
-            this.health = 50;
-            this.removeItem(this.inventory.stream().filter(item -> item.getName().equals("totem of not being dead")).findFirst().get());
-        } else {
-            this.game.killPlayer(this);
+        for (Item item : this.inventory) {
+            if (item.onDeath(this)) {
+                return;
+            }
         }
+        this.game.killPlayer(this);
     }
 
     public void addItem(Item item) {
         this.inventory.add(item);
     }
 
-    public void removeItem(Item item) {
-        this.inventory.remove(item);
+    public void removeItem(String itemName) {
+        for (Item item : this.inventory) {
+            if (item.getName().equals(itemName)) {
+                this.inventory.remove(item);
+                return;
+            }
+        }
     }
 
-//    public void doAction() {
-//        Random rand = new Random();
-//        if (rand.nextInt(10) < 7 && !this.inventory.isEmpty()) {
-//            int itemNumber = rand.nextInt(this.inventory.size());
-//            Item chosenItem = this.inventory.get(itemNumber);
-//            chosenItem.use(this);
-//        } else {
-//            Item item = Item.getRandomItem();
-//            this.inventory.add(item);
-//            this.game.log(String.format("%s has found a %s.", this.userName, item.getName()));
-//        }
-//    }
+    public void doAction() {
+        Random rand = new Random();
+        if (rand.nextInt(10) < 7 && !this.inventory.isEmpty()) {
+            int itemNumber = rand.nextInt(this.inventory.size());
+            Item chosenItem = this.inventory.get(itemNumber);
+            chosenItem.onUse(this);
+        } else {
+            Item item = this.game.getRandomItem();
+            this.inventory.add(item);
+            this.game.log(String.format("%s has found a %s.", this.userName, item.getName()));
+        }
+    }
 }
