@@ -7,7 +7,7 @@ import database.queries.BlackjackTableQueries;
 import database.queries.UsersTableQueries;
 import games.Blackjack;
 import models.BlackjackStates;
-import models.PlayingCards;
+import models.cards.PlayingCards;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;

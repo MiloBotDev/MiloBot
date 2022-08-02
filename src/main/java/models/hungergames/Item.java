@@ -1,4 +1,4 @@
-package games.hungergames.models;
+package models.hungergames;
 
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;

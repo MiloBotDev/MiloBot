@@ -4,8 +4,8 @@ import database.DatabaseManager;
 import database.queries.BlackjackTableQueries;
 import database.queries.UsersTableQueries;
 import models.BlackjackStates;
-import models.CardDeck;
-import models.PlayingCards;
+import models.cards.CardDeck;
+import models.cards.PlayingCards;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

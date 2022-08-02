@@ -1,10 +1,7 @@
-package games.hungergames;
+package games;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import games.hungergames.models.Item;
-import games.hungergames.models.Player;
+import models.hungergames.Item;
+import models.hungergames.Player;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -116,12 +113,6 @@ public class HungerGames {
             for (Player player : this.players) {
                 if (this.alivePlayers.contains(player)) {
                     player.doAction();
-                }
-            }
-
-            // reviving
-            for (Player player : this.players) {
-                if (!this.alivePlayers.contains(player)) {
                 }
             }
         }
