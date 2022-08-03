@@ -4,7 +4,7 @@ import commands.Command;
 import commands.SubCmd;
 import database.DatabaseManager;
 import database.queries.EncounterTableQueries;
-import models.Encounter;
+import models.dnd.Encounter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;

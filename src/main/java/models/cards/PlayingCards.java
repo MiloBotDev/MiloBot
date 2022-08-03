@@ -1,4 +1,6 @@
-package models;
+package models.cards;
+
+import models.CustomEmojis;
 
 import static models.CustomEmojis.*;
 
