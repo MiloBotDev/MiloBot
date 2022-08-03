@@ -10,6 +10,8 @@ public class PokerCmd extends Command implements ParentCmd, GamesCmd {
         this.commandName = "poker";
         this.commandDescription = "5-card Poker brought to discord.";
         this.subCommands.add(new PokerPlayCmd());
+        this.subCommands.add(new PokerJoinCmd());
+        this.subCommands.add(new PokerStartCmd());
     }
 
 }
