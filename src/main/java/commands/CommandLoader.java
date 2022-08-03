@@ -110,7 +110,7 @@ public class CommandLoader {
 
         slashCommands.addCommands(Commands.slash("blackjack", "Blackjack brought to discord").addSubcommands(
                 new SubcommandData("play", "Play a game of blackjack on discord.")
-                        .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", true)
+                        .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
                                 .setRequiredRange(1, 10000)),
                 new SubcommandData("stats", "View your own blackjack statistics.")
         ));
