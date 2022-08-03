@@ -1,5 +1,6 @@
-package models;
+package models.dnd;
 
+import models.dnd.Monster;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

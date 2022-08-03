@@ -12,7 +12,7 @@ repositoryName: ""
 levelsJsonPath: /levels.json
 wordleWordsPath: wordle_words.txt
 monstersCsvPath: monsters.csv
-hungerGamesJsonPath: /hungergames/item.json
+hungerGamesPath: /hungergames
 
 # database
 connectionUrl: "jdbc:mysql://localhost/milobot"

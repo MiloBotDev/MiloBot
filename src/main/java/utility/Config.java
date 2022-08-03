@@ -28,7 +28,7 @@ public class Config {
 	private final String repositoryName;
 	// paths
 	private final String levelsJsonPath;
-	private final String hungerGamesJsonPath;
+	private final String hungerGamesPath;
 	private final String wordleWordsPath;
 	private final String monstersCsvPath;
 	// database
@@ -51,7 +51,7 @@ public class Config {
 		this.testGuildId = Long.toString(((Long) data.get("testGuildId")));
 		this.loggingChannelName = (String) data.get("loggingChannelName");
 		this.levelsJsonPath = (String) data.get("levelsJsonPath");
-		this.hungerGamesJsonPath = (String) data.get("hungerGamesJsonPath");
+		this.hungerGamesPath = (String) data.get("hungerGamesPath");
 
 		this.connectionUrl = (String) data.get("connectionUrl");
 		this.user = (String) data.get("user");
@@ -115,8 +115,8 @@ public class Config {
 		return wordleWordsPath;
 	}
 
-	public String getHungerGamesJsonPath() {
-		return hungerGamesJsonPath;
+	public String getHungerGamesPath() {
+		return hungerGamesPath;
 	}
 
 	public String getDefaultPrefix() {

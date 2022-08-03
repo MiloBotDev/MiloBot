@@ -1,4 +1,6 @@
-package models;
+package models.cards;
+
+import models.cards.PlayingCards;
 
 import java.util.ArrayList;
 import java.util.Arrays;
