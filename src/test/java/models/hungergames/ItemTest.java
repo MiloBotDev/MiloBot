@@ -67,12 +67,14 @@ public class ItemTest {
 
         Assertions.assertEquals(60, victim.getHealth());
 
-        this.player.useItem(bomb);
+        this.victim.damage(50);
+        this.victim.addItem(bomb);
         this.player.useItem(bomb);
 
         Assertions.assertEquals(1, game.getAlivePlayers().size());
         Assertions.assertEquals(1, this.player.getKills());
-        Assertions.assertEquals(100, this.player.getDamageDone());
+        Assertions.assertEquals(50, this.player.getDamageDone());
+        Assertions.assertEquals(40, this.player.getDamageTaken());
     }
 
     @Test
@@ -148,5 +150,7 @@ public class ItemTest {
         Assertions.assertEquals(1, this.player.getKills());
         Assertions.assertEquals(50, this.player.getDamageDone());
     }
+
+
 
 }
