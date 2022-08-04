@@ -1,12 +1,12 @@
-heals = 20
+local heals = 30
 
 return {
     name = "band aid",
     rarity = 10,
-    onUse = function(self, player)
-        player:heal(heals)
-        player:removeItem(self.name)
+    onUse = function(self, lobbyEntry)
+        lobbyEntry:heal(heals)
+        lobbyEntry:removeItem(self.name)
         game:log(string.format("%s used a %s. It heals %d hp.",
-                player:getUserName(), self.name, heals))
+                lobbyEntry:getUserName(), self.name, heals))
     end,
 }

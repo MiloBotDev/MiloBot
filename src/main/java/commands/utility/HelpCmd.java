@@ -39,7 +39,6 @@ public class HelpCmd extends Command implements UtilityCmd {
 		this.commandName = "help";
 		this.commandDescription = "Shows the user a list of available commands.";
 		this.commandArgs = new String[]{"*command"};
-
 	}
 
 	/**

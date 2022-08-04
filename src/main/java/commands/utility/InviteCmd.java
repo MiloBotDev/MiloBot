@@ -10,8 +10,6 @@ import java.util.List;
 /**
  * The invite command.
  * Sends the user an invite link, so they can invite the bot to their own server.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class InviteCmd extends Command implements UtilityCmd {
 

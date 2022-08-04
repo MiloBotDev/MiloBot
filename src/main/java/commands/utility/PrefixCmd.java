@@ -24,7 +24,7 @@ public class PrefixCmd extends Command implements UtilityCmd {
 		this.commandName = "prefix";
 		this.commandDescription = "Change the prefix of the guild you're in.";
 		this.commandArgs = new String[]{"prefix"};
-		this.cooldown = 0;
+		this.cooldown = 60;
 		this.permissions.put("Administrator", Permission.ADMINISTRATOR);
 
 		this.manager = DatabaseManager.getInstance();

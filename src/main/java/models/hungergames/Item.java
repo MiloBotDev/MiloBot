@@ -1,5 +1,6 @@
 package models.hungergames;
 
+import org.jetbrains.annotations.NotNull;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -10,7 +11,7 @@ public class Item {
     private final String name;
     private final int rarity;
 
-    public Item(Globals globals, String code) {
+    public Item(@NotNull Globals globals, String code) {
         this.chunk = globals.load(code).call();
         this.name = this.chunk.get("name").toString();
         this.rarity = this.chunk.get("rarity").toint();

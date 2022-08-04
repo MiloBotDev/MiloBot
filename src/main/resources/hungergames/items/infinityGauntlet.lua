@@ -1,18 +1,19 @@
 return {
     name = "infinity gauntlet",
     rarity = 1,
-    onUse = function(self, player)
-        player:removeItem(self.name)
+    onUse = function(self, lobbyEntry)
+        lobbyEntry:removeItem(self.name)
         game:log(string.format("%s used their infinity gauntlet.",
-                player:getUserName()))
+                lobbyEntry:getUserName()))
         local died = math.floor((game:getAlivePlayers():size()+1) / 2)
         if died == 0 then
             game:log(string.format("it had no effect..."))
         else
             for i = 1,died,1 do
-                victim = game:getRandomPlayer(player)
+                victim = game:getRandomPlayer(lobbyEntry)
                 game:log(string.format("%s doesn't feel so good.", victim:getUserName()))
                 victim:onDeath()
+                lobbyEntry:addKill()
             end
         end
         return true

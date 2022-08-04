@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import database.DatabaseManager;
 import database.queries.UsersTableQueries;
+import games.HungerGames;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,19 +112,8 @@ public class User {
 		// see https://stackoverflow.com/a/48298758
 		try {
 			URI uri = getClass().getResource(Config.getInstance().getLevelsJsonPath()).toURI();
-			if ("jar".equals(uri.getScheme())) {
-				for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
-					if (provider.getScheme().equalsIgnoreCase("jar")) {
-						try {
-							provider.getFileSystem(uri);
-						} catch (FileSystemNotFoundException e) {
-							// in this case we need to initialize it first:
-							provider.newFileSystem(uri, Collections.emptyMap());
-						}
-					}
-				}
-			}
-			Path source = Paths.get(uri);
+            HungerGames.fileLoadHack(uri);
+            Path source = Paths.get(uri);
 			String jsonAsString = new String(Files.readAllBytes(source));
 			JsonArray asJsonArray = JsonParser.parseString(jsonAsString).getAsJsonArray();
 			for (int i = 0; i < asJsonArray.size(); i++) {

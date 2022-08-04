@@ -1,7 +1,9 @@
 package games;
 
+import models.LobbyEntry;
 import models.hungergames.Item;
 import models.hungergames.Player;
+import org.jetbrains.annotations.NotNull;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -23,9 +25,11 @@ public class HungerGames {
 
     private final List<Player> players;
     private final List<Player> alivePlayers;
-    private final List<String> messages;
+    private List<String> messages;
+    private final Map<Integer, Map<List<String>, List<Player>>> roundData;
     private final List<Item> items;
     private boolean startedGame;
+    private Player winner;
     private final long startTime;
 
     public HungerGames() {
@@ -35,6 +39,19 @@ public class HungerGames {
         this.alivePlayers = new ArrayList<>();
         this.messages = new ArrayList<>();
         this.items = new ArrayList<>();
+        this.roundData = new HashMap<>();
+    }
+
+    public HungerGames(List<LobbyEntry> playersFromLobby) {
+        this.startedGame = false;
+        this.startTime = System.nanoTime();
+        this.players = new ArrayList<>();
+        this.alivePlayers = new ArrayList<>();
+        this.messages = new ArrayList<>();
+        this.items = new ArrayList<>();
+        this.roundData = new HashMap<>();
+
+        playersFromLobby.forEach(newLobbyEntry -> addPlayer(new Player(newLobbyEntry.username(), newLobbyEntry.userId())));
     }
 
     public void addPlayer(Player player) {
@@ -50,14 +67,6 @@ public class HungerGames {
             this.players.removeIf(player1 -> Objects.equals(player1.getUserId(), userId));
             this.alivePlayers.removeIf(player1 -> Objects.equals(player1.getUserId(), userId));
         }
-    }
-
-    public void killPlayer(Player player) {
-        this.alivePlayers.remove(player);
-    }
-
-    public List<Player> getAlivePlayers() {
-        return alivePlayers;
     }
 
     public Player getRandomPlayer() {
@@ -106,43 +115,37 @@ public class HungerGames {
         loadAllItems(globals);
 
         int round = 1;
+        List<Player> playersAliveInRound;
         while (this.alivePlayers.size() > 1) {
-            log(String.format("Round %d", round));
-            round += 1;
 
             for (Player player : this.players) {
                 if (this.alivePlayers.contains(player)) {
                     player.doAction();
                 }
             }
-        }
 
-        if (this.alivePlayers.size() == 1) {
-            log(String.format("%s has won the game!", this.alivePlayers.get(0).getUserName()));
-        } else {
-            log("no one has won the game :(");
-        }
+            if (this.alivePlayers.size() == 1) {
+                Player player = this.alivePlayers.get(0);
+                log(String.format("%s has won the game!", player.getUserName()));
+                this.winner = player;
+            }
 
-        for (String message : this.messages) {
-            System.out.println(message);
+            playersAliveInRound = new ArrayList<>();
+            for(Player player : this.alivePlayers) {
+                playersAliveInRound.add(player.clone());
+            }
+
+            this.roundData.put(round, Map.of(this.messages, playersAliveInRound));
+            this.messages = new ArrayList<>();
+
+            round++;
         }
     }
 
     private void loadAllItems(Globals globals) {
         try {
             URI uri = getClass().getResource(Config.getInstance().getHungerGamesPath() + "/items").toURI();
-            if ("jar".equals(uri.getScheme())) {
-                for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
-                    if (provider.getScheme().equalsIgnoreCase("jar")) {
-                        try {
-                            provider.getFileSystem(uri);
-                        } catch (FileSystemNotFoundException e) {
-                            // in this case we need to initialize it first:
-                            provider.newFileSystem(uri, Collections.emptyMap());
-                        }
-                    }
-                }
-            }
+            fileLoadHack(uri);
             try (Stream<Path> paths = Files.walk(Paths.get(uri))) {
                 paths
                     .filter(Files::isRegularFile)
@@ -159,17 +162,42 @@ public class HungerGames {
         }
     }
 
+    public static void fileLoadHack(@NotNull URI uri) throws IOException {
+        if ("jar".equals(uri.getScheme())) {
+            for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
+                if (provider.getScheme().equalsIgnoreCase("jar")) {
+                    try {
+                        provider.getFileSystem(uri);
+                    } catch (FileSystemNotFoundException e) {
+                        // in this case we need to initialize it first:
+                        provider.newFileSystem(uri, Collections.emptyMap());
+                    }
+                }
+            }
+        }
+    }
+
     public void log(String message) {
         this.messages.add(message);
     }
 
-    public static void main(String[] args) {
-        HungerGames game = new HungerGames();
-        game.addPlayer(new Player("PIEMEN", "69"));
-        game.addPlayer(new Player("ruben", "43"));
-        game.addPlayer(new Player("Mr. Obama", "102"));
-        game.addPlayer(new Player("Morbious", "420"));
-        game.startGame();
+    public void killPlayer(Player player) {
+        this.alivePlayers.remove(player);
     }
 
+    public List<Player> getAlivePlayers() {
+        return alivePlayers;
+    }
+
+    public Map<Integer, Map<List<String>, List<Player>>> getRoundData() {
+        return roundData;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public Player getWinner() {
+        return winner;
+    }
 }

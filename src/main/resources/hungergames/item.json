@@ -1,35 +1,6 @@
 {
-  "sword": {
-    "type": "weapon",
-    "damage": 20,
-    "rarity": 20
-  },
-  "gun": {
-    "type": "weapon",
-    "damage": 50,
-    "rarity": 5
-  },
-  "bow": {
-    "type": "weapon",
-    "damage": 10,
-    "rarity": 30
-  },
-  "apple": {
-    "type": "food",
-    "heal": 5,
-    "rarity": 50
-  },
-  "band aid": {
-    "type": "food",
-    "heal": 10,
-    "rarity": 50
-  },
-  "thanos gauntlet": {
-    "type": "usable",
-    "rarity": 1
-  },
-  "totem of not being dead": {
-    "type": "usable",
-    "rarity": 1
+  "apple" : {
+    "heals" : 10,
+    "rarity" : 20
   }
 }
