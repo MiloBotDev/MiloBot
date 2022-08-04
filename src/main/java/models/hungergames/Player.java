@@ -6,13 +6,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class Player {
+public class Player implements Cloneable {
 
     private final String userName;
     private final String userId;
-    private final List<Item> inventory;
+    private List<Item> inventory;
     private long health;
     private HungerGames game;
+
+    private int kills;
+    private int itemsCollected;
+    private int damageDone;
+    private int damageTaken;
 
     public Player(String userName, String userId) {
         this.userName = userName;
@@ -74,6 +79,20 @@ public class Player {
         }
     }
 
+    @Override
+    public Player clone() {
+        Player clone;
+        try {
+            clone = (Player) super.clone();
+            List<Item> inventoryClone = new ArrayList<>(this.inventory.size());
+            inventoryClone.addAll(this.inventory);
+            clone.inventory = inventoryClone;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String getUserName() {
         return userName;
     }
@@ -94,4 +113,7 @@ public class Player {
         this.game = game;
     }
 
+    public List<Item> getInventory() {
+        return inventory;
+    }
 }

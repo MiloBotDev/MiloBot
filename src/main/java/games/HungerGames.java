@@ -1,5 +1,6 @@
 package games;
 
+import models.LobbyEntry;
 import models.hungergames.Item;
 import models.hungergames.Player;
 import org.luaj.vm2.Globals;
@@ -23,7 +24,8 @@ public class HungerGames {
 
     private final List<Player> players;
     private final List<Player> alivePlayers;
-    private final List<String> messages;
+    private List<String> messages;
+    private final Map<Integer, Map<List<String>, List<Player>>> roundData;
     private final List<Item> items;
     private boolean startedGame;
     private final long startTime;
@@ -35,6 +37,20 @@ public class HungerGames {
         this.alivePlayers = new ArrayList<>();
         this.messages = new ArrayList<>();
         this.items = new ArrayList<>();
+        this.roundData = new HashMap<>();
+    }
+
+    public HungerGames(List<LobbyEntry> playersFromLobby) {
+        this.startedGame = false;
+        this.startTime = System.nanoTime();
+        this.players = new ArrayList<>();
+        this.alivePlayers = new ArrayList<>();
+        this.messages = new ArrayList<>();
+        this.items = new ArrayList<>();
+        this.roundData = new HashMap<>();
+
+        playersFromLobby.forEach(newLobbyEntry -> addPlayer(new Player(newLobbyEntry.username(), newLobbyEntry.userId())));
+        addPlayer(new Player("Morbius", "420"));
     }
 
     public void addPlayer(Player player) {
@@ -50,14 +66,6 @@ public class HungerGames {
             this.players.removeIf(player1 -> Objects.equals(player1.getUserId(), userId));
             this.alivePlayers.removeIf(player1 -> Objects.equals(player1.getUserId(), userId));
         }
-    }
-
-    public void killPlayer(Player player) {
-        this.alivePlayers.remove(player);
-    }
-
-    public List<Player> getAlivePlayers() {
-        return alivePlayers;
     }
 
     public Player getRandomPlayer() {
@@ -106,25 +114,28 @@ public class HungerGames {
         loadAllItems(globals);
 
         int round = 1;
+        List<Player> playersAliveInRound = new ArrayList<>();
         while (this.alivePlayers.size() > 1) {
-            log(String.format("Round %d", round));
-            round += 1;
 
             for (Player player : this.players) {
                 if (this.alivePlayers.contains(player)) {
                     player.doAction();
                 }
             }
-        }
 
-        if (this.alivePlayers.size() == 1) {
-            log(String.format("%s has won the game!", this.alivePlayers.get(0).getUserName()));
-        } else {
-            log("no one has won the game :(");
-        }
+            if (this.alivePlayers.size() == 1) {
+                log(String.format("%s has won the game!", this.alivePlayers.get(0).getUserName()));
+            }
 
-        for (String message : this.messages) {
-            System.out.println(message);
+            playersAliveInRound = new ArrayList<>();
+            for(Player player : this.alivePlayers) {
+                playersAliveInRound.add(player.clone());
+            }
+
+            this.roundData.put(round, Map.of(this.messages, playersAliveInRound));
+            this.messages = new ArrayList<>();
+
+            round++;
         }
     }
 
@@ -163,13 +174,15 @@ public class HungerGames {
         this.messages.add(message);
     }
 
-    public static void main(String[] args) {
-        HungerGames game = new HungerGames();
-        game.addPlayer(new Player("PIEMEN", "69"));
-        game.addPlayer(new Player("ruben", "43"));
-        game.addPlayer(new Player("Mr. Obama", "102"));
-        game.addPlayer(new Player("Morbious", "420"));
-        game.startGame();
+    public void killPlayer(Player player) {
+        this.alivePlayers.remove(player);
     }
 
+    public List<Player> getAlivePlayers() {
+        return alivePlayers;
+    }
+
+    public Map<Integer, Map<List<String>, List<Player>>> getRoundData() {
+        return roundData;
+    }
 }

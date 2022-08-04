@@ -2,10 +2,14 @@ package events;
 
 import commands.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
+import commands.games.hungergames.HungerGamesStartCmd;
 import database.DatabaseManager;
 import database.queries.UsersTableQueries;
 import games.Blackjack;
+import games.HungerGames;
 import models.BlackjackStates;
+import utility.Lobby;
+import models.LobbyEntry;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -15,9 +19,11 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
+import utility.EmbedUtils;
 import utility.Paginator;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Triggers when a button is clicked by a user.
@@ -149,6 +155,59 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 					)).queue();
 				}
 				break;
+			case "joinLobby":
+				Lobby lobby = Lobby.lobbyInstances.get(event.getMessage().getId());
+				if(lobby != null) {
+					List<LobbyEntry> lobbyEntries = lobby.getPlayers();
+					for(LobbyEntry lobbyEntry : lobbyEntries) {
+						if(lobbyEntry.userId().equals(user.getId())) {
+							event.getHook().sendMessage("You are already in this lobby.").queue();
+							return;
+						}
+					}
+					lobby.addPlayer(user.getId(), user.getName());
+
+					updateLobbyEmbed(event, user, lobby);
+				}
+				break;
+		case "leaveLobby":
+			Lobby lobby2 = Lobby.lobbyInstances.get(event.getMessage().getId());
+			LobbyEntry lobbyEntryToRemove = null;
+			if(lobby2 != null) {
+				List<LobbyEntry> players2 = lobby2.getPlayers();
+				for(LobbyEntry lobbyEntry : players2) {
+					if(lobbyEntry.userId().equals(user.getId())) {
+						lobbyEntryToRemove = lobbyEntry;
+						break;
+					}
+				}
+			}
+			if(lobbyEntryToRemove != null) {
+				lobby2.removePlayer(lobbyEntryToRemove);
+
+				updateLobbyEmbed(event, user, lobby2);
+			}
+			break;
+		case "startHg":
+			Lobby lobby3 = Lobby.lobbyInstances.get(event.getMessage().getId());
+			lobby3.destroy();
+			HungerGames hungerGames = new HungerGames(lobby3.getPlayers());
+			hungerGames.startGame();
+			HungerGamesStartCmd.runGame(event, hungerGames);
+			break;
 		}
+
+	}
+
+	private void updateLobbyEmbed(@NotNull ButtonInteractionEvent event, User user, Lobby lobby2) {
+		MessageEmbed messageEmbed = event.getMessage().getEmbeds().get(0);
+		String title = messageEmbed.getTitle();
+
+		EmbedBuilder embedBuilder2 = new EmbedBuilder();
+		embedBuilder2.setTitle(title);
+		EmbedUtils.styleEmbed(embedBuilder2, user);
+		embedBuilder2.setDescription(lobby2.generateDescription());
+
+		event.getHook().editOriginalEmbeds(embedBuilder2.build()).queue();
 	}
 }
