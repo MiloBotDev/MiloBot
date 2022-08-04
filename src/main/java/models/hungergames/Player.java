@@ -1,6 +1,7 @@
 package models.hungergames;
 
 import games.HungerGames;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +88,19 @@ public class Player implements Cloneable {
             this.inventory.add(item);
             this.game.log(String.format("%s has found a %s.", this.userName, item.getName()));
         }
+    }
+
+    public void useItem(@NotNull Item item) {
+        item.onUse(this);
+    }
+
+    public void reset() {
+        this.kills = 0;
+        this.itemsCollected = 0;
+        this.damageDone = 0;
+        this.damageTaken = 0;
+        this.healingDone = 0;
+        this.inventory = new ArrayList<>();
     }
 
     @Override
