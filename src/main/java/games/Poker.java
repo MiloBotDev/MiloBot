@@ -1,17 +1,24 @@
 package games;
 
+import models.cards.CardDeck;
+import models.cards.PlayingCards;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import org.w3c.dom.Text;
+import utility.EmbedUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Poker {
     private static final List<Poker> games = new ArrayList<>();
     private final User masterUser;
     private final List<User> players = new ArrayList<>();
+    private final HashMap<User, List<PlayingCards>> playerHands = new HashMap<>();
     private final TextChannel channel;
+    private final CardDeck mainDeck = new CardDeck();
 
     public Poker(User user, TextChannel channel) {
         this.masterUser = user;
@@ -46,9 +53,28 @@ public class Poker {
         if (players.size() == 1) {
             channel.sendMessage("You need at least 2 players to play poker.").queue();
         } else {
+            players.forEach(player -> {
+                List<PlayingCards> hand = new ArrayList<>();
+                for (int i = 0; i < 5; i++) {
+                    hand.add(mainDeck.drawCard());
+                }
+                playerHands.put(player, hand);
+            });
             channel.sendMessage("Poker game started.").queue();
             players.forEach(player -> player.openPrivateChannel().queue(channel -> channel
-                    .sendMessage("You have been added to a poker game.").queue()));
+                    .sendMessageEmbeds(generatePlayerEmbed(player)).queue()));
         }
+    }
+
+    private MessageEmbed generatePlayerEmbed(User user) {
+        EmbedBuilder embed = new EmbedBuilder();
+        EmbedUtils.styleEmbed(embed, user);
+        embed.setTitle("Blackjack");
+        embed.addField("------------", "**Your hand**", false);
+        List<PlayingCards> hand = playerHands.get(user);
+        for(int i = 0; i < hand.size(); i++) {
+            embed.addField(String.format("Card %d", i + 1), hand.get(i).getLabel(), true);
+        }
+        return embed.build();
     }
 }
