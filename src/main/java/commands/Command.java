@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
@@ -85,6 +86,11 @@ public abstract class Command {
 	 * A list of all the sub commands this command has.
 	 */
 	public ArrayList<Command> subCommands = new ArrayList<>();
+
+	/**
+	 * A list of all listeners this command has.
+	 */
+	public ArrayList<EventListener> listeners = new ArrayList<>();
 
 	/**
 	 * The default constructor for a command.
