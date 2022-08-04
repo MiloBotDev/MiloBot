@@ -48,6 +48,9 @@ public class CommandLoader {
         commands.add(new DailyCmd());
         commands.add(new RemoveUserCmd());
         commands.add(new HungerGamesCmd());
+        commands.stream().flatMap(command -> command.listeners.stream()).forEach(bot::addEventListener);
+        commands.stream().flatMap(command -> command.subCommands.stream())
+                .flatMap(subCommand -> subCommand.listeners.stream()).forEach(bot::addEventListener);
 
         for (Command c : commands) {
             ArrayList<String> keys = new ArrayList<>(List.of(c.aliases));
