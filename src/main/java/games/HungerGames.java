@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class HungerGames {
@@ -40,6 +41,8 @@ public class HungerGames {
         this.messages = new ArrayList<>();
         this.items = new ArrayList<>();
         this.roundData = new HashMap<>();
+
+        loadAllItems(getGlobals());
     }
 
     public HungerGames(List<LobbyEntry> playersFromLobby) {
@@ -52,6 +55,8 @@ public class HungerGames {
         this.roundData = new HashMap<>();
 
         playersFromLobby.forEach(newLobbyEntry -> addPlayer(new Player(newLobbyEntry.username(), newLobbyEntry.userId())));
+
+        loadAllItems(getGlobals());
     }
 
     public void addPlayer(Player player) {
@@ -107,13 +112,6 @@ public class HungerGames {
     public void startGame() {
         this.startedGame = true;
 
-        Globals globals = JsePlatform.standardGlobals();
-        LuaValue gameLua = CoerceJavaToLua.coerce(this);
-        globals.set("game", gameLua);
-
-        // create items
-        loadAllItems(globals);
-
         int round = 1;
         List<Player> playersAliveInRound;
         while (this.alivePlayers.size() > 1) {
@@ -140,6 +138,17 @@ public class HungerGames {
 
             round++;
         }
+    }
+
+    public Optional<Item> getItemByName(String name) {
+        return this.items.stream().filter(item -> item.getName().equals(name)).findFirst();
+    }
+
+    public Globals getGlobals() {
+        Globals globals = JsePlatform.standardGlobals();
+        LuaValue gameLua = CoerceJavaToLua.coerce(this);
+        globals.set("game", gameLua);;
+        return globals;
     }
 
     private void loadAllItems(Globals globals) {
