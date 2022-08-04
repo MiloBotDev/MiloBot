@@ -18,6 +18,7 @@ public class Player implements Cloneable {
     private int itemsCollected;
     private int damageDone;
     private int damageTaken;
+    private int healingDone;
 
     public Player(String userName, String userId) {
         this.userName = userName;
@@ -25,10 +26,17 @@ public class Player implements Cloneable {
         this.inventory = new ArrayList<>();
         this.health = 100;
         this.game = null;
+
+        this.kills = 0;
+        this.itemsCollected = 0;
+        this.damageDone = 0;
+        this.damageTaken = 0;
+        this.healingDone = 0;
     }
 
     public void heal(int amount) {
         this.health += amount;
+        this.healingDone += amount;
         if (this.health > 100) {
             this.health = 100;
         }
@@ -36,6 +44,7 @@ public class Player implements Cloneable {
 
     public boolean damage(int amount) {
         this.health -= amount;
+        this.damageTaken += amount;
         if (this.health <= 0) {
             this.health = 0;
             return true;
@@ -54,6 +63,7 @@ public class Player implements Cloneable {
 
     public void addItem(Item item) {
         this.inventory.add(item);
+        this.itemsCollected++;
     }
 
     public void removeItem(String itemName) {
@@ -115,5 +125,33 @@ public class Player implements Cloneable {
 
     public List<Item> getInventory() {
         return inventory;
+    }
+
+    public int getKills() {
+        return kills;
+    }
+
+    public int getItemsCollected() {
+        return itemsCollected;
+    }
+
+    public int getDamageDone() {
+        return damageDone;
+    }
+
+    public int getDamageTaken() {
+        return damageTaken;
+    }
+
+    public int getHealingDone() {
+        return healingDone;
+    }
+
+    public void addKill() {
+        this.kills++;
+    }
+
+    public void addDamageDone(int damage) {
+        this.damageDone += damage;
     }
 }

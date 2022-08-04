@@ -48,6 +48,7 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
                 .setActionRows(ActionRow.of(
                         Button.primary(id + ":joinLobby", "Join"),
                         Button.primary(id + ":leaveLobby", "Leave"),
+                        Button.primary(id + ":fillLobby", "Fill"),
                         Button.primary(id + ":startHg", "Start"),
                         Button.secondary(id + ":delete", "Delete")
                 ))
@@ -93,7 +94,10 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
             });
             embed.setDescription(logs.toString());
 
-            RestAction<Void> voidRestAction = event.getChannel().sendMessageEmbeds(embed.build()).delay(5, TimeUnit.SECONDS).flatMap(Message::delete);
+            RestAction<Void> voidRestAction = event.getChannel()
+                    .sendMessageEmbeds(embed.build())
+                    .delay(25, TimeUnit.SECONDS)
+                    .flatMap(Message::delete);
             messages.add(voidRestAction);
         });
 
@@ -104,14 +108,42 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
                 messages.forEach(messageAction -> {
                     messageAction.queue();
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(15000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 });
+                EmbedBuilder embedBuilder = HungerGamesStartCmd.generateRecapEmbed(game, event.getUser());
+                event.getHook().sendMessageEmbeds(embedBuilder.build()).queue();
             }
         };
         timer.schedule(sendMessages, 0);
+    }
+
+    private static @NotNull EmbedBuilder generateRecapEmbed(HungerGames game, User user) {
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setTitle("Hunger Games Recap");
+        EmbedUtils.styleEmbed(embed, user);
+        embed.setDescription("**Winner:** " + game.getWinner().getUserName());
+
+        List<Player> players = game.getPlayers();
+        for(Player player : players) {
+            int damageDone = player.getDamageDone();
+            int kills = player.getKills();
+            int healingDone = player.getHealingDone();
+            int itemsCollected = player.getItemsCollected();
+            int damageTaken = player.getDamageTaken();
+
+            String playerDesc = "**Kills:** " + kills + "\n" +
+                    "**Damage Done:** " + damageDone + "\n" +
+                    "**Damage Taken:** " + damageTaken + "\n" +
+                    "**Healing Done:** " + healingDone + "\n" +
+                    "**Items Collected:** " + itemsCollected + "\n";
+
+            embed.addField(player.getUserName(), playerDesc, true);
+        }
+
+        return embed;
     }
 }
 

@@ -1,4 +1,4 @@
-heals = 10
+local heals = 10
 
 return {
     name = "apple",

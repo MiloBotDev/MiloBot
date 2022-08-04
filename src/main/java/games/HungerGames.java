@@ -3,6 +3,7 @@ package games;
 import models.LobbyEntry;
 import models.hungergames.Item;
 import models.hungergames.Player;
+import org.jetbrains.annotations.NotNull;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -28,6 +29,7 @@ public class HungerGames {
     private final Map<Integer, Map<List<String>, List<Player>>> roundData;
     private final List<Item> items;
     private boolean startedGame;
+    private Player winner;
     private final long startTime;
 
     public HungerGames() {
@@ -50,7 +52,6 @@ public class HungerGames {
         this.roundData = new HashMap<>();
 
         playersFromLobby.forEach(newLobbyEntry -> addPlayer(new Player(newLobbyEntry.username(), newLobbyEntry.userId())));
-        addPlayer(new Player("Morbius", "420"));
     }
 
     public void addPlayer(Player player) {
@@ -114,7 +115,7 @@ public class HungerGames {
         loadAllItems(globals);
 
         int round = 1;
-        List<Player> playersAliveInRound = new ArrayList<>();
+        List<Player> playersAliveInRound;
         while (this.alivePlayers.size() > 1) {
 
             for (Player player : this.players) {
@@ -124,7 +125,9 @@ public class HungerGames {
             }
 
             if (this.alivePlayers.size() == 1) {
-                log(String.format("%s has won the game!", this.alivePlayers.get(0).getUserName()));
+                Player player = this.alivePlayers.get(0);
+                log(String.format("%s has won the game!", player.getUserName()));
+                this.winner = player;
             }
 
             playersAliveInRound = new ArrayList<>();
@@ -142,18 +145,7 @@ public class HungerGames {
     private void loadAllItems(Globals globals) {
         try {
             URI uri = getClass().getResource(Config.getInstance().getHungerGamesPath() + "/items").toURI();
-            if ("jar".equals(uri.getScheme())) {
-                for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
-                    if (provider.getScheme().equalsIgnoreCase("jar")) {
-                        try {
-                            provider.getFileSystem(uri);
-                        } catch (FileSystemNotFoundException e) {
-                            // in this case we need to initialize it first:
-                            provider.newFileSystem(uri, Collections.emptyMap());
-                        }
-                    }
-                }
-            }
+            fileLoadHack(uri);
             try (Stream<Path> paths = Files.walk(Paths.get(uri))) {
                 paths
                     .filter(Files::isRegularFile)
@@ -167,6 +159,21 @@ public class HungerGames {
             }
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void fileLoadHack(@NotNull URI uri) throws IOException {
+        if ("jar".equals(uri.getScheme())) {
+            for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
+                if (provider.getScheme().equalsIgnoreCase("jar")) {
+                    try {
+                        provider.getFileSystem(uri);
+                    } catch (FileSystemNotFoundException e) {
+                        // in this case we need to initialize it first:
+                        provider.newFileSystem(uri, Collections.emptyMap());
+                    }
+                }
+            }
         }
     }
 
@@ -184,5 +191,13 @@ public class HungerGames {
 
     public Map<Integer, Map<List<String>, List<Player>>> getRoundData() {
         return roundData;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public Player getWinner() {
+        return winner;
     }
 }

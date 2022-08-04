@@ -13,6 +13,7 @@ return {
                 victim = game:getRandomPlayer(lobbyEntry)
                 game:log(string.format("%s doesn't feel so good.", victim:getUserName()))
                 victim:onDeath()
+                lobbyEntry:addKill()
             end
         end
         return true

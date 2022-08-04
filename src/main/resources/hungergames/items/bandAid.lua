@@ -1,4 +1,4 @@
-heals = 20
+local heals = 30
 
 return {
     name = "band aid",

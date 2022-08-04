@@ -1,4 +1,4 @@
-damage = 20
+local damage = 20
 
 return {
     name = "sword",
@@ -8,10 +8,11 @@ return {
         if victim:damage(damage) then
             game:log(string.format("%s killed %s using their %s.",
                     lobbyEntry:getUserName(), victim:getUserName(), self.name))
-            victim:onDeath();
+            victim:onDeath()
         else
             game:log(string.format("%s is swinging their sword at %s. It deals %d damage, their HP is now %d.",
                     lobbyEntry:getUserName(), victim:getUserName(), damage, victim:getHealth()))
         end
+        lobbyEntry:addDamageDone(damage)
     end,
 }
