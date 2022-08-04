@@ -2,6 +2,10 @@
 
 Play games with your friends, earn Morbcoins and climb up the leaderboards.
 
+## Contributing
+
+Please read our [contributing](https://github.com/RubenJ01/MiloBot/blob/master/contributing.md) guide before submitting
+a pull request.
 
 ## Commands
 
@@ -19,7 +23,6 @@ Play games with your friends, earn Morbcoins and climb up the leaderboards.
 | [!encounter](#encounter)     |                          |                    |                |
 
 ---
-
 
 <h3 id="prefix">!prefix</h3>
 
