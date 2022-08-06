@@ -19,4 +19,20 @@ return {
             lobbyEntry:addDamageDone(damage)
         end
     end,
+    onDeath = function(self, lobbyEntry)
+        victim = game:getRandomPlayer(lobbyEntry)
+        if victim:damage(damage) then
+            remainingHealth = victim:getHealth()
+            game:log(string.format("%s had a bomb when they died, sadly %s was standing in the way and died as well.",
+                    lobbyEntry:getUserName(), victim:getUserName()))
+            lobbyEntry:addDamageDone(remainingHealth)
+            lobbyEntry:addKill()
+            victim:onDeath()
+        else
+            game:log(string.format("%s had a bomb when they died, sadly %s was standing in the way and took %d damage. Their hp is now %d.",
+                    lobbyEntry:getUserName(), victim:getUserName(), damage, victim:getHealth()))
+            lobbyEntry:addDamageDone(damage)
+        end
+        return false
+    end
 }

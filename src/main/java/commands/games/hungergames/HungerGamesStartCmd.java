@@ -134,11 +134,11 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
             int itemsCollected = player.getItemsCollected();
             int damageTaken = player.getDamageTaken();
 
-            String playerDesc = "**Kills:** " + kills + "\n" +
-                    "**Damage Done:** " + damageDone + "\n" +
-                    "**Damage Taken:** " + damageTaken + "\n" +
-                    "**Healing Done:** " + healingDone + "\n" +
-                    "**Items Collected:** " + itemsCollected + "\n";
+            String playerDesc = "*Kills:* " + kills + "\n" +
+                    "*Damage Done:* " + damageDone + "\n" +
+                    "*Damage Taken:* " + damageTaken + "\n" +
+                    "*Healing Done:* " + healingDone + "\n" +
+                    "*Items Collected:* " + itemsCollected + "\n";
 
             embed.addField(player.getUserName(), playerDesc, true);
         }

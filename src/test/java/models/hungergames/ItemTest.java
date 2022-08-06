@@ -1,32 +1,13 @@
 package models.hungergames;
 
 import games.HungerGames;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.luaj.vm2.Globals;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.lib.jse.CoerceJavaToLua;
-import org.luaj.vm2.lib.jse.JsePlatform;
-import utility.Config;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static games.HungerGames.fileLoadHack;
 
 public class ItemTest {
 
-    List<Item> items;
     HungerGames game;
     Player player;
     Player victim;
@@ -35,18 +16,11 @@ public class ItemTest {
     void setUp() {
         this.game = new HungerGames();
 
-        Globals globals = JsePlatform.standardGlobals();
-        LuaValue gameLua = CoerceJavaToLua.coerce(game);
-        globals.set("game", gameLua);
-
-        this.items  = loadAllItems(globals);
         this.player = new Player("Player", "1");
         this.victim = new Player("Victim", "2");
 
         game.addPlayer(this.player);
         game.addPlayer(this.victim);
-
-        Assertions.assertEquals(6, items.size());
     }
 
     @AfterEach
@@ -54,15 +28,8 @@ public class ItemTest {
         this.game = null;
         this.player = null;
         this.victim = null;
-        this.items = null;
 
         this.game = new HungerGames();
-
-        Globals globals = JsePlatform.standardGlobals();
-        LuaValue gameLua = CoerceJavaToLua.coerce(game);
-        globals.set("game", gameLua);
-
-        this.items  = loadAllItems(globals);
         this.player = new Player("Player", "1");
         this.victim = new Player("Victim", "2");
 
@@ -72,7 +39,8 @@ public class ItemTest {
 
     @Test
     public void testApple() {
-        Item apple = items.get(0);
+        System.out.println(game);
+        Item apple = game.getItemByName("apple").orElseThrow(() -> new RuntimeException("apple not found"));
 
         this.player.damage(10);
         this.player.useItem(apple);
@@ -83,7 +51,7 @@ public class ItemTest {
 
     @Test
     public void testBandAid() {
-        Item bandAid = items.get(1);
+        Item bandAid = game.getItemByName("band aid").orElseThrow(() -> new RuntimeException("band aid not found"));
 
         this.player.damage(30);
         this.player.useItem(bandAid);
@@ -93,23 +61,25 @@ public class ItemTest {
 
     @Test
     public void testBomb() {
-        Item bomb = items.get(2);
+        Item bomb = game.getItemByName("bomb").orElseThrow(() -> new RuntimeException("bomb not found"));
 
         this.player.useItem(bomb);
 
         Assertions.assertEquals(60, victim.getHealth());
 
-        this.player.useItem(bomb);
+        this.victim.damage(50);
+        this.victim.addItem(bomb);
         this.player.useItem(bomb);
 
         Assertions.assertEquals(1, game.getAlivePlayers().size());
         Assertions.assertEquals(1, this.player.getKills());
-        Assertions.assertEquals(100, this.player.getDamageDone());
+        Assertions.assertEquals(50, this.player.getDamageDone());
+        Assertions.assertEquals(40, this.player.getDamageTaken());
     }
 
     @Test
     public void testInfinityGauntlet() {
-        Item infinityGauntlet = items.get(3);
+        Item infinityGauntlet = game.getItemByName("infinity gauntlet").orElseThrow(() -> new RuntimeException("infinity gauntlet not found"));
 
         this.player.useItem(infinityGauntlet);
 
@@ -119,7 +89,7 @@ public class ItemTest {
 
     @Test
     public void testSword() {
-        Item sword = items.get(4);
+        Item sword = game.getItemByName("sword").orElseThrow(() -> new RuntimeException("sword not found"));
 
         this.player.useItem(sword);
 
@@ -136,7 +106,8 @@ public class ItemTest {
 
     @Test
     public void testTotem() {
-        Item totem = items.get(5);
+        Item totem = game.getItemByName("totem of not being dead").orElseThrow(() -> new RuntimeException("totem not found"));
+
         this.player.addItem(totem);
         this.player.onDeath();
 
@@ -147,26 +118,39 @@ public class ItemTest {
         Assertions.assertEquals(1, game.getAlivePlayers().size());
     }
 
-    private @NotNull ArrayList<Item> loadAllItems(Globals globals) {
-        ArrayList<Item> items = new ArrayList<>();
-        try {
-            URI uri = getClass().getResource(Config.getInstance().getHungerGamesPath() + "/items").toURI();
-            fileLoadHack(uri);
-            try (Stream<Path> paths = Files.walk(Paths.get(uri))) {
-                paths
-                        .filter(Files::isRegularFile)
-                        .forEach((file) -> {
-                            try {
-                                items.add(new Item(globals, new String(Files.readAllBytes(file))));
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-            }
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
-        return items;
+    @Test
+    public void testBow() {
+        Item bow = game.getItemByName("bow").orElseThrow(() -> new RuntimeException("bow not found"));
+
+        this.player.useItem(bow);
+
+        Assertions.assertEquals(70, victim.getHealth());
+
+        this.victim.damage(50);
+        this.player.useItem(bow);
+
+        Assertions.assertEquals(1, game.getAlivePlayers().size());
+        Assertions.assertEquals(1, this.player.getKills());
+        Assertions.assertEquals(50, this.player.getDamageDone());
+        Assertions.assertEquals(1, this.player.getKills());
     }
+
+    @Test
+    public void testGun() {
+        Item gun = game.getItemByName("gun").orElseThrow(() -> new RuntimeException("gun not found"));
+
+        this.player.useItem(gun);
+
+        Assertions.assertEquals(60, victim.getHealth());
+
+        this.victim.damage(50);
+        this.player.useItem(gun);
+
+        Assertions.assertEquals(1, game.getAlivePlayers().size());
+        Assertions.assertEquals(1, this.player.getKills());
+        Assertions.assertEquals(50, this.player.getDamageDone());
+    }
+
+
 
 }
