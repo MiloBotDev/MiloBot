@@ -8,17 +8,17 @@ import database.queries.UsersTableQueries;
 import games.Blackjack;
 import games.HungerGames;
 import models.BlackjackStates;
-import utility.Lobby;
 import models.LobbyEntry;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
+import utility.Lobby;
 import utility.Paginator;
 
 import java.awt.*;
@@ -29,18 +29,18 @@ import java.util.List;
 /**
  * Triggers when a button is clicked by a user.
  */
-public class OnButtonInteractionEvent extends ListenerAdapter {
+public class OnButtonClick extends ListenerAdapter {
 
     private final EncounterGeneratorCmd encCmd;
     private final DatabaseManager dbManager;
 
-    public OnButtonInteractionEvent() {
+    public OnButtonClick() {
         this.encCmd = EncounterGeneratorCmd.getInstance();
         this.dbManager = DatabaseManager.getInstance();
     }
 
     @Override
-    public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
+    public void onButtonClick(@NotNull ButtonClickEvent event) {
         String[] id = event.getComponentId().split(":");
         String authorId = id[0];
         String type = id[1];
@@ -217,7 +217,7 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 
     }
 
-    private void updateLobbyEmbed(@NotNull ButtonInteractionEvent event, @NotNull Lobby lobby2) {
+    private void updateLobbyEmbed(@NotNull ButtonClickEvent event, @NotNull Lobby lobby2) {
         MessageEmbed messageEmbed = event.getMessage().getEmbeds().get(0);
         String title = messageEmbed.getTitle();
 

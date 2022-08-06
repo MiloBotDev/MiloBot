@@ -5,7 +5,7 @@ import commands.SubCmd;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ public class BugReportCmd extends Command implements SubCmd {
 	}
 
 	@Override
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 		event.deferReply().queue();
 		ArrayList<String> results = new ArrayList<>();
 		askQuestion(event.getJDA(), event.getChannel(), event.getUser(), this.questions,  results, event);
@@ -55,7 +55,7 @@ public class BugReportCmd extends Command implements SubCmd {
 	 * Asks the next question for the bug report. Calls itself recursively till all questions have been asked.
 	 */
 	private void askQuestion(JDA jda, MessageChannel channel, User author, ArrayList<String> questions,
-							 @NotNull ArrayList<String> results, SlashCommandInteractionEvent slashEvent) {
+							 @NotNull ArrayList<String> results, SlashCommandEvent slashEvent) {
 		if (results.size() == 4) {
 			String bugIssue = gitHubBot.createBugIssue(results.get(0), results.get(1), results.get(2), results.get(3),
 					author.getName(), author.getId());

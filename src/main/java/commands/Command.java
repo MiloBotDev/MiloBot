@@ -8,10 +8,10 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.Event;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -109,7 +109,7 @@ public abstract class Command {
 	/**
 	 * The default implementation for every slash command.
 	 */
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 		event.reply("This command has not yet been implemented.").queue();
 	}
 
@@ -376,8 +376,8 @@ public abstract class Command {
 		Member member = null;
 		if(event instanceof MessageReceivedEvent) {
 			member = ((MessageReceivedEvent) event).getMember();
-		} else if(event instanceof SlashCommandInteractionEvent) {
-			member = ((SlashCommandInteractionEvent) event).getMember();
+		} else if(event instanceof SlashCommandEvent) {
+			member = ((SlashCommandEvent) event).getMember();
 		}
 		if (member == null) {
 			hasPermission.set(false);
@@ -404,17 +404,17 @@ public abstract class Command {
 		if(event instanceof MessageReceivedEvent) {
 			member = ((MessageReceivedEvent) event).getMember();
 			user = ((MessageReceivedEvent) event).getAuthor();
-		} else if(event instanceof SlashCommandInteractionEvent) {
-			member = ((SlashCommandInteractionEvent) event).getMember();
-			user =  ((SlashCommandInteractionEvent) event).getUser();
+		} else if(event instanceof SlashCommandEvent) {
+			member = ((SlashCommandEvent) event).getMember();
+			user =  ((SlashCommandEvent) event).getUser();
 		}
 		ArrayList<String> missingPermissions = new ArrayList<>();
 		if (member == null) {
 			// this should never happen
 			if(event instanceof MessageReceivedEvent) {
 				((MessageReceivedEvent) event).getChannel().sendMessage("Something went wrong. We're sorry about that").queue();
-			} else if(event instanceof SlashCommandInteractionEvent) {
-				((SlashCommandInteractionEvent) event).reply("Something went wrong. We're sorry about that").queue();
+			} else if(event instanceof SlashCommandEvent) {
+				((SlashCommandEvent) event).reply("Something went wrong. We're sorry about that").queue();
 			}
 			return;
 		}
@@ -442,8 +442,8 @@ public abstract class Command {
 			((MessageReceivedEvent) event).getChannel().sendMessageEmbeds(embed.build()).setActionRow(
 					Button.secondary(((MessageReceivedEvent) event).getAuthor().getId() + ":delete", "Delete")).queue();
 		} else {
-			((SlashCommandInteractionEvent) event).replyEmbeds(embed.build()).addActionRow(
-					Button.secondary(((SlashCommandInteractionEvent) event).getUser().getId() + ":delete", "Delete")).queue();
+			((SlashCommandEvent) event).replyEmbeds(embed.build()).addActionRow(
+					Button.secondary(((SlashCommandEvent) event).getUser().getId() + ":delete", "Delete")).queue();
 		}
 	}
 

@@ -3,7 +3,7 @@ package commands.dnd.encounter;
 import commands.Command;
 import commands.SubCmd;
 import database.DatabaseManager;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,7 @@ public class EncounterLoadCmd extends Command implements SubCmd {
 	}
 
 	@Override
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 	}
 
 

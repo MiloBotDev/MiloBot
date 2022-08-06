@@ -5,7 +5,7 @@ import database.DatabaseManager;
 import database.queries.DailiesTableQueries;
 import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ public class DailyCmd extends Command implements MorbconomyCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
         String s = updateDailies(event.getUser());
         event.getHook().sendMessage(s).queue();

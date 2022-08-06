@@ -4,9 +4,9 @@ import commands.Command;
 import commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
 import utility.EmbedUtils;
@@ -48,8 +48,8 @@ public class BugViewCmd extends Command implements SubCmd {
 	}
 
 	@Override
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
-		int id = Objects.requireNonNull(event.getOption("id")).getAsInt();
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+		int id = Math.toIntExact(Objects.requireNonNull(event.getOption("id")).getAsLong());
 		Optional<EmbedBuilder> loadedBug = loadBug(id, event.getUser());
 		if(loadedBug.isEmpty()) {
 			event.reply(String.format("Bug with number: %d not found.", id)).queue();

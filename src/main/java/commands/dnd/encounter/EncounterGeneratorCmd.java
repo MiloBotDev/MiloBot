@@ -8,12 +8,11 @@ import models.dnd.Encounter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
@@ -115,9 +114,9 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
 	}
 
 	@Override
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
-		int partySize = Objects.requireNonNull(event.getOption("size")).getAsInt();
-		int partyLevel = Objects.requireNonNull(event.getOption("level")).getAsInt();
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+		int partySize = Math.toIntExact(Objects.requireNonNull(event.getOption("size")).getAsLong());
+		int partyLevel = Math.toIntExact(Objects.requireNonNull(event.getOption("level")).getAsLong());
 		String difficulty = Objects.requireNonNull(event.getOption("difficulty")).getAsString();
 		String environment = null;
 		if (!(event.getOption("environment") == null)) {
@@ -136,7 +135,7 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
 	}
 
 	@NotNull
-	private @Unmodifiable Map<EmbedBuilder, Encounter> buildEncounterEmbed(@NotNull User author, int partySize, int partyLevel, String difficulty, String environment) {
+	private Map<EmbedBuilder, Encounter> buildEncounterEmbed(@NotNull User author, int partySize, int partyLevel, String difficulty, String environment) {
 		Encounter encounter = gen.generateEncounter(partySize, partyLevel, difficulty, environment);
 		EmbedBuilder embed = new EmbedBuilder();
 		EmbedUtils.styleEmbed(embed, author);
