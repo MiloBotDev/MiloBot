@@ -18,12 +18,12 @@ import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class HungerGamesStartCmd extends Command implements SubCmd {
-
-    public static Map<String, HungerGames> hungerGamesInstances = new HashMap<>();
 
     public HungerGamesStartCmd() {
         this.commandName = "start";
@@ -36,7 +36,7 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
         User author = event.getAuthor();
         String id = author.getId();
 
-        Lobby lobby = new Lobby(id, author.getName());
+        Lobby lobby = new Lobby(id, author.getName(), 8);
 
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle("Hunger Games Lobby");
@@ -69,7 +69,8 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
 
         roundData.forEach((key1, value1) -> {
             EmbedBuilder embed = new EmbedBuilder();
-            EmbedUtils.styleEmbed(embed, event.getUser());
+            embed.setColor(Color.BLUE);
+            embed.setTimestamp(new Date().toInstant());
             embed.setTitle("Round " + key1);
 
             StringBuilder logs = new StringBuilder();
@@ -123,7 +124,8 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
     private static @NotNull EmbedBuilder generateRecapEmbed(HungerGames game, User user) {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle("Hunger Games Recap");
-        EmbedUtils.styleEmbed(embed, user);
+        embed.setColor(Color.BLUE);
+        embed.setTimestamp(new Date().toInstant());
         embed.setDescription("**Winner:** " + game.getWinner().getUserName());
 
         List<Player> players = game.getPlayers();
