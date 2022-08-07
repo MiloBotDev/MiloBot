@@ -7,10 +7,10 @@ import database.queries.WordleTableQueries;
 import games.Wordle;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -53,7 +53,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
 	}
 
 	@Override
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 		event.deferReply().queue();
 		OffsetDateTime timeStarted = event.getTimeCreated();
 		String authorId = event.getUser().getId();
@@ -70,7 +70,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
 		});
 	}
 
-	private void extracted(SlashCommandInteractionEvent slashCommandInteractionEvent,
+	private void extracted(SlashCommandEvent SlashCommandEvent,
 						   OffsetDateTime timeStarted, String authorId, Wordle wordle, StringBuilder editDescription,
 						   boolean[] gameOver, EmbedBuilder wordleEmbed, Message message) {
 		ListenerAdapter listener = new ListenerAdapter() {
@@ -172,8 +172,8 @@ public class WordlePlayCmd extends Command implements SubCmd {
 						event.getMessage().delete().queue();
 						if (gameOver[0]) {
 							gameInstanceMap.remove(id);
-							if(slashCommandInteractionEvent != null) {
-								slashCommandInteractionEvent.getHook().editOriginalEmbeds(newEmbed.build()).setActionRow(
+							if(SlashCommandEvent != null) {
+								SlashCommandEvent.getHook().editOriginalEmbeds(newEmbed.build()).setActionRow(
 										Button.secondary(event.getAuthor().getId() + ":delete", "Delete")
 								).queue();
 							} else {
@@ -181,8 +181,8 @@ public class WordlePlayCmd extends Command implements SubCmd {
 										Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
 							}
 						} else {
-							if(slashCommandInteractionEvent != null) {
-								slashCommandInteractionEvent.getHook().editOriginalEmbeds(newEmbed.build()).queue();
+							if(SlashCommandEvent != null) {
+								SlashCommandEvent.getHook().editOriginalEmbeds(newEmbed.build()).queue();
 							} else {
 								message.editMessageEmbeds(newEmbed.build()).queue();
 							}
@@ -191,7 +191,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
 				}
 			}
 		};
-		message.getJDA().getRateLimitPool().schedule(() -> slashCommandInteractionEvent.getJDA().removeEventListener(listener), instanceTime,
+		message.getJDA().getRateLimitPool().schedule(() -> SlashCommandEvent.getJDA().removeEventListener(listener), instanceTime,
 				TimeUnit.SECONDS);
 		message.getJDA().addEventListener(listener);
 	}

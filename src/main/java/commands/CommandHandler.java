@@ -4,7 +4,7 @@ import database.DatabaseManager;
 import database.queries.DailiesTableQueries;
 import database.queries.PrefixTableQueries;
 import database.queries.UsersTableQueries;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -129,7 +129,7 @@ public class CommandHandler extends ListenerAdapter {
 	}
 
 	@Override
-	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+	public void onSlashCommand(@NotNull SlashCommandEvent event) {
 		// ignore commands not from a guild
 		if (event.getGuild() == null) {
 			return;

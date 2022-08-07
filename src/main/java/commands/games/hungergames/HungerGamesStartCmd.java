@@ -3,17 +3,17 @@ package commands.games.hungergames;
 import commands.Command;
 import commands.SubCmd;
 import games.HungerGames;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import utility.Lobby;
 import models.hungergames.Item;
 import models.hungergames.Player;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
@@ -59,11 +59,11 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 
     }
 
-    public static void runGame(ButtonInteractionEvent event, @NotNull HungerGames game) {
+    public static void runGame(ButtonClickEvent event, @NotNull HungerGames game) {
         Map<Integer, Map<List<String>, List<Player>>> roundData = game.getRoundData();
         List<RestAction<Void>> messages = new ArrayList<>();
 

@@ -4,7 +4,7 @@ import commands.games.blackjack.BlackjackPlayCmd;
 import database.DatabaseManager;
 import database.queries.PrefixTableQueries;
 import database.queries.UsersTableQueries;
-import events.OnButtonInteractionEvent;
+import events.OnButtonClick;
 import events.OnReadyEvent;
 import events.OnUserUpdateNameEvent;
 import events.guild.OnGuildJoinEvent;
@@ -47,7 +47,7 @@ public class MiloBot {
 						GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS)
 				.setActivity(Activity.watching("Morbius"))
 				.addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent(),
-						new OnReadyEvent(), new OnUserUpdateNameEvent(), new OnButtonInteractionEvent())
+						new OnReadyEvent(), new OnUserUpdateNameEvent(), new OnButtonClick())
 				.build().awaitReady();
 
 		CommandLoader.loadAllCommands(bot);

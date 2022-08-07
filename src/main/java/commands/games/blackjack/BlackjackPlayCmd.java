@@ -10,10 +10,10 @@ import models.BlackjackStates;
 import models.cards.PlayingCards;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -105,14 +105,14 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 		}
 	}
 
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 		event.deferReply().queue();
 		String authorId = event.getUser().getId();
 		int bet;
 		if(event.getOption("bet") == null) {
 			bet = 0;
 		} else {
-			bet = Objects.requireNonNull(event.getOption("bet")).getAsInt();
+			bet = Math.toIntExact(Objects.requireNonNull(event.getOption("bet")).getAsLong());
 			ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
 			BigInteger playerWallet = new BigInteger(query.get(0));
 			char c = playerWallet.subtract(BigInteger.valueOf(bet)).toString().toCharArray()[0];
