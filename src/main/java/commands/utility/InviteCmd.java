@@ -1,7 +1,7 @@
 package commands.utility;
 
 import commands.Command;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +28,7 @@ public class InviteCmd extends Command implements UtilityCmd {
 	}
 
 	@Override
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 		event.reply(inviteUrl).queue();
 	}
 }

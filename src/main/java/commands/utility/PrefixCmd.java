@@ -5,7 +5,7 @@ import commands.CommandHandler;
 import database.DatabaseManager;
 import database.queries.PrefixTableQueries;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +48,7 @@ public class PrefixCmd extends Command implements UtilityCmd {
 	}
 
 	@Override
-	public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 		String prefix = Objects.requireNonNull(event.getOption("prefix")).getAsString();
 		if(prefix.length() > 2) {
 			event.reply("A prefix cant be longer then 2 characters.").queue();

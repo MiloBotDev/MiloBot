@@ -18,11 +18,21 @@ public class Lobby {
 
 
     public Lobby(String userId, String username) {
-        this.maxPlayers = 15;
-        this.minPlayers = 1;
+        this.maxPlayers = 10;
+        this.minPlayers = 2;
         this.lobbyEntries = new ArrayList<>();
         this.lobbyOwner = new LobbyEntry(userId, username);
         this.lobbyEntries.add(lobbyOwner);
+        this.startTime = System.nanoTime();
+        this.lobbyId = null;
+    }
+
+    public Lobby(String userId, String username, int maxPlayers) {
+        this.lobbyOwner = new LobbyEntry(userId, username);
+        this.lobbyEntries = new ArrayList<>();
+        this.lobbyEntries.add(lobbyOwner);
+        this.maxPlayers = maxPlayers;
+        this.minPlayers = 1;
         this.startTime = System.nanoTime();
         this.lobbyId = null;
     }
@@ -43,8 +53,11 @@ public class Lobby {
 
     public String generateDescription() {
         StringBuilder sb = new StringBuilder();
+        sb.append("**Minimum Players:** ").append(this.minPlayers).append("\n");
+        sb.append("**Maximum Players:** ").append(this.maxPlayers).append("\n");
+        sb.append("**Current Players:** \n");
         for(LobbyEntry lobbyEntry : lobbyEntries) {
-            sb.append(lobbyEntry.username()).append("\n");
+            sb.append("- ").append(lobbyEntry.username()).append("\n");
         }
         return sb.toString();
     }

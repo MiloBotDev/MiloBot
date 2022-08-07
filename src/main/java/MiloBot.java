@@ -4,7 +4,7 @@ import commands.games.blackjack.BlackjackPlayCmd;
 import database.DatabaseManager;
 import database.queries.PrefixTableQueries;
 import database.queries.UsersTableQueries;
-import events.OnButtonInteractionEvent;
+import events.OnButtonClick;
 import events.OnReadyEvent;
 import events.OnUserUpdateNameEvent;
 import events.guild.OnGuildJoinEvent;
@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
+import utility.Lobby;
 import utility.Paginator;
 
 import javax.security.auth.login.LoginException;
@@ -46,7 +47,7 @@ public class MiloBot {
 						GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS)
 				.setActivity(Activity.watching("Morbius"))
 				.addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent(),
-						new OnReadyEvent(), new OnUserUpdateNameEvent(), new OnButtonInteractionEvent())
+						new OnReadyEvent(), new OnUserUpdateNameEvent(), new OnButtonClick())
 				.build().awaitReady();
 
 		CommandLoader.loadAllCommands(bot);
@@ -55,15 +56,15 @@ public class MiloBot {
 		updateUserNames(manager, bot);
 
 		Timer timer = new Timer();
-		TimerTask clearBlackjackInstances = getClearBlackjackInstancesTask(bot);
+		TimerTask clearBlackjackInstances = clearInstances(bot);
 		timer.schedule(clearBlackjackInstances, 1000 * 60 * 60, 1000 * 60 * 60);
 	}
 
 	/**
-	 * Clears blackjack instances that haven't been used for 15 minutes every hour.
+	 * Clears instances that haven't been used for over 15 minutes every hour.
 	 */
 	@NotNull
-	private static TimerTask getClearBlackjackInstancesTask(JDA bot) {
+	private static TimerTask clearInstances(JDA bot) {
 		return new TimerTask() {
 			@Override
 			public void run() {
@@ -104,6 +105,21 @@ public class MiloBot {
 						}
 				);
 
+				Map<String, Lobby> lobbyInstances = Lobby.lobbyInstances;
+				List<String> lobbyInstancesToRemove = new ArrayList<>();
+				lobbyInstances.forEach(
+						(s, lobby) -> {
+							long startTime = lobby.getStartTime();
+							long elapsedTime = currentNanoTime - startTime;
+							long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
+							if (elapsedTimeSeconds > 900) {
+								logger.info(String.format("Lobby instance by: %s timed out. Time elapsed %d seconds.",
+										s, elapsedTimeSeconds));
+								lobbyInstancesToRemove.add(s);
+							}
+						}
+				);
+
 				if(blackjackInstancesToRemove.size() == 0) {
 					logger.info("No blackjack instances timed out.");
 				} else {
@@ -120,6 +136,15 @@ public class MiloBot {
 						paginatorInstances.remove(s);
 					}
 					logger.info(String.format("Removed %d paginator instances.", paginatorInstancesToRemove.size()));
+				}
+
+				if(lobbyInstancesToRemove.size() == 0) {
+					logger.info("No lobby instances timed out.");
+				} else {
+					for(String s : lobbyInstancesToRemove) {
+						lobbyInstances.remove(s);
+					}
+					logger.info(String.format("Removed %d lobby instances.", lobbyInstancesToRemove.size()));
 				}
 
 				EmbedBuilder logEmbed = new EmbedBuilder();

@@ -3,27 +3,27 @@ package commands.games.hungergames;
 import commands.Command;
 import commands.SubCmd;
 import games.HungerGames;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import utility.Lobby;
 import models.hungergames.Item;
 import models.hungergames.Player;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class HungerGamesStartCmd extends Command implements SubCmd {
-
-    public static Map<String, HungerGames> hungerGamesInstances = new HashMap<>();
 
     public HungerGamesStartCmd() {
         this.commandName = "start";
@@ -36,7 +36,7 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
         User author = event.getAuthor();
         String id = author.getId();
 
-        Lobby lobby = new Lobby(id, author.getName());
+        Lobby lobby = new Lobby(id, author.getName(), 8);
 
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle("Hunger Games Lobby");
@@ -59,17 +59,18 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
 
     }
 
-    public static void runGame(ButtonInteractionEvent event, @NotNull HungerGames game) {
+    public static void runGame(ButtonClickEvent event, @NotNull HungerGames game) {
         Map<Integer, Map<List<String>, List<Player>>> roundData = game.getRoundData();
         List<RestAction<Void>> messages = new ArrayList<>();
 
         roundData.forEach((key1, value1) -> {
             EmbedBuilder embed = new EmbedBuilder();
-            EmbedUtils.styleEmbed(embed, event.getUser());
+            embed.setColor(Color.BLUE);
+            embed.setTimestamp(new Date().toInstant());
             embed.setTitle("Round " + key1);
 
             StringBuilder logs = new StringBuilder();
@@ -123,7 +124,8 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
     private static @NotNull EmbedBuilder generateRecapEmbed(HungerGames game, User user) {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle("Hunger Games Recap");
-        EmbedUtils.styleEmbed(embed, user);
+        embed.setColor(Color.BLUE);
+        embed.setTimestamp(new Date().toInstant());
         embed.setDescription("**Winner:** " + game.getWinner().getUserName());
 
         List<Player> players = game.getPlayers();

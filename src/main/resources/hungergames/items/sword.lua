@@ -13,7 +13,7 @@ return {
             lobbyEntry:addKill()
             victim:onDeath()
         else
-            game:log(string.format("%s is swinging their sword at %s. It deals %d damage, their HP is now %d.",
+            game:log(string.format("%s is swinging their sword at %s. It deals %d damage, their hp is now %d.",
                     lobbyEntry:getUserName(), victim:getUserName(), damage, victim:getHealth()))
             lobbyEntry:addDamageDone(damage)
         end

@@ -78,11 +78,17 @@ public class Player implements Cloneable {
 
     public void doAction() {
         Random rand = new Random();
-        // 30% chance to find an item 70% chance to use an item
-        if (rand.nextInt(10) < 7 && !this.inventory.isEmpty()) {
+        int odd = rand.nextInt(10);
+        // 60% to use an item
+        if (odd < 6 && !this.inventory.isEmpty()) {
             int itemNumber = rand.nextInt(this.inventory.size());
             Item chosenItem = this.inventory.get(itemNumber);
             chosenItem.onUse(this);
+        // 10% for an event to occur
+        } else if (odd < 7 && !this.inventory.isEmpty()) {
+            Event event = this.game.getRandomEvent();
+            event.onTrigger(this);
+        // 30% chance to find an item
         } else {
             Item item = this.game.getRandomItem();
             this.inventory.add(item);

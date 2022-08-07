@@ -8,44 +8,83 @@ import database.queries.UsersTableQueries;
 import games.Blackjack;
 import games.HungerGames;
 import models.BlackjackStates;
-import utility.Lobby;
 import models.LobbyEntry;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
-import utility.EmbedUtils;
+import utility.Lobby;
 import utility.Paginator;
 
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  * Triggers when a button is clicked by a user.
  */
-public class OnButtonInteractionEvent extends ListenerAdapter {
+public class OnButtonClick extends ListenerAdapter {
 
     private final EncounterGeneratorCmd encCmd;
     private final DatabaseManager dbManager;
 
-    public OnButtonInteractionEvent() {
+    public OnButtonClick() {
         this.encCmd = EncounterGeneratorCmd.getInstance();
         this.dbManager = DatabaseManager.getInstance();
     }
 
     @Override
-    public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
+    public void onButtonClick(@NotNull ButtonClickEvent event) {
         String[] id = event.getComponentId().split(":");
         String authorId = id[0];
         String type = id[1];
         // Check that the button is for the user that clicked it, otherwise just ignore the event (let interaction fail)
         User user = event.getUser();
-        if (!authorId.equals(user.getId()) && !type.equals("leave") && !type.equals("join")) {
+        if (!authorId.equals(user.getId()) && (type.equals("joinLobby") || type.equals("leaveLobby"))) {
+            event.deferEdit().queue();
+            switch (type) {
+                case "joinLobby" -> {
+                    Lobby lobby = Lobby.lobbyInstances.get(event.getMessage().getId());
+                    if (lobby != null) {
+                        List<LobbyEntry> lobbyEntries = lobby.getPlayers();
+                        for (LobbyEntry lobbyEntry : lobbyEntries) {
+                            if (lobbyEntry.userId().equals(user.getId())) {
+                                event.getHook().sendMessage("You are already in this lobby.").queue();
+                                return;
+                            }
+                        }
+                        lobby.addPlayer(user.getId(), user.getName());
+
+                        updateLobbyEmbed(event, lobby);
+                    }
+                }
+                case "leaveLobby" -> {
+                    Lobby lobby2 = Lobby.lobbyInstances.get(event.getMessage().getId());
+                    LobbyEntry lobbyEntryToRemove = null;
+                    if (lobby2 != null) {
+                        List<LobbyEntry> players2 = lobby2.getPlayers();
+                        for (LobbyEntry lobbyEntry : players2) {
+                            if (lobbyEntry.userId().equals(user.getId())) {
+                                lobbyEntryToRemove = lobbyEntry;
+                                break;
+                            }
+                        }
+                    }
+                    if (lobbyEntryToRemove != null) {
+                        lobby2.removePlayer(lobbyEntryToRemove);
+
+                        updateLobbyEmbed(event, lobby2);
+                    }
+                }
+            }
+            return;
+        } else if (!authorId.equals(user.getId())) {
             return;
         }
         event.deferEdit().queue(); // acknowledge the button was clicked, otherwise the interaction will fail
@@ -156,39 +195,6 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
                     )).queue();
                 }
                 break;
-            case "joinLobby":
-                Lobby lobby = Lobby.lobbyInstances.get(event.getMessage().getId());
-                if (lobby != null) {
-                    List<LobbyEntry> lobbyEntries = lobby.getPlayers();
-                    for (LobbyEntry lobbyEntry : lobbyEntries) {
-                        if (lobbyEntry.userId().equals(user.getId())) {
-                            event.getHook().sendMessage("You are already in this lobby.").queue();
-                            return;
-                        }
-                    }
-                    lobby.addPlayer(user.getId(), user.getName());
-
-                    updateLobbyEmbed(event, user, lobby);
-                }
-                break;
-            case "leaveLobby":
-                Lobby lobby2 = Lobby.lobbyInstances.get(event.getMessage().getId());
-                LobbyEntry lobbyEntryToRemove = null;
-                if (lobby2 != null) {
-                    List<LobbyEntry> players2 = lobby2.getPlayers();
-                    for (LobbyEntry lobbyEntry : players2) {
-                        if (lobbyEntry.userId().equals(user.getId())) {
-                            lobbyEntryToRemove = lobbyEntry;
-                            break;
-                        }
-                    }
-                }
-                if (lobbyEntryToRemove != null) {
-                    lobby2.removePlayer(lobbyEntryToRemove);
-
-                    updateLobbyEmbed(event, user, lobby2);
-                }
-                break;
             case "fillLobby":
                 Lobby filledLobby = Lobby.lobbyInstances.get(event.getMessage().getId());
                 int maxPlayers = filledLobby.getMaxPlayers();
@@ -197,7 +203,7 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
                     event.getHook().sendMessage("This lobby is already full.").queue();
                 } else {
                     filledLobby.fillLobby();
-                    updateLobbyEmbed(event, user, filledLobby);
+                    updateLobbyEmbed(event, filledLobby);
                 }
                 break;
             case "startHg":
@@ -211,13 +217,14 @@ public class OnButtonInteractionEvent extends ListenerAdapter {
 
     }
 
-    private void updateLobbyEmbed(@NotNull ButtonInteractionEvent event, User user, @NotNull Lobby lobby2) {
+    private void updateLobbyEmbed(@NotNull ButtonClickEvent event, @NotNull Lobby lobby2) {
         MessageEmbed messageEmbed = event.getMessage().getEmbeds().get(0);
         String title = messageEmbed.getTitle();
 
         EmbedBuilder embedBuilder2 = new EmbedBuilder();
         embedBuilder2.setTitle(title);
-        EmbedUtils.styleEmbed(embedBuilder2, user);
+        embedBuilder2.setTimestamp(new Date().toInstant());
+        embedBuilder2.setColor(Color.BLUE);
         embedBuilder2.setDescription(lobby2.generateDescription());
 
         event.getHook().editOriginalEmbeds(embedBuilder2.build()).queue();

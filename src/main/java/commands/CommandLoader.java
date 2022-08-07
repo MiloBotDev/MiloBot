@@ -15,7 +15,7 @@ import commands.utility.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
@@ -62,10 +62,10 @@ public class CommandLoader {
 
         CommandListUpdateAction slashCommands = bot.updateCommands();
 
-        slashCommands.addCommands(Commands.slash("help", "Shows the user a list of available commands.")
+        slashCommands.addCommands(new CommandData("help", "Shows the user a list of available commands.")
                 .addOption(OptionType.STRING, "command", "The command you want information about.", false));
 
-        slashCommands.addCommands(Commands.slash("encounter", "D&D 5e encounter generator.")
+        slashCommands.addCommands(new CommandData("encounter", "D&D 5e encounter generator.")
                 .addSubcommands(new SubcommandData("generate", "Generate a random encounter for the given inputs.")
                         .addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
                                 .setRequired(true)
@@ -86,7 +86,7 @@ public class CommandLoader {
                                 ))
                 ));
 
-        slashCommands.addCommands(Commands.slash("wordle", "Wordle brought to discord.")
+        slashCommands.addCommands(new CommandData("wordle", "Wordle brought to discord.")
                 .addSubcommands(
                         new SubcommandData("leaderboard", "View the wordle leaderboards.")
                                 .addOptions(new OptionData(OptionType.STRING, "leaderboard", "The leaderboard you want to view.", true).addChoices(
@@ -97,7 +97,7 @@ public class CommandLoader {
                         new SubcommandData("play", "Play a game of wordle."),
                         new SubcommandData("stats", "View your own blackjack statistics.")));
 
-        slashCommands.addCommands(Commands.slash("bug", "Add bugs to the bots issue tracker, or view them.")
+        slashCommands.addCommands(new CommandData("bug", "Add bugs to the bots issue tracker, or view them.")
                 .addSubcommands(List.of(
                         new SubcommandData("report", "Report a bug you found."),
                         new SubcommandData("list", "Shows a list of all reported bugs."),
@@ -105,22 +105,22 @@ public class CommandLoader {
                                 new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
                         ))));
 
-        slashCommands.addCommands(Commands.slash("invite", "Sends an invite link to add the bot to another server."));
+        slashCommands.addCommands(new CommandData("invite", "Sends an invite link to add the bot to another server."));
 
-        slashCommands.addCommands(Commands.slash("profile", "View your own or someone else's profile.")
+        slashCommands.addCommands(new CommandData("profile", "View your own or someone else's profile.")
                 .addOption(OptionType.USER, "user", "The user you want to view the profile of.", false));
 
-        slashCommands.addCommands(Commands.slash("prefix", "Change the prefix of the guild you're in.")
+        slashCommands.addCommands(new CommandData("prefix", "Change the prefix of the guild you're in.")
                 .addOption(OptionType.STRING, "prefix", "The new prefix.", true));
 
-        slashCommands.addCommands(Commands.slash("blackjack", "Blackjack brought to discord").addSubcommands(
+        slashCommands.addCommands(new CommandData("blackjack", "Blackjack brought to discord").addSubcommands(
                 new SubcommandData("play", "Play a game of blackjack on discord.")
                         .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
                                 .setRequiredRange(1, 10000)),
                 new SubcommandData("stats", "View your own blackjack statistics.")
         ));
 
-        slashCommands.addCommands(Commands.slash("daily", "Collect your daily reward."));
+        slashCommands.addCommands(new CommandData("daily", "Collect your daily reward."));
 
         slashCommands.queue();
     }

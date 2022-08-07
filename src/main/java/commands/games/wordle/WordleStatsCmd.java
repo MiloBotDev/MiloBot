@@ -6,9 +6,9 @@ import database.DatabaseManager;
 import database.queries.WordleTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -34,7 +34,7 @@ public class WordleStatsCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         EmbedBuilder embedBuilder = generateEmbed(event.getUser());
         event.replyEmbeds(embedBuilder.build()).addActionRow(
                 Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();

@@ -112,7 +112,7 @@ To add slash command functionality to our command we need to override the `execu
 
 ```java
 @Override
-public void executeSlashCommand(SlashCommandInteractionEvent event) {
+public void executeSlashCommand(SlashCommandEvent event) {
 	
 }
 ```
