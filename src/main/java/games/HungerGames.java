@@ -1,6 +1,7 @@
 package games;
 
 import models.LobbyEntry;
+import models.hungergames.Event;
 import models.hungergames.Item;
 import models.hungergames.Player;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +20,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class HungerGames {
@@ -29,6 +29,7 @@ public class HungerGames {
     private List<String> messages;
     private final Map<Integer, Map<List<String>, List<Player>>> roundData;
     private final List<Item> items;
+    private final List<Event> events;
     private boolean startedGame;
     private Player winner;
     private final long startTime;
@@ -41,8 +42,11 @@ public class HungerGames {
         this.messages = new ArrayList<>();
         this.items = new ArrayList<>();
         this.roundData = new HashMap<>();
+        this.events = new ArrayList<>();
 
-        loadAllItems(getGlobals());
+        Globals globals = getGlobals();
+        loadAllItems(globals);
+        loadAllEvents(globals);
     }
 
     public HungerGames(List<LobbyEntry> playersFromLobby) {
@@ -53,10 +57,13 @@ public class HungerGames {
         this.messages = new ArrayList<>();
         this.items = new ArrayList<>();
         this.roundData = new HashMap<>();
+        this.events = new ArrayList<>();
 
         playersFromLobby.forEach(newLobbyEntry -> addPlayer(new Player(newLobbyEntry.username(), newLobbyEntry.userId())));
 
-        loadAllItems(getGlobals());
+        Globals globals = getGlobals();
+        loadAllItems(globals);
+        loadAllEvents(globals);
     }
 
     public void addPlayer(Player player) {
@@ -103,6 +110,25 @@ public class HungerGames {
             current += item.getRarity();
             if (current > chosen) {
                 return item;
+            }
+        }
+
+        return null; // should not happen
+    }
+
+    public Event getRandomEvent() {
+        int total = events
+                .stream()
+                .map(Event::getRarity)
+                .reduce(0, Integer::sum);
+
+        Random rand = new Random();
+        int chosen = rand.nextInt(total);
+        int current = 0;
+        for (Event event : events) {
+            current += event.getRarity();
+            if (current > chosen) {
+                return event;
             }
         }
 
@@ -165,6 +191,26 @@ public class HungerGames {
                             throw new RuntimeException(e);
                         }
                     });
+            }
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadAllEvents(Globals globals) {
+        try {
+            URI uri = getClass().getResource(Config.getInstance().getHungerGamesPath() + "/events").toURI();
+            fileLoadHack(uri);
+            try (Stream<Path> paths = Files.walk(Paths.get(uri))) {
+                paths
+                        .filter(Files::isRegularFile)
+                        .forEach((file) -> {
+                            try {
+                                this.events.add(new Event(globals, new String(Files.readAllBytes(file))));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
             }
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
