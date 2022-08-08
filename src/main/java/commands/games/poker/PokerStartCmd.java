@@ -18,7 +18,7 @@ public class PokerStartCmd extends Command implements SubCmd {
         Poker game = Poker.getGameByChannel(event.getTextChannel());
         if (game == null) {
             event.getChannel().sendMessage("There is no game of poker in this channel.").queue();
-        } else if (game.getMasterUser() == event.getAuthor()) {
+        } else if (game.getMasterUser().equals(event.getAuthor())) {
             game.start();
         } else {
             event.getChannel().sendMessage("You must be the creator of this game of poker to start the game.").queue();
