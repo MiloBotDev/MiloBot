@@ -4,6 +4,7 @@ import database.DatabaseManager;
 import database.queries.DailiesTableQueries;
 import database.queries.PrefixTableQueries;
 import database.queries.UsersTableQueries;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -13,7 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.User;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -135,8 +138,13 @@ public class CommandHandler extends ListenerAdapter {
 
 	@Override
 	public void onSlashCommand(@NotNull SlashCommandEvent event) {
-		// ignore commands not from a guild
+		// send error message for commands not from a guild (commands from DMs)
 		if (event.getGuild() == null) {
+			EmbedBuilder eb = new EmbedBuilder();
+			eb.setColor(Color.RED);
+			eb.setTitle("Error");
+			eb.setDescription("Commands cannot be used in DMs.");
+			event.replyEmbeds(eb.build()).queue();
 			return;
 		}
 		AtomicBoolean commandFound = new AtomicBoolean(false);
