@@ -7,6 +7,7 @@ import database.DatabaseManager;
 import database.queries.UsersTableQueries;
 import games.Blackjack;
 import games.HungerGames;
+import games.Poker;
 import models.BlackjackStates;
 import models.LobbyEntry;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -194,6 +195,22 @@ public class OnButtonClick extends ListenerAdapter {
                             Button.primary(authorId + ":hit", "Hit")
                     )).queue();
                 }
+                break;
+            case "poker_check":
+                Poker pokerGame1 = Poker.getUserGame(user);
+                pokerGame1.setPlayerAction(Poker.PlayerAction.CHECK);
+                break;
+            case "poker_call":
+                Poker pokerGame2 = Poker.getUserGame(user);
+                pokerGame2.setPlayerAction(Poker.PlayerAction.CALL);
+                break;
+            case "poker_fold":
+                Poker pokerGame3 = Poker.getUserGame(user);
+                pokerGame3.setPlayerAction(Poker.PlayerAction.FOLD);
+                break;
+            case "poker_raise":
+                Poker pokerGame4 = Poker.getUserGame(user);
+                pokerGame4.setPlayerAction(Poker.PlayerAction.RAISE);
                 break;
             case "fillLobby":
                 Lobby filledLobby = Lobby.lobbyInstances.get(event.getMessage().getId());
