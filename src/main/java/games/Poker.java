@@ -246,9 +246,8 @@ public class Poker {
             }
             case RAISE -> {
                 players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
-                        channel.sendMessage("How much would you like to raise by?").queue()
-                );
-                waitingForUserRaise = true;
+                        channel.sendMessage("How much would you like to raise by?")
+                                .queue(msg -> waitingForUserRaise = true));
             }
         }
     }
