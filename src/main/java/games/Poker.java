@@ -19,15 +19,13 @@ public class Poker {
     private static final ArrayList<Poker> games = new ArrayList<>();
     private final User masterUser;
     private final List<User> players = new ArrayList<>();
-    private final Map<User, Message> playerEmbeds = new HashMap<>();
-    private final Map<User, List<PlayingCards>> playerHands = new HashMap<>();
+    private final Map<User, PlayerData> playerData = new HashMap<>();
     private final TextChannel channel;
     private final CardDeck mainDeck = new CardDeck();
     private PokerState state;
     private int nextPlayerIndex;
     private int playerRaise;
     private int requiredMoneyInPot;
-    private final Map<User, Integer> playerMoneyInPot = new HashMap<>();
     private boolean waitingForUserRaise = false;
     private boolean firstRound = true;
     private int lastRaisePlayerIndex;
@@ -45,6 +43,13 @@ public class Poker {
         CALL,
         RAISE,
         CHECK
+    }
+
+    private class PlayerData {
+        private volatile Message embed;
+        private List<PlayingCards> hand;
+        private int moneyInPot = 0;
+        private boolean inGame = true;
     }
 
     public Poker(User user, TextChannel channel) {
@@ -82,17 +87,17 @@ public class Poker {
             channel.sendMessage("You need at least 2 players to play poker.").queue();
         } else {
             players.forEach(player -> {
+                playerData.put(player, new PlayerData());
                 List<PlayingCards> hand = new ArrayList<>();
                 for (int i = 0; i < 5; i++) {
                     hand.add(mainDeck.drawCard());
                 }
-                playerHands.put(player, hand);
+                playerData.get(player).hand = hand;
             });
             channel.sendMessage("Poker game started.").queue();
             state = PokerState.BET_ROUND_1;
             requiredMoneyInPot = 0;
             lastRaisePlayerIndex = 0;
-            players.forEach(player -> playerMoneyInPot.put(player, 0));
             nextPlayerIndex = -1;
             next();
             /*players.forEach(player -> player.openPrivateChannel().queue(channel -> channel
@@ -113,11 +118,11 @@ public class Poker {
                 games.remove(this);
                 User user = players.get(nextPlayerIndex);
                 EmbedBuilder eb = generatePlayerEmbed(user);
-                playerEmbeds.get(user).editMessageEmbeds(eb.build()).setActionRows().queue();
+                playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
                 players.forEach(player -> {
                     EmbedBuilder eb2 = generatePlayerEmbed(player);
                     eb2.addField("---------", "Game end", false);
-                    playerEmbeds.get(player).editMessageEmbeds(eb2.build()).queue();
+                    playerData.get(player).embed.editMessageEmbeds(eb2.build()).queue();
                 });
                 //nextPlayerIndex = -1;
                 //state = PokerState.REPLACING_CARDS;
@@ -129,14 +134,14 @@ public class Poker {
             if (waitingForUserRaise) {
                 int raise = playerRaise;
                 requiredMoneyInPot += raise;
-                playerMoneyInPot.put(players.get(nextPlayerIndex), requiredMoneyInPot);
+                playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
                 lastRaisePlayerIndex = nextPlayerIndex;
                 waitingForUserRaise = false;
             }
             if (nextPlayerIndex >= 0) {
                 User user = players.get(nextPlayerIndex);
                 EmbedBuilder eb = generatePlayerEmbed(user);
-                playerEmbeds.get(user).editMessageEmbeds(eb.build()).setActionRows().queue();
+                playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
             }
             if (nextPlayerIndex == players.size() - 1) {
                 nextPlayerIndex = 0;
@@ -151,7 +156,7 @@ public class Poker {
             Button fold = Button.primary(authorId + ":poker_fold", "Fold");
             Button call = Button.primary(authorId + ":poker_call", "Call");
             Button raise = Button.primary(authorId + ":poker_raise", "Raise");
-            int moneyInPot = playerMoneyInPot.get(user);
+            int moneyInPot = playerData.get(user).moneyInPot;
             ActionRow actionRow;
             if (moneyInPot < requiredMoneyInPot) {
                 actionRow = ActionRow.of(fold, call, raise);
@@ -159,17 +164,17 @@ public class Poker {
                 actionRow = ActionRow.of(check, raise);
             }
             if (firstRound && nextPlayerIndex == 0) {
-                players.stream().filter(player -> player != user).forEach(player -> player.openPrivateChannel()
+                players.stream().filter(player -> !player.equals(user)).forEach(player -> player.openPrivateChannel()
                         .queue(channel ->
                         channel.sendMessageEmbeds(generatePlayerEmbed(player).build()).queue(message -> {
-                             playerEmbeds.put(player, message);
+                            playerData.get(player).embed =  message;
                         })));
                 user.openPrivateChannel().queue(channel ->
                         channel.sendMessageEmbeds(eb.build()).setActionRows(actionRow).queue(message -> {
-                            playerEmbeds.put(user, message);
+                            playerData.get(user).embed = message;
                         }));
             } else {
-                playerEmbeds.get(user).editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
+                playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
             }
         } else if (state == PokerState.REPLACING_CARDS) {
 
@@ -199,11 +204,11 @@ public class Poker {
             if (event.getAuthor().equals(players.get(nextPlayerIndex))) {
                 try {
                     String[] cards = event.getMessage().getContentRaw().split(" ");
-                    List<PlayingCards> hand = playerHands.get(event.getAuthor());
+                    List<PlayingCards> hand = playerData.get(event.getAuthor()).hand;
                     for (String card : cards) {
                         hand.set(Integer.parseInt(card) - 1, mainDeck.drawCard());
                     }
-                    playerEmbeds.get(event.getAuthor()).editMessageEmbeds(
+                    playerData.get(event.getAuthor()).embed.editMessageEmbeds(
                             generatePlayerEmbed(event.getAuthor()).build()).queue();
                     event.getChannel().sendMessage("Your cards have been replaced.").queue();
                     next();
@@ -219,12 +224,12 @@ public class Poker {
         EmbedUtils.styleEmbed(embed, user);
         embed.setTitle("Poker");
         embed.addField("------------", "**Your hand**", false);
-        List<PlayingCards> hand = playerHands.get(user);
+        List<PlayingCards> hand = playerData.get(user).hand;
         for(int i = 0; i < hand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), hand.get(i).getLabel(), true);
         }
         embed.addField("\u200B", "\u200B", false);
-        embed.addField("Your bet", String.valueOf(playerMoneyInPot.get(user)), true);
+        embed.addField("Your bet", String.valueOf(playerData.get(user).moneyInPot), true);
         embed.addField("Required money in pot", String.valueOf(requiredMoneyInPot), true);
         return embed;
     }
@@ -241,7 +246,7 @@ public class Poker {
                 next();
             }
             case CALL -> {
-                playerMoneyInPot.put(players.get(nextPlayerIndex), requiredMoneyInPot);
+                playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
                 next();
             }
             case RAISE -> {
