@@ -21,10 +21,12 @@ public class PokerJoinCmd extends Command implements SubCmd {
         } else if (game.containsPlayer(event.getAuthor())) {
             event.getChannel().sendMessage(event.getAuthor().getAsMention() + " You are already in this game of " +
                     "poker.").queue();
-        } else {
-            game.addPlayer(event.getAuthor());
+        } else if (game.addPlayer(event.getAuthor())) {
             event.getChannel().sendMessage(event.getAuthor().getAsMention() + " You have joined the game of " +
                     "poker.").queue();
+        } else {
+            event.getChannel().sendMessage(event.getAuthor().getAsMention() + " This game of poker has already " +
+                    "started!").queue();
         }
     }
 }

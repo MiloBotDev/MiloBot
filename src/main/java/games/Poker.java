@@ -73,9 +73,12 @@ public class Poker {
         return masterUser;
     }
 
-    public void addPlayer(User user) {
-        if (!players.contains(user)) {
+    public boolean addPlayer(User user) {
+        if (!players.contains(user) && state == PokerState.WAITING_FOR_PLAYERS) {
             players.add(user);
+            return true;
+        } else {
+            return false;
         }
     }
 
