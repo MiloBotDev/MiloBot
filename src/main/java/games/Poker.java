@@ -46,7 +46,7 @@ public class Poker {
         CHECK
     }
 
-    private class PlayerData {
+    private static class PlayerData {
         private volatile Message embed;
         private List<PlayingCards> hand;
         private int moneyInPot = 0;
@@ -191,13 +191,11 @@ public class Poker {
             if (firstRound && nextPlayerIndex == 0) {
                 players.stream().filter(player -> !player.equals(user)).forEach(player -> player.openPrivateChannel()
                         .queue(channel ->
-                        channel.sendMessageEmbeds(generatePlayerEmbed(player).build()).queue(message -> {
-                            playerData.get(player).embed =  message;
-                        })));
+                        channel.sendMessageEmbeds(generatePlayerEmbed(player).build())
+                                .queue(message -> playerData.get(player).embed =  message)));
                 user.openPrivateChannel().queue(channel ->
-                        channel.sendMessageEmbeds(eb.build()).setActionRows(actionRow).queue(message -> {
-                            playerData.get(user).embed = message;
-                        }));
+                        channel.sendMessageEmbeds(eb.build()).setActionRows(actionRow)
+                                .queue(message -> playerData.get(user).embed = message));
             } else {
                 playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
             }
@@ -275,11 +273,9 @@ public class Poker {
                 playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
                 next();
             }
-            case RAISE -> {
-                players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
-                        channel.sendMessage("How much would you like to raise by?")
-                                .queue(msg -> waitingForUserRaise = true));
-            }
+            case RAISE -> players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
+                    channel.sendMessage("How much would you like to raise by?")
+                            .queue(msg -> waitingForUserRaise = true));
         }
     }
 }
