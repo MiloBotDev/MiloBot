@@ -29,6 +29,7 @@ public class Poker {
     private boolean waitingForUserRaise = false;
     private boolean firstRound = true;
     private int lastRaisePlayerIndex;
+    private int remainingPlayers;
 
     public enum PokerState {
         WAITING_FOR_PLAYERS,
@@ -83,7 +84,9 @@ public class Poker {
     }
 
     public void start() {
-        if (players.size() == 1) {
+        if (state != PokerState.WAITING_FOR_PLAYERS) {
+            channel.sendMessage("The game has already started.").queue();
+        } else if (players.size() == 1) {
             channel.sendMessage("You need at least 2 players to play poker.").queue();
         } else {
             players.forEach(player -> {
@@ -97,8 +100,9 @@ public class Poker {
             channel.sendMessage("Poker game started.").queue();
             state = PokerState.BET_ROUND_1;
             requiredMoneyInPot = 0;
-            lastRaisePlayerIndex = 0;
+            lastRaisePlayerIndex = -1;
             nextPlayerIndex = -1;
+            remainingPlayers = players.size();
             next();
             /*players.forEach(player -> player.openPrivateChannel().queue(channel -> channel
                     .sendMessageEmbeds(generatePlayerEmbed(player).build()).queue(message -> {
@@ -113,9 +117,23 @@ public class Poker {
 
     private void next() {
         if (state == PokerState.BET_ROUND_1) {
-            if (!firstRound && lastRaisePlayerIndex == nextPlayerIndex && !waitingForUserRaise) {
+            if (remainingPlayers == 1) {
+                state = PokerState.GAME_END;
+                User winningPlayer = Objects.requireNonNull(
+                        players.stream().filter(player -> playerData.get(player).inGame).findFirst().orElse(null));
+                players.forEach(player -> {
+                    EmbedBuilder eb = generatePlayerEmbed(player);
+                    eb.addBlankField(false);
+                    eb.addField("Winner", winningPlayer.getName(), true);
+                    eb.addField("Money won", requiredMoneyInPot + " Morbcoins", true);
+                    playerData.get(player).embed.editMessageEmbeds(eb.build()).queue();
+                });
                 state = PokerState.GAME_END;
                 games.remove(this);
+                return;
+            }
+            if (((!firstRound && lastRaisePlayerIndex == nextPlayerIndex) || (nextPlayerIndex == players.size() - 1 &&
+                    lastRaisePlayerIndex == -1)) && !waitingForUserRaise) {
                 User user = players.get(nextPlayerIndex);
                 EmbedBuilder eb = generatePlayerEmbed(user);
                 playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
@@ -124,6 +142,8 @@ public class Poker {
                     eb2.addField("---------", "Game end", false);
                     playerData.get(player).embed.editMessageEmbeds(eb2.build()).queue();
                 });
+                state = PokerState.GAME_END;
+                games.remove(this);
                 //nextPlayerIndex = -1;
                 //state = PokerState.REPLACING_CARDS;
                 //players.forEach(player -> player.openPrivateChannel().queue(channel ->
@@ -143,12 +163,14 @@ public class Poker {
                 EmbedBuilder eb = generatePlayerEmbed(user);
                 playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
             }
-            if (nextPlayerIndex == players.size() - 1) {
-                nextPlayerIndex = 0;
-                firstRound = false;
-            } else {
-                nextPlayerIndex++;
-            }
+            do {
+                if (nextPlayerIndex == players.size() - 1) {
+                    nextPlayerIndex = 0;
+                    firstRound = false;
+                } else {
+                    nextPlayerIndex++;
+                }
+            } while (!playerData.get(players.get(nextPlayerIndex)).inGame);
             User user = players.get(nextPlayerIndex);
             String authorId = user.getId();
             EmbedBuilder eb = generatePlayerEmbed(user);
@@ -242,7 +264,8 @@ public class Poker {
         switch (action) {
             case CHECK -> next();
             case FOLD -> {
-                players.remove(nextPlayerIndex);
+                playerData.get(players.get(nextPlayerIndex)).inGame = false;
+                remainingPlayers--;
                 next();
             }
             case CALL -> {
