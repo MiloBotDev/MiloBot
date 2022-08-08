@@ -228,7 +228,7 @@ public class Poker {
         for(int i = 0; i < hand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), hand.get(i).getLabel(), true);
         }
-        embed.addField("\u200B", "\u200B", false);
+        embed.addBlankField(false);
         embed.addField("Your bet", String.valueOf(playerData.get(user).moneyInPot), true);
         embed.addField("Required money in pot", String.valueOf(requiredMoneyInPot), true);
         return embed;
