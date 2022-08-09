@@ -145,7 +145,7 @@ public class Poker {
                 players.stream().filter(player -> playerData.get(player).inGame)
                         .forEach(player -> player.openPrivateChannel().queue(channel ->
                                 channel.sendMessage("Which cards would you like to replace? Enter card numbers " +
-                                        "separated by spaces.").queue()));
+                                        "separated by spaces, or 'none', if you don't want to replace any.").queue()));
                 return;
             }
             if (waitingForUserRaise) {
@@ -231,36 +231,43 @@ public class Poker {
             }
         } else if (state == PokerState.REPLACING_CARDS) {
             if (playerData.get(event.getAuthor()).inGame && !playerData.get(event.getAuthor()).replacedCards) {
-                String[] cards = event.getMessage().getContentRaw().split(" ");
-                Set<Integer> cardsToReplace = new HashSet<>();
-                for (String card : cards) {
-                    try {
-                        int cardNumber = Integer.parseInt(card);
-                        if (cardNumber >= 1 && cardNumber <= 5) {
-                            if (!cardsToReplace.add(cardNumber)) {
-                                event.getChannel().sendMessage("No duplicate cards allowed.").queue();
+                String msg = event.getMessage().getContentRaw().strip();
+                if (msg.equals("none")) {
+                    event.getChannel().sendMessage("OK, no cards have been replaced.").queue();
+                } else {
+                    String[] cards = msg.split(" ");
+                    Set<Integer> cardsToReplace = new HashSet<>();
+                    for (String card : cards) {
+                        try {
+                            int cardNumber = Integer.parseInt(card);
+                            if (cardNumber >= 1 && cardNumber <= 5) {
+                                if (!cardsToReplace.add(cardNumber)) {
+                                    event.getChannel().sendMessage("No duplicate cards allowed.").queue();
+                                    return;
+                                }
+                            } else {
+                                event.getChannel().sendMessage("Card numbers must be between 1 and 5.").queue();
                                 return;
                             }
-                        } else {
-                            event.getChannel().sendMessage("Card numbers must be between 1 and 5.").queue();
+                        } catch (NumberFormatException e) {
+                            event.getChannel().sendMessage("Please enter valid card numbers separated by spaces, or " +
+                                            "'none', if you wouldn't like to replace any.")
+                                    .queue();
                             return;
                         }
-                    } catch (NumberFormatException e) {
-                        event.getChannel().sendMessage("Please enter valid card numbers separated by spaces.").queue();
+                    }
+                    if (cardsToReplace.size() < 1 || cardsToReplace.size() > 3) {
+                        event.getChannel().sendMessage("Please enter 1-3 card numbers.").queue();
                         return;
                     }
+                    List<PlayingCards> hand = playerData.get(event.getAuthor()).hand;
+                    for (Integer cardNumber : cardsToReplace) {
+                        hand.set(cardNumber - 1, mainDeck.drawCard());
+                    }
+                    playerData.get(event.getAuthor()).embed.editMessageEmbeds(
+                            generatePlayerEmbed(event.getAuthor()).build()).queue();
+                    event.getChannel().sendMessage("Your cards have been replaced.").queue();
                 }
-                if (cardsToReplace.size() < 1 || cardsToReplace.size() > 3) {
-                    event.getChannel().sendMessage("Please enter 1-3 card numbers.").queue();
-                    return;
-                }
-                List<PlayingCards> hand = playerData.get(event.getAuthor()).hand;
-                for (Integer cardNumber : cardsToReplace) {
-                    hand.set(cardNumber - 1, mainDeck.drawCard());
-                }
-                playerData.get(event.getAuthor()).embed.editMessageEmbeds(
-                        generatePlayerEmbed(event.getAuthor()).build()).queue();
-                event.getChannel().sendMessage("Your cards have been replaced.").queue();
                 playerData.get(event.getAuthor()).replacedCards = true;
                 next();
             }
