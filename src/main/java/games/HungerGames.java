@@ -173,7 +173,7 @@ public class HungerGames {
     public Globals getGlobals() {
         Globals globals = JsePlatform.standardGlobals();
         LuaValue gameLua = CoerceJavaToLua.coerce(this);
-        globals.set("game", gameLua);;
+        globals.set("game", gameLua);
         return globals;
     }
 

@@ -24,7 +24,7 @@ import java.util.Locale;
  */
 public class WordleLeaderboardCmd extends Command implements SubCmd {
 
-	private static final DatabaseManager manager = DatabaseManager.getInstance();;
+	private static final DatabaseManager manager = DatabaseManager.getInstance();
 
 	public WordleLeaderboardCmd() {
 		this.commandName = "leaderboard";
