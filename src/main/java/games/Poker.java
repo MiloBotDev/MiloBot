@@ -99,6 +99,7 @@ public class Poker {
                 for (int i = 0; i < 5; i++) {
                     hand.add(mainDeck.drawCard());
                 }
+                sortHand(hand);
                 playerData.get(player).hand = hand;
             });
             channel.sendMessage("Poker game started.").queue();
@@ -316,6 +317,7 @@ public class Poker {
                     for (Integer cardNumber : cardsToReplace) {
                         hand.set(cardNumber - 1, mainDeck.drawCard());
                     }
+                    sortHand(hand);
                     playerData.get(event.getAuthor()).embed.editMessageEmbeds(
                             generatePlayerEmbed(event.getAuthor()).build()).queue();
                     event.getChannel().sendMessage("Your cards have been replaced.").queue();
@@ -360,6 +362,124 @@ public class Poker {
             case RAISE -> players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
                     channel.sendMessage("How much would you like to raise by?")
                             .queue(msg -> waitingForUserRaise = true));
+        }
+    }
+
+    private void sortHand(List<PlayingCards> hand) {
+        Comparator<PlayingCards> c1 = Comparator.comparingInt(o -> o.getRank().toInt());
+        Comparator<PlayingCards> c2 = c1.thenComparing(PlayingCards::getSuit);
+        hand.sort(c2);
+    }
+
+    public static class Hands {
+        public static int getHandValue(List<PlayingCards> hand) {
+            int[] vals = {isRoyalFlush(hand), isStraightFlush(hand), isFourOfAKind(hand), isFullHouse(hand),
+                    isFlush(hand), isStraight(hand), isThreeOfAKind(hand), isTwoPair(hand), isPair(hand)};
+            return Arrays.stream(vals).filter(val -> val != 0).findFirst().orElse(
+                    hand.stream().mapToInt(c -> c.getRank().toInt()).max().orElse(0));
+        }
+
+        private static int isRoyalFlush(List<PlayingCards> hand) {
+            int straightFlush = isStraightFlush(hand);
+            if (straightFlush != 0 && hand.get(0).getRank() == PlayingCards.Rank.TEN) {
+                return 0x8000;
+            }
+            return 0;
+        }
+
+        private static int isStraightFlush(List<PlayingCards> hand) {
+            int flush = isFlush(hand);
+            int straight = isStraight(hand);
+            if (flush != 0 && straight != 0) {
+                return flush & 0x0F | 0x4000;
+            }
+            return 0;
+        }
+
+        private static int isFourOfAKind(List<PlayingCards> hand) {
+            for (int i = 0; i < hand.size() - 3; i++) {
+                if (hand.get(i).getRank() == hand.get(i + 1).getRank() &&
+                        hand.get(i).getRank() == hand.get(i + 2).getRank() &&
+                        hand.get(i).getRank() == hand.get(i + 3).getRank()) {
+                    return hand.get(i).getRank().toInt() | 0x2000;
+                }
+            }
+            return 0;
+        }
+
+        private static int isFullHouse(List<PlayingCards> hand) {
+            int threeOfAKind = isThreeOfAKind(hand);
+            int pair = isPair(hand);
+            if (threeOfAKind != 0 && pair != 0) {
+                return threeOfAKind & 0x0F | 0x1000;
+            } else {
+                return 0;
+            }
+        }
+
+        private static int isFlush(List<PlayingCards> hand) {
+            PlayingCards.Suit nextSuitReq = hand.get(0).getSuit();
+            for (int i = 1; i < hand.size(); i++) {
+                if (hand.get(i).getSuit() != nextSuitReq) {
+                    return 0;
+                }
+            }
+            return hand.get(hand.size() - 1).getRank().toInt() | 0x800;
+        }
+
+        private static int isStraight(List<PlayingCards> hand) {
+            int nextRankReq = hand.get(0).getRank().toInt();
+            for (int i = 1; i < hand.size(); i++) {
+                nextRankReq++;
+                if (hand.get(i).getRank().toInt() != nextRankReq) {
+                    return 0;
+                }
+            }
+            return nextRankReq | 0x400;
+        }
+
+        private static int isThreeOfAKind(List<PlayingCards> hand) {
+            for (int i = 0; i < hand.size() - 2; i++) {
+                if (hand.get(i).getRank() == hand.get(i + 1).getRank() &&
+                        hand.get(i).getRank() == hand.get(i + 2).getRank()) {
+                    return hand.get(i).getRank().toInt() | 0x200;
+                }
+            }
+            return 0;
+        }
+
+        private static int isTwoPair(List<PlayingCards> hand) {
+            int matches = 0;
+            List<PlayingCards.Rank> alreadyMatched = new ArrayList<>();
+            for (int i = 0; i < hand.size() - 1; i++) {
+                if (hand.get(i).getRank() == hand.get(i + 1).getRank() &&
+                        !alreadyMatched.contains(hand.get(i).getRank())) {
+                    alreadyMatched.add(hand.get(i).getRank());
+                    matches++;
+                }
+            }
+            if (matches == 2) {
+                int maxVal = 0;
+                for (PlayingCards.Rank rank : alreadyMatched) {
+                    if (rank.toInt() > maxVal) {
+                        maxVal = rank.toInt();
+                    }
+                }
+                return maxVal | 0x100;
+            } else {
+                return 0;
+            }
+        }
+
+        private static int isPair(List<PlayingCards> hand) {
+            for (int i = 0; i < hand.size() - 1; i++) {
+                if (hand.get(i).getRank() == hand.get(i + 1).getRank() && (i == 3 ||
+                        hand.get(i).getRank() != hand.get(i + 2).getRank()) && (i == 0 ||
+                        hand.get(i).getRank() != hand.get(i - 1).getRank())) {
+                    return hand.get(i).getRank().toInt() | 0x80;
+                }
+            }
+            return 0;
         }
     }
 }

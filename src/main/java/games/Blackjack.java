@@ -104,7 +104,7 @@ public class Blackjack {
 		int total = 0;
 		ArrayList<PlayingCards> aces = new ArrayList<>();
 		for(PlayingCards card : hand) {
-			total += card.getValue();
+			total += getCardValue(card);
 			if(card.equals(PlayingCards.ACE_OF_SPADES) || card.equals(PlayingCards.ACE_OF_HEARTS) ||
 					card.equals(PlayingCards.ACE_OF_DIAMONDS) || card.equals(PlayingCards.ACE_OF_CLUBS)) {
 				aces.add(card);
@@ -117,6 +117,19 @@ public class Blackjack {
 			}
 		}
 		return total;
+	}
+
+	private int getCardValue(PlayingCards card) {
+		PlayingCards.Rank rank = card.getRank();
+		if (rank.toInt() <= 10) {
+			// card with number on its face
+			return rank.toInt();
+		} else if (rank == PlayingCards.Rank.ACE) {
+			return 11;
+		} else {
+			// king, queen, or jack
+			return 10;
+		}
 	}
 
 	public BlackjackStates checkWin(boolean updateDb) {
