@@ -6,6 +6,7 @@ import database.DatabaseManager;
 import database.queries.WordleTableQueries;
 import games.Wordle;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -76,6 +77,10 @@ public class WordlePlayCmd extends Command implements SubCmd {
 		ListenerAdapter listener = new ListenerAdapter() {
 			@Override
 			public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+				if (event.getChannelType() != ChannelType.TEXT) {
+					return;
+				}
+
 				String id = event.getAuthor().getId();
 				if (authorId.equals(id)) {
 					EmbedBuilder newEmbed = new EmbedBuilder();

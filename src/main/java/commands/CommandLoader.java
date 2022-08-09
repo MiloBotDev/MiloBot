@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,12 +59,11 @@ public class CommandLoader {
             commandList.put(keys, c);
         }
 
-        CommandListUpdateAction slashCommands = bot.updateCommands();
+        bot.updateCommands()
+                .addCommands(new CommandData("help", "Shows the user a list of available commands.")
+                        .addOption(OptionType.STRING, "command", "The command you want information about.", false))
 
-        slashCommands.addCommands(new CommandData("help", "Shows the user a list of available commands.")
-                .addOption(OptionType.STRING, "command", "The command you want information about.", false));
-
-        slashCommands.addCommands(new CommandData("encounter", "D&D 5e encounter generator.")
+                .addCommands(new CommandData("encounter", "D&D 5e encounter generator.")
                 .addSubcommands(new SubcommandData("generate", "Generate a random encounter for the given inputs.")
                         .addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
                                 .setRequired(true)
@@ -84,9 +82,9 @@ public class CommandLoader {
                                         new Choice("other plane", "other plane"), new Choice("underground", "underground"),
                                         new Choice("water", "water")
                                 ))
-                ));
+                ))
 
-        slashCommands.addCommands(new CommandData("wordle", "Wordle brought to discord.")
+                .addCommands(new CommandData("wordle", "Wordle brought to discord.")
                 .addSubcommands(
                         new SubcommandData("leaderboard", "View the wordle leaderboards.")
                                 .addOptions(new OptionData(OptionType.STRING, "leaderboard", "The leaderboard you want to view.", true).addChoices(
@@ -95,33 +93,32 @@ public class CommandLoader {
                                         new Choice("current streak", "currentStreak")
                                 )),
                         new SubcommandData("play", "Play a game of wordle."),
-                        new SubcommandData("stats", "View your own blackjack statistics.")));
+                        new SubcommandData("stats", "View your own blackjack statistics.")))
 
-        slashCommands.addCommands(new CommandData("bug", "Add bugs to the bots issue tracker, or view them.")
+                .addCommands(new CommandData("bug", "Add bugs to the bots issue tracker, or view them.")
                 .addSubcommands(List.of(
                         new SubcommandData("report", "Report a bug you found."),
                         new SubcommandData("list", "Shows a list of all reported bugs."),
                         new SubcommandData("view", "Lookup a specific bug on the issue tracker.").addOptions(
                                 new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
-                        ))));
+                        ))))
 
-        slashCommands.addCommands(new CommandData("invite", "Sends an invite link to add the bot to another server."));
+                .addCommands(new CommandData("invite", "Sends an invite link to add the bot to another server."))
 
-        slashCommands.addCommands(new CommandData("profile", "View your own or someone else's profile.")
-                .addOption(OptionType.USER, "user", "The user you want to view the profile of.", false));
+                .addCommands(new CommandData("profile", "View your own or someone else's profile.")
+                        .addOption(OptionType.USER, "user", "The user you want to view the profile of.", false))
 
-        slashCommands.addCommands(new CommandData("prefix", "Change the prefix of the guild you're in.")
-                .addOption(OptionType.STRING, "prefix", "The new prefix.", true));
+                .addCommands(new CommandData("prefix", "Change the prefix of the guild you're in.")
+                    .addOption(OptionType.STRING, "prefix", "The new prefix.", true))
 
-        slashCommands.addCommands(new CommandData("blackjack", "Blackjack brought to discord").addSubcommands(
-                new SubcommandData("play", "Play a game of blackjack on discord.")
+                .addCommands(new CommandData("blackjack", "Blackjack brought to discord").addSubcommands(
+                    new SubcommandData("play", "Play a game of blackjack on discord.")
                         .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
                                 .setRequiredRange(1, 10000)),
-                new SubcommandData("stats", "View your own blackjack statistics.")
-        ));
+                    new SubcommandData("stats", "View your own blackjack statistics.")))
 
-        slashCommands.addCommands(new CommandData("daily", "Collect your daily reward."));
+                .addCommands(new CommandData("daily", "Collect your daily reward."))
 
-        slashCommands.queue();
+                .queue();
     }
 }

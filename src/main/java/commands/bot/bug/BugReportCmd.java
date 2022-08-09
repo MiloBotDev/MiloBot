@@ -3,6 +3,7 @@ package commands.bot.bug;
 import commands.Command;
 import commands.SubCmd;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -71,6 +72,10 @@ public class BugReportCmd extends Command implements SubCmd {
 				ListenerAdapter listener = new ListenerAdapter() {
 					@Override
 					public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+						if (event.getChannelType() != ChannelType.TEXT) {
+							return;
+						}
+
 						if (event.getAuthor().getId().equals(author.getId())) {
 							event.getJDA().removeEventListener(this);
 							if (event.getMessage().getContentRaw().toLowerCase(Locale.ROOT).equals("cancel")) {
