@@ -51,6 +51,7 @@ public class Poker {
         private List<PlayingCards> hand;
         private int moneyInPot = 0;
         private boolean inGame = true;
+        private boolean replacedCards = false;
     }
 
     public Poker(User user, TextChannel channel) {
@@ -140,18 +141,11 @@ public class Poker {
                 User user = players.get(nextPlayerIndex);
                 EmbedBuilder eb = generatePlayerEmbed(user);
                 playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
-                players.forEach(player -> {
-                    EmbedBuilder eb2 = generatePlayerEmbed(player);
-                    eb2.addField("---------", "Game end", false);
-                    playerData.get(player).embed.editMessageEmbeds(eb2.build()).queue();
-                });
-                state = PokerState.GAME_END;
-                games.remove(this);
-                //nextPlayerIndex = -1;
-                //state = PokerState.REPLACING_CARDS;
-                //players.forEach(player -> player.openPrivateChannel().queue(channel ->
-                //        channel.sendMessage("Which cards would you like to replace? Enter card numbers separated " +
-                //                "by spaces.").queue()));
+                state = PokerState.REPLACING_CARDS;
+                players.stream().filter(player -> playerData.get(player).inGame)
+                        .forEach(player -> player.openPrivateChannel().queue(channel ->
+                                channel.sendMessage("Which cards would you like to replace? Enter card numbers " +
+                                        "separated by spaces.").queue()));
                 return;
             }
             if (waitingForUserRaise) {
@@ -200,7 +194,19 @@ public class Poker {
                 playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
             }
         } else if (state == PokerState.REPLACING_CARDS) {
-
+            if (players.stream().allMatch(player -> playerData.get(player).replacedCards)) {
+                nextPlayerIndex = -1;
+                state = PokerState.BET_ROUND_2;
+                next();
+            }
+        } else if (state == PokerState.BET_ROUND_2) {
+            players.forEach(player -> {
+                EmbedBuilder eb2 = generatePlayerEmbed(player);
+                eb2.addField("---------", "Game end", false);
+                playerData.get(player).embed.editMessageEmbeds(eb2.build()).queue();
+            });
+            state = PokerState.GAME_END;
+            games.remove(this);
         }
     }
 
@@ -224,20 +230,39 @@ public class Poker {
                 event.getChannel().sendMessage("Please enter a number.").queue();
             }
         } else if (state == PokerState.REPLACING_CARDS) {
-            if (event.getAuthor().equals(players.get(nextPlayerIndex))) {
-                try {
-                    String[] cards = event.getMessage().getContentRaw().split(" ");
-                    List<PlayingCards> hand = playerData.get(event.getAuthor()).hand;
-                    for (String card : cards) {
-                        hand.set(Integer.parseInt(card) - 1, mainDeck.drawCard());
+            if (playerData.get(event.getAuthor()).inGame && !playerData.get(event.getAuthor()).replacedCards) {
+                String[] cards = event.getMessage().getContentRaw().split(" ");
+                Set<Integer> cardsToReplace = new HashSet<>();
+                for (String card : cards) {
+                    try {
+                        int cardNumber = Integer.parseInt(card);
+                        if (cardNumber >= 1 && cardNumber <= 5) {
+                            if (!cardsToReplace.add(cardNumber)) {
+                                event.getChannel().sendMessage("No duplicate cards allowed.").queue();
+                                return;
+                            }
+                        } else {
+                            event.getChannel().sendMessage("Card numbers must be between 1 and 5.").queue();
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        event.getChannel().sendMessage("Please enter valid card numbers separated by spaces.").queue();
+                        return;
                     }
-                    playerData.get(event.getAuthor()).embed.editMessageEmbeds(
-                            generatePlayerEmbed(event.getAuthor()).build()).queue();
-                    event.getChannel().sendMessage("Your cards have been replaced.").queue();
-                    next();
-                } catch (NumberFormatException e) {
-                    event.getChannel().sendMessage("Please enter card numbers separated by spaces.").queue();
                 }
+                if (cardsToReplace.size() < 1 || cardsToReplace.size() > 3) {
+                    event.getChannel().sendMessage("Please enter 1-3 card numbers.").queue();
+                    return;
+                }
+                List<PlayingCards> hand = playerData.get(event.getAuthor()).hand;
+                for (Integer cardNumber : cardsToReplace) {
+                    hand.set(cardNumber - 1, mainDeck.drawCard());
+                }
+                playerData.get(event.getAuthor()).embed.editMessageEmbeds(
+                        generatePlayerEmbed(event.getAuthor()).build()).queue();
+                event.getChannel().sendMessage("Your cards have been replaced.").queue();
+                playerData.get(event.getAuthor()).replacedCards = true;
+                next();
             }
         }
     }
