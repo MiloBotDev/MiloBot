@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Poker {
     private static final ArrayList<Poker> games = new ArrayList<>();
@@ -26,10 +27,11 @@ public class Poker {
     private int nextPlayerIndex;
     private int playerRaise;
     private int requiredMoneyInPot;
-    private boolean waitingForUserRaise = false;
-    private boolean firstRound = true;
+    private boolean waitingForUserRaise;
+    private boolean firstRound;
     private int lastRaisePlayerIndex;
     private int remainingPlayers;
+    private final Random random = new Random();
 
     public enum PokerState {
         WAITING_FOR_PLAYERS,
@@ -55,6 +57,9 @@ public class Poker {
     }
 
     public Poker(User user, TextChannel channel) {
+        if (games.stream().anyMatch(game -> game.getChannel().equals(channel))) {
+            throw new IllegalArgumentException("There is already a game in this channel");
+        }
         this.masterUser = user;
         this.players.add(user);
         this.channel = channel;
@@ -103,93 +108,51 @@ public class Poker {
                 playerData.get(player).hand = hand;
             });
             channel.sendMessage("Poker game started.").queue();
-            state = PokerState.BET_ROUND_1;
-            requiredMoneyInPot = 0;
-            lastRaisePlayerIndex = -1;
-            nextPlayerIndex = -1;
-            remainingPlayers = players.size();
             next();
-            /*players.forEach(player -> player.openPrivateChannel().queue(channel -> channel
-                    .sendMessageEmbeds(generatePlayerEmbed(player).build()).queue(message -> {
-                                playerEmbeds.put(player, message);
-
-                                next();
-                            }
-                            )));*/
-
         }
     }
 
     private void next() {
-        if (state == PokerState.BET_ROUND_1) {
-            if (nextPlayerIndex >= 0) {
-                User user = players.get(nextPlayerIndex);
-                EmbedBuilder eb = generatePlayerEmbed(user);
-                playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
-            }
-            if (remainingPlayers == 1) {
-                state = PokerState.GAME_END;
-                User winningPlayer = Objects.requireNonNull(
-                        players.stream().filter(player -> playerData.get(player).inGame).findFirst().orElse(null));
-                players.forEach(player -> {
-                    EmbedBuilder eb = generatePlayerEmbed(player);
-                    eb.addBlankField(false);
-                    eb.addField("Winner", winningPlayer.getName(), true);
-                    eb.addField("Money won", requiredMoneyInPot + " Morbcoins", true);
-                    playerData.get(player).embed.editMessageEmbeds(eb.build()).queue();
-                });
-                state = PokerState.GAME_END;
-                games.remove(this);
-                return;
-            }
-            if (((!firstRound && lastRaisePlayerIndex == nextPlayerIndex) || (nextPlayerIndex == players.size() - 1 &&
-                    lastRaisePlayerIndex == -1)) && !waitingForUserRaise) {
+        if (state == PokerState.WAITING_FOR_PLAYERS) {
+            firstRound = true;
+            waitingForUserRaise = false;
+            requiredMoneyInPot = 0;
+            lastRaisePlayerIndex = -1;
+            nextPlayerIndex = -1;
+            remainingPlayers = players.size();
+            state = PokerState.BET_ROUND_1;
+            next();
+        } else if (state == PokerState.BET_ROUND_1) {
+            removeUserActions();
+            if (remainingPlayers == 1) { // everyone else folded
+                endGame();
+            } else if (((!firstRound && lastRaisePlayerIndex == nextPlayerIndex) ||
+                    (nextPlayerIndex == players.size() - 1 && lastRaisePlayerIndex == -1)) && !waitingForUserRaise) {
                 state = PokerState.REPLACING_CARDS;
                 players.stream().filter(player -> playerData.get(player).inGame)
                         .forEach(player -> player.openPrivateChannel().queue(channel ->
                                 channel.sendMessage("Which cards would you like to replace? Enter card numbers " +
                                         "separated by spaces, or 'none', if you don't want to replace any.").queue()));
-                return;
-            }
-            if (waitingForUserRaise) {
-                int raise = playerRaise;
-                requiredMoneyInPot += raise;
-                playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
-                lastRaisePlayerIndex = nextPlayerIndex;
-                waitingForUserRaise = false;
-            }
-            do {
-                if (nextPlayerIndex == players.size() - 1) {
-                    nextPlayerIndex = 0;
-                    firstRound = false;
-                } else {
-                    nextPlayerIndex++;
+            } else {
+                if (waitingForUserRaise) {
+                    processPlayerRaise();
                 }
-            } while (!playerData.get(players.get(nextPlayerIndex)).inGame);
-            User user = players.get(nextPlayerIndex);
-            String authorId = user.getId();
-            EmbedBuilder eb = generatePlayerEmbed(user);
-            Button check = Button.primary(authorId + ":poker_check", "Check");
-            Button fold = Button.primary(authorId + ":poker_fold", "Fold");
-            Button call = Button.primary(authorId + ":poker_call", "Call");
-            Button raise = Button.primary(authorId + ":poker_raise", "Raise");
-            int moneyInPot = playerData.get(user).moneyInPot;
-            ActionRow actionRow;
-            if (moneyInPot < requiredMoneyInPot) {
-                actionRow = ActionRow.of(fold, call, raise);
-            } else {
-                actionRow = ActionRow.of(check, raise);
-            }
-            if (firstRound && nextPlayerIndex == 0) {
-                players.stream().filter(player -> !player.equals(user)).forEach(player -> player.openPrivateChannel()
-                        .queue(channel ->
-                        channel.sendMessageEmbeds(generatePlayerEmbed(player).build())
-                                .queue(message -> playerData.get(player).embed =  message)));
-                user.openPrivateChannel().queue(channel ->
-                        channel.sendMessageEmbeds(eb.build()).setActionRows(actionRow)
-                                .queue(message -> playerData.get(user).embed = message));
-            } else {
-                playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
+                nextPlayer();
+                User user = players.get(nextPlayerIndex);
+                EmbedBuilder eb = generatePlayerEmbed(user);
+                ActionRow actionRow = getUserActions();
+                if (firstRound && nextPlayerIndex == 0) {
+                    players.stream().filter(player -> !player.equals(user)).forEach(player ->
+                            player.openPrivateChannel()
+                            .queue(channel ->
+                                    channel.sendMessageEmbeds(generatePlayerEmbed(player).build())
+                                            .queue(message -> playerData.get(player).embed = message)));
+                    user.openPrivateChannel().queue(channel ->
+                            channel.sendMessageEmbeds(eb.build()).setActionRows(actionRow)
+                                    .queue(message -> playerData.get(user).embed = message));
+                } else {
+                    playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
+                }
             }
         } else if (state == PokerState.REPLACING_CARDS) {
             if (players.stream().filter(player -> playerData.get(player).inGame)
@@ -201,66 +164,115 @@ public class Poker {
                 next();
             }
         } else if (state == PokerState.BET_ROUND_2) {
-            if (nextPlayerIndex >= 0) {
-                User user = players.get(nextPlayerIndex);
-                EmbedBuilder eb = generatePlayerEmbed(user);
-                playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
-            }
-            if (remainingPlayers == 1) {
+            removeUserActions();
+            if (remainingPlayers == 1) { // everyone else folded
+                endGame();
+            } else if (((!firstRound && lastRaisePlayerIndex == nextPlayerIndex) ||
+                    (nextPlayerIndex == players.size() - 1 && lastRaisePlayerIndex == -1)) && !waitingForUserRaise) {
                 state = PokerState.GAME_END;
-                User winningPlayer = Objects.requireNonNull(
-                        players.stream().filter(player -> playerData.get(player).inGame).findFirst().orElse(null));
+                int maxHandVal = players.stream().filter(player -> playerData.get(player).inGame)
+                        .map(player -> playerData.get(player).hand).mapToInt(Hands::getHandValue)
+                        .max().orElse(0);
+                List<User> winners = players.stream().filter(player -> playerData.get(player).inGame)
+                        .filter(player -> Hands.getHandValue(playerData.get(player).hand) == maxHandVal).toList();
+                int moneyWon = requiredMoneyInPot / winners.size();
+                // left over money if money can't be evenly divided between winning players
+                int leftoverMoney = requiredMoneyInPot % winners.size();
+                // lucky winner is winner who gets money if there is leftover money
+                User luckyWinner = winners.get(random.nextInt(winners.size()));
                 players.forEach(player -> {
                     EmbedBuilder eb = generatePlayerEmbed(player);
                     eb.addBlankField(false);
-                    eb.addField("Winner", winningPlayer.getName(), true);
-                    eb.addField("Money won", requiredMoneyInPot + " Morbcoins", true);
+                    String winnerStr;
+                    if (winners.size() > 1) {
+                        winnerStr = "Winners";
+                    } else {
+                        winnerStr = "Winner";
+                    }
+                    eb.addField(winnerStr, winners.stream().map(User::getAsMention).collect(Collectors.joining(", ")),
+                            true);
+                    if (leftoverMoney == 0) {
+                        eb.addField("Money won", moneyWon + " Morbcoins", true);
+                    } else {
+                        eb.addField("Money won", moneyWon + " Morbcoins (" + luckyWinner.getAsMention() +
+                                " won " + (moneyWon + leftoverMoney) + ")", true);
+                    }
                     playerData.get(player).embed.editMessageEmbeds(eb.build()).queue();
                 });
-                state = PokerState.GAME_END;
                 games.remove(this);
-                return;
-            }
-            if (((!firstRound && lastRaisePlayerIndex == nextPlayerIndex) || (nextPlayerIndex == players.size() - 1 &&
-                    lastRaisePlayerIndex == -1)) && !waitingForUserRaise) {
-                state = PokerState.GAME_END;
-                players.forEach(player -> playerData.get(player).embed.editMessageEmbeds(generatePlayerEmbed(player)
-                        .addField("------------", "Game Over", false)
-                        .build()).queue());
-                // TODO: Check who's winner
-                return;
-            }
-            if (waitingForUserRaise) {
-                int raise = playerRaise;
-                requiredMoneyInPot += raise;
-                playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
-                lastRaisePlayerIndex = nextPlayerIndex;
-                waitingForUserRaise = false;
-            }
-            do {
-                if (nextPlayerIndex == players.size() - 1) {
-                    nextPlayerIndex = 0;
-                    firstRound = false;
-                } else {
-                    nextPlayerIndex++;
-                }
-            } while (!playerData.get(players.get(nextPlayerIndex)).inGame);
-            User user = players.get(nextPlayerIndex);
-            String authorId = user.getId();
-            EmbedBuilder eb = generatePlayerEmbed(user);
-            Button check = Button.primary(authorId + ":poker_check", "Check");
-            Button fold = Button.primary(authorId + ":poker_fold", "Fold");
-            Button call = Button.primary(authorId + ":poker_call", "Call");
-            Button raise = Button.primary(authorId + ":poker_raise", "Raise");
-            int moneyInPot = playerData.get(user).moneyInPot;
-            ActionRow actionRow;
-            if (moneyInPot < requiredMoneyInPot) {
-                actionRow = ActionRow.of(fold, call, raise);
             } else {
-                actionRow = ActionRow.of(check, raise);
+                if (waitingForUserRaise) {
+                    processPlayerRaise();
+                }
+                nextPlayer();
+                User user = players.get(nextPlayerIndex);
+                ActionRow actionRow = getUserActions();
+                EmbedBuilder eb = generatePlayerEmbed(user);
+                playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
             }
-            playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
         }
+    }
+
+    private void removeUserActions() {
+        if (nextPlayerIndex >= 0) {
+            User user = players.get(nextPlayerIndex);
+            EmbedBuilder eb = generatePlayerEmbed(user);
+            playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
+        }
+    }
+
+    private void endGame() {
+        state = PokerState.GAME_END;
+        User winningPlayer = Objects.requireNonNull(
+                players.stream().filter(player -> playerData.get(player).inGame).findFirst().orElse(null));
+        players.forEach(player -> {
+            EmbedBuilder eb = generatePlayerEmbed(player);
+            eb.addBlankField(false);
+            eb.addField("Winner", winningPlayer.getAsMention(), true);
+            eb.addField("Money won", requiredMoneyInPot + " Morbcoins", true);
+            playerData.get(player).embed.editMessageEmbeds(eb.build()).queue();
+        });
+        state = PokerState.GAME_END;
+        games.remove(this);
+    }
+
+    private void processPlayerRaise() {
+        int raise = playerRaise;
+        requiredMoneyInPot += raise;
+        playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
+        lastRaisePlayerIndex = nextPlayerIndex;
+        waitingForUserRaise = false;
+        User user = players.get(nextPlayerIndex);
+        EmbedBuilder eb = generatePlayerEmbed(user);
+        playerData.get(user).embed.editMessageEmbeds(eb.build()).queue();
+    }
+
+    private void nextPlayer() {
+        do {
+            if (nextPlayerIndex == players.size() - 1) {
+                nextPlayerIndex = 0;
+                firstRound = false;
+            } else {
+                nextPlayerIndex++;
+            }
+        } while (!playerData.get(players.get(nextPlayerIndex)).inGame);
+    }
+
+    private ActionRow getUserActions() {
+        User user = players.get(nextPlayerIndex);
+        String authorId = user.getId();
+        Button check = Button.primary(authorId + ":poker_check", "Check");
+        Button fold = Button.primary(authorId + ":poker_fold", "Fold");
+        Button call = Button.primary(authorId + ":poker_call", "Call");
+        Button raise = Button.primary(authorId + ":poker_raise", "Raise");
+        int moneyInPot = playerData.get(user).moneyInPot;
+        ActionRow actionRow;
+        if (moneyInPot < requiredMoneyInPot) {
+            actionRow = ActionRow.of(fold, call, raise);
+        } else {
+            actionRow = ActionRow.of(check, raise);
+        }
+        return actionRow;
     }
 
     public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
