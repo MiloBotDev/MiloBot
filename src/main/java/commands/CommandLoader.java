@@ -5,6 +5,7 @@ import commands.bot.bug.BugCmd;
 import commands.botadmin.RemoveUserCmd;
 import commands.dnd.encounter.EncounterCmd;
 import commands.games.hungergames.HungerGamesCmd;
+import commands.games.poker.PokerCmd;
 import commands.morbconomy.DailyCmd;
 import commands.morbconomy.ProfileCmd;
 import commands.morbconomy.WalletCmd;
@@ -47,6 +48,7 @@ public class CommandLoader {
         commands.add(new DailyCmd());
         commands.add(new RemoveUserCmd());
         commands.add(new HungerGamesCmd());
+        commands.add(new PokerCmd());
         commands.stream().flatMap(command -> command.listeners.stream()).forEach(bot::addEventListener);
         commands.stream().flatMap(command -> command.subCommands.stream())
                 .flatMap(subCommand -> subCommand.listeners.stream()).forEach(bot::addEventListener);
