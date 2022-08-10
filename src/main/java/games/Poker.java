@@ -32,6 +32,7 @@ public class Poker {
     private int lastRaisePlayerIndex;
     private int remainingPlayers;
     private final Random random = new Random();
+    private final Set<PlayerAction> authorizedActions = new HashSet<>();
 
     public enum PokerState {
         WAITING_FOR_PLAYERS,
@@ -269,8 +270,10 @@ public class Poker {
         ActionRow actionRow;
         if (moneyInPot < requiredMoneyInPot) {
             actionRow = ActionRow.of(fold, call, raise);
+            authorizedActions.addAll(List.of(PlayerAction.FOLD, PlayerAction.CALL, PlayerAction.RAISE));
         } else {
             actionRow = ActionRow.of(check, raise);
+            authorizedActions.addAll(List.of(PlayerAction.CHECK, PlayerAction.RAISE));
         }
         return actionRow;
     }
@@ -360,20 +363,23 @@ public class Poker {
     }
 
     public void setPlayerAction(PlayerAction action) {
-        switch (action) {
-            case CHECK -> next();
-            case FOLD -> {
-                playerData.get(players.get(nextPlayerIndex)).inGame = false;
-                remainingPlayers--;
-                next();
+        if (authorizedActions.contains(action)) {
+            authorizedActions.clear();
+            switch (action) {
+                case CHECK -> next();
+                case FOLD -> {
+                    playerData.get(players.get(nextPlayerIndex)).inGame = false;
+                    remainingPlayers--;
+                    next();
+                }
+                case CALL -> {
+                    playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
+                    next();
+                }
+                case RAISE -> players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
+                        channel.sendMessage("How much would you like to raise by?")
+                                .queue(msg -> waitingForUserRaise = true));
             }
-            case CALL -> {
-                playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
-                next();
-            }
-            case RAISE -> players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
-                    channel.sendMessage("How much would you like to raise by?")
-                            .queue(msg -> waitingForUserRaise = true));
         }
     }
 
