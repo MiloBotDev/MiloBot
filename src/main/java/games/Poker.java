@@ -5,7 +5,6 @@ import models.cards.PlayingCards;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -18,10 +17,8 @@ import java.util.stream.Collectors;
 
 public class Poker {
     private static final ArrayList<Poker> games = new ArrayList<>();
-    private final User masterUser;
-    private final List<User> players = new ArrayList<>();
+    private final List<User> players;
     private final Map<User, PlayerData> playerData = new HashMap<>();
-    private final TextChannel channel;
     private final CardDeck mainDeck = new CardDeck();
     private PokerState state;
     private int nextPlayerIndex;
@@ -35,7 +32,7 @@ public class Poker {
     private final Set<PlayerAction> authorizedActions = new HashSet<>();
 
     public enum PokerState {
-        WAITING_FOR_PLAYERS,
+        WAITING_TO_START,
         BET_ROUND_1,
         REPLACING_CARDS,
         BET_ROUND_2,
@@ -57,47 +54,15 @@ public class Poker {
         private boolean replacedCards = false;
     }
 
-    public Poker(User user, TextChannel channel) {
-        if (games.stream().anyMatch(game -> game.getChannel().equals(channel))) {
-            throw new IllegalArgumentException("There is already a game in this channel");
-        }
-        this.masterUser = user;
-        this.players.add(user);
-        this.channel = channel;
+    public Poker(List<User> players) {
         games.add(this);
-        state = PokerState.WAITING_FOR_PLAYERS;
-    }
-
-    public static Poker getGameByChannel(TextChannel channel) {
-        return games.stream().filter(game -> game.getChannel().equals(channel)).findFirst().orElse(null);
-    }
-
-    public TextChannel getChannel() {
-        return channel;
-    }
-
-    public User getMasterUser() {
-        return masterUser;
-    }
-
-    public boolean addPlayer(User user) {
-        if (!players.contains(user) && state == PokerState.WAITING_FOR_PLAYERS) {
-            players.add(user);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean containsPlayer(User user) {
-        return players.contains(user);
+        this.players = new ArrayList<>(players);
+        state = PokerState.WAITING_TO_START;
     }
 
     public void start() {
-        if (state != PokerState.WAITING_FOR_PLAYERS) {
-            channel.sendMessage("The game has already started.").queue();
-        } else if (players.size() == 1) {
-            channel.sendMessage("You need at least 2 players to play poker.").queue();
+        if (players.size() < 2) {
+            throw new IllegalStateException("Need at least 2 players to start a game");
         } else {
             players.forEach(player -> {
                 playerData.put(player, new PlayerData());
@@ -108,13 +73,12 @@ public class Poker {
                 sortHand(hand);
                 playerData.get(player).hand = hand;
             });
-            channel.sendMessage("Poker game started.").queue();
             next();
         }
     }
 
     private void next() {
-        if (state == PokerState.WAITING_FOR_PLAYERS) {
+        if (state == PokerState.WAITING_TO_START) {
             firstRound = true;
             waitingForUserRaise = false;
             requiredMoneyInPot = 0;
