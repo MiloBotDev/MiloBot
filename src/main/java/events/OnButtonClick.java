@@ -18,14 +18,20 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import newdb.dao.UserDao;
+import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.Lobby;
 import utility.Paginator;
 
 import java.awt.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Triggers when a button is clicked by a user.
@@ -34,6 +40,8 @@ public class OnButtonClick extends ListenerAdapter {
 
     private final EncounterGeneratorCmd encCmd;
     private final DatabaseManager dbManager;
+    private final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
+    private final UserDao userDao = UserDaoImplementation.getInstance();
 
     public OnButtonClick() {
         this.encCmd = EncounterGeneratorCmd.getInstance();
@@ -166,8 +174,18 @@ public class OnButtonClick extends ListenerAdapter {
                 } else {
                     String s = description.replaceAll("[^0-9]", "");
                     int bet = Integer.parseInt(s);
-                    ArrayList<String> result = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, user.getId());
-                    int wallet = Integer.parseInt(result.get(0));
+                    newdb.model.User user2;
+                    try {
+                        user2 = userDao.getUserByDiscordId(event.getUser().getIdLong());
+                    } catch (SQLException e) {
+                        logger.error("Error getting user from database when user wanted to play blackjack.", e);
+                        return;
+                    }
+                    if (user2 == null) {
+                        event.getHook().sendMessage("Error: no user exists when user attempted to replay blackjack.").queue();
+                        return;
+                    }
+                    int wallet = user2.getCurrency();
                     if (bet > wallet) {
                         event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();
                         break;

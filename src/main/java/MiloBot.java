@@ -3,10 +3,8 @@ import commands.CommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
 import database.DatabaseManager;
 import database.queries.PrefixTableQueries;
-import database.queries.UsersTableQueries;
 import events.OnButtonClick;
 import events.OnReadyEvent;
-import events.OnUserUpdateNameEvent;
 import events.guild.OnGuildJoinEvent;
 import events.guild.OnGuildLeaveEvent;
 import games.Blackjack;
@@ -48,13 +46,12 @@ public class MiloBot {
 						GatewayIntent.DIRECT_MESSAGES)
 				.setActivity(Activity.watching("Morbius"))
 				.addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent(),
-						new OnReadyEvent(), new OnUserUpdateNameEvent(), new OnButtonClick())
+						new OnReadyEvent(), new OnButtonClick())
 				.build().awaitReady();
 
 		CommandLoader.loadAllCommands(bot);
 
 		loadPrefixes(manager, config, bot);
-		updateUserNames(manager, bot);
 
 		Timer timer = new Timer();
 		TimerTask clearBlackjackInstances = clearInstances(bot);
@@ -172,41 +169,6 @@ public class MiloBot {
 				manager.query(PrefixTableQueries.addServerPrefix, DatabaseManager.QueryTypes.UPDATE, id, config.getDefaultPrefix());
 				CommandHandler.prefixes.put(id, config.getDefaultPrefix());
 			}
-		}
-	}
-
-	/**
-	 * Checks if any users updated their name. If so update it in the database.
-	 */
-	private static void updateUserNames(@NotNull DatabaseManager manager, @NotNull JDA bot) {
-		List<Guild> guilds = bot.getGuilds();
-		ArrayList<String> result = manager.query(UsersTableQueries.getAllUserIdsAndNames, DatabaseManager.QueryTypes.RETURN);
-		HashMap<String, String> users = new HashMap<>();
-		for (int i = 0; i < result.size(); i += 2) {
-			if (!(i + 2 == result.size() && users.containsKey(result.get(i)))) {
-				users.put(result.get(i), result.get(i + 1));
-			}
-		}
-		for (Guild guild : guilds) {
-			List<Member> members = new ArrayList<>();
-			guild.loadMembers().onSuccess(loadedMembers -> {
-				members.addAll(loadedMembers);
-				for (Member member : members) {
-					User user = member.getUser();
-					if (!(user.isBot())) {
-						String userId = user.getId();
-						if (users.containsKey(userId)) {
-							String nameInDatabase = users.get(userId);
-							String currentName = user.getName();
-							if (!(nameInDatabase.equals(currentName))) {
-								logger.info(String.format("%s changed their name to: %s.", nameInDatabase, currentName));
-								manager.query(UsersTableQueries.updateUserName, DatabaseManager.QueryTypes.UPDATE, currentName, userId);
-							}
-						}
-					}
-				}
-			});
-
 		}
 	}
 }

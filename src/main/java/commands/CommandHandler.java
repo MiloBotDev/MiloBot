@@ -1,20 +1,21 @@
 package commands;
 
 import database.DatabaseManager;
-import database.queries.DailiesTableQueries;
 import database.queries.PrefixTableQueries;
-import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import newdb.dao.UserDao;
+import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.User;
 
 import java.awt.*;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,6 +30,7 @@ public class CommandHandler extends ListenerAdapter {
 	private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 	private final User user;
 	private final DatabaseManager manager;
+	private final UserDao userDao = UserDaoImplementation.getInstance();
 
 	public CommandHandler() {
 		this.user = User.getInstance();
@@ -123,10 +125,20 @@ public class CommandHandler extends ListenerAdapter {
 					String userId = event.getAuthor().getId();
 					command.updateCommandTrackerUser(fullCommandName, userId);
 					// check if this user exists in the database otherwise add it
-					if (!user.checkIfUserExists(userId)) {
-						addUserToDatabase(event.getAuthor());
+					if (!user.checkIfUserExists(event.getAuthor().getIdLong())) {
+						try {
+							addUserToDatabase(event.getAuthor());
+						} catch (SQLException e) {
+							logger.error("Couldn't add user to database", e);
+							return;
+						}
 					}
-					user.updateExperience(userId, 10, event.getAuthor().getAsMention(), event.getChannel());
+					try {
+						user.updateExperience(event.getAuthor().getIdLong(), 10, event.getAuthor().getAsMention(),
+								event.getChannel());
+					} catch (SQLException e) {
+						logger.error("Couldn't update user experience", e);
+					}
 					// execute the command
 					command.executeCommand(event, receivedMessage);
 					logger.info(String.format("Executed command: %s | Author: %s.", fullCommandName,
@@ -169,22 +181,30 @@ public class CommandHandler extends ListenerAdapter {
 					command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
 					return;
 				}
-				if (!user.checkIfUserExists(event.getUser().getId())) {
-					addUserToDatabase(event.getUser());
+				if (!user.checkIfUserExists(event.getUser().getIdLong())) {
+					try {
+						addUserToDatabase(event.getUser());
+					} catch (SQLException e) {
+						logger.error("Couldn't add user to database", e);
+						return;
+					}
 				}
 				command.executeSlashCommand(event);
 				command.updateCommandTrackerUser(fullCommandName, event.getUser().getId());
-				user.updateExperience(event.getUser().getId(), 10, event.getUser().getAsMention(), event.getChannel());
+				try {
+					user.updateExperience(event.getUser().getIdLong(), 10, event.getUser().getAsMention(),
+							event.getChannel());
+				} catch (SQLException e) {
+					logger.error("Couldn't update user experience", e);
+				}
 			}
 		});
 
 	}
 
-	private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) {
-		String userId = user.getId();
-		manager.query(UsersTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
-				user.getName(), "0", "1", "0");
-		manager.query(DailiesTableQueries.addUserDaily, DatabaseManager.QueryTypes.UPDATE, userId);
+	private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
+		newdb.model.User newUser = new newdb.model.User(user.getIdLong());
+		userDao.add(newUser);
 	}
 
 }

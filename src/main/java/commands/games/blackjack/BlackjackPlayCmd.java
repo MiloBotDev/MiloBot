@@ -4,7 +4,6 @@ import commands.Command;
 import commands.SubCmd;
 import database.DatabaseManager;
 import database.queries.BlackjackTableQueries;
-import database.queries.UsersTableQueries;
 import games.Blackjack;
 import models.BlackjackStates;
 import models.cards.PlayingCards;
@@ -14,10 +13,14 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import newdb.dao.UserDao;
+import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 
-import java.math.BigInteger;
+import java.sql.SQLException;
 import java.util.*;
 
 public class BlackjackPlayCmd extends Command implements SubCmd {
@@ -25,6 +28,10 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 	public static Map<String, Blackjack> blackjackGames = new HashMap<>();
 
 	private final DatabaseManager dbManager;
+
+	private final UserDao userDao = UserDaoImplementation.getInstance();
+
+	private final Logger logger = LoggerFactory.getLogger(BlackjackPlayCmd.class);
 
 	public BlackjackPlayCmd() {
 		this.commandName = "play";
@@ -50,11 +57,20 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 					event.getChannel().sendMessage("You can't bet more than `10000` Morbcoins.").queue();
 					return;
 				} else {
-					ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
-					BigInteger playerWallet = new BigInteger(query.get(0));
-					char c = playerWallet.subtract(BigInteger.valueOf(playerBet)).toString().toCharArray()[0];
+					newdb.model.User user;
 					try {
-						int integer = Integer.parseInt(String.valueOf(c));
+						user = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
+					} catch (SQLException e) {
+						logger.error("Error getting user from database when user wanted to play blackjack.", e);
+						return;
+					}
+					if (user == null) {
+						logger.error("Error getting user from database when user wanted to play blackjack.");
+						return;
+					}
+					int playerWallet = user.getCurrency();
+					try {
+						int integer = playerWallet - playerBet;
 						if(integer < 0) {
 							event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", playerBet, playerWallet)).queue();							return;
 						}
@@ -113,11 +129,20 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 			bet = 0;
 		} else {
 			bet = Math.toIntExact(Objects.requireNonNull(event.getOption("bet")).getAsLong());
-			ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
-			BigInteger playerWallet = new BigInteger(query.get(0));
-			char c = playerWallet.subtract(BigInteger.valueOf(bet)).toString().toCharArray()[0];
+			newdb.model.User user;
 			try {
-				int integer = Integer.parseInt(String.valueOf(c));
+				user = userDao.getUserByDiscordId(event.getUser().getIdLong());
+			} catch (SQLException e) {
+				logger.error("Error getting user from database when user wanted to play blackjack.", e);
+				return;
+			}
+			if (user == null) {
+				logger.error("Error getting user from database when user wanted to play blackjack.");
+				return;
+			}
+			int playerWallet = user.getCurrency();
+			try {
+				int integer = playerWallet - bet;
 				if(integer < 0) {
 					event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();							return;
 				}
