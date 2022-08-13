@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * All methods related to users.
@@ -86,10 +87,7 @@ public class User {
 	public void updateExperience(long discordUserId, int experience, String asMention, MessageChannel channel) throws SQLException {
 		// load in their current experience and level
 		newdb.model.User user = userDao.getUserByDiscordId(discordUserId);
-		if (user == null) {
-			throw new IllegalArgumentException("User does not exist");
-		}
-		user.addExperience(experience);
+		Objects.requireNonNull(user).addExperience(experience);
 		// check if they leveled up
 		if (user.getLevel() < maxLevel) {
 			int nextLevel = user.getLevel() + 1;

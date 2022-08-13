@@ -181,11 +181,7 @@ public class OnButtonClick extends ListenerAdapter {
                         logger.error("Error getting user from database when user wanted to play blackjack.", e);
                         return;
                     }
-                    if (user2 == null) {
-                        event.getHook().sendMessage("Error: no user exists when user attempted to replay blackjack.").queue();
-                        return;
-                    }
-                    int wallet = user2.getCurrency();
+                    int wallet = Objects.requireNonNull(user2).getCurrency();
                     if (bet > wallet) {
                         event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();
                         break;

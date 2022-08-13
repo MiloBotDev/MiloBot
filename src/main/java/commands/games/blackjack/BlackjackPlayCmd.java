@@ -64,11 +64,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 						logger.error("Error getting user from database when user wanted to play blackjack.", e);
 						return;
 					}
-					if (user == null) {
-						logger.error("Error getting user from database when user wanted to play blackjack.");
-						return;
-					}
-					int playerWallet = user.getCurrency();
+					int playerWallet = Objects.requireNonNull(user).getCurrency();
 					try {
 						int integer = playerWallet - playerBet;
 						if(integer < 0) {
@@ -136,11 +132,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 				logger.error("Error getting user from database when user wanted to play blackjack.", e);
 				return;
 			}
-			if (user == null) {
-				logger.error("Error getting user from database when user wanted to play blackjack.");
-				return;
-			}
-			int playerWallet = user.getCurrency();
+			int playerWallet = Objects.requireNonNull(user).getCurrency();
 			try {
 				int integer = playerWallet - bet;
 				if(integer < 0) {

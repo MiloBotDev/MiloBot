@@ -75,11 +75,7 @@ public class Blackjack {
 			logger.error("Error getting user from database when user wanted to play blackjack.", e);
 			return;
 		}
-		if (user == null) {
-			logger.error("Error getting user from database when attempted to update wallet.");
-			return;
-		}
-		int playerWallet = user.getCurrency();
+		int playerWallet = Objects.requireNonNull(user).getCurrency();
 		int newWallet;
 		if(state == null) {
 			newWallet = playerWallet - playerBet;
