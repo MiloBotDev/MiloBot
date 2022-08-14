@@ -178,7 +178,7 @@ public class OnButtonClick extends ListenerAdapter {
                     try {
                         user2 = userDao.getUserByDiscordId(event.getUser().getIdLong());
                     } catch (SQLException e) {
-                        logger.error("Error getting user from database when user wanted to play blackjack.", e);
+                        logger.error("Error getting user from database when user wanted to replay blackjack.", e);
                         return;
                     }
                     int wallet = Objects.requireNonNull(user2).getCurrency();

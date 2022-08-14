@@ -100,7 +100,7 @@ public class Blackjack {
 		try {
 			userDao.update(user);
 		} catch (SQLException e) {
-			logger.error("Error updating user in database when attempted to udpate wallet.", e);
+			logger.error("Blackjack error updating user in database when attempted to update wallet.", e);
 		}
 	}
 
