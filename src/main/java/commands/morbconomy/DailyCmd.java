@@ -3,16 +3,20 @@ package commands.morbconomy;
 import commands.Command;
 import database.DatabaseManager;
 import database.queries.DailiesTableQueries;
-import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import newdb.dao.UserDao;
+import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
@@ -21,6 +25,8 @@ public class DailyCmd extends Command implements MorbconomyCmd {
 
     private final DatabaseManager dbManager;
     private final Random random;
+    private static final Logger logger = LoggerFactory.getLogger(DailyCmd.class);
+    private final UserDao userDao = UserDaoImplementation.getInstance();
 
     public DailyCmd() {
         this.commandName = "daily";
@@ -31,18 +37,27 @@ public class DailyCmd extends Command implements MorbconomyCmd {
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
-        String s = updateDailies(event.getAuthor());
-        event.getChannel().sendMessage(s).queue();
+        try {
+            String s = updateDailies(event.getAuthor());
+            event.getChannel().sendMessage(s).queue();
+        } catch (SQLException e) {
+            logger.error("Error updating dailies", e);
+        }
     }
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
-        String s = updateDailies(event.getUser());
-        event.getHook().sendMessage(s).queue();
+        try {
+            String s = updateDailies(event.getUser());
+            event.getHook().sendMessage(s).queue();
+        } catch (SQLException e) {
+            logger.error("Error updating dailies", e);
+            event.getHook().sendMessage("Internal error. Please try again later.").queue();
+        }
     }
 
-    private @NotNull String updateDailies(@NotNull User user) {
+    private @NotNull String updateDailies(@NotNull User user) throws SQLException {
         int reward = random.nextInt(5000) + 1000;
 
         StringBuilder result = new StringBuilder();
@@ -91,9 +106,10 @@ public class DailyCmd extends Command implements MorbconomyCmd {
         }
         dbManager.query(DailiesTableQueries.updateUserDaily, DatabaseManager.QueryTypes.UPDATE,
                 currentTime.toString(), String.valueOf(streak), String.valueOf(totalClaimed), userId);
-        ArrayList<String> currency = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, userId);
-        String newTotalCurrency = new BigInteger(currency.get(0)).add(BigInteger.valueOf(reward)).toString();
-        dbManager.query(UsersTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, newTotalCurrency, userId);
+
+        newdb.model.User userDbObj = userDao.getUserByDiscordId(user.getIdLong());
+        Objects.requireNonNull(userDbObj).setCurrency(userDbObj.getCurrency() + reward);
+        userDao.update(userDbObj);
         return result.toString();
     }
 

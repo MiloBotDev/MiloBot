@@ -1,32 +1,37 @@
 package commands.morbconomy;
 
 import commands.Command;
-import database.DatabaseManager;
-import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import newdb.dao.UserDao;
+import newdb.dao.UserDaoImplementation;
+import newdb.model.User;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 public class WalletCmd extends Command implements MorbconomyCmd {
-
-	private final DatabaseManager dbManager;
+	private static final Logger logger = LoggerFactory.getLogger(WalletCmd.class);
+	private final UserDao userDao = UserDaoImplementation.getInstance();
 
 	public WalletCmd() {
 		this.commandName = "wallet";
 		this.commandDescription = "Check your wallet.";
-		this.dbManager = DatabaseManager.getInstance();
 	}
 
 	@Override
 	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-		String authorId = event.getAuthor().getId();
-
-		ArrayList<String> query = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, authorId);
-		BigInteger wallet = new BigInteger(query.get(0));
-
+		User user;
+		try {
+			user = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
+		} catch (SQLException e) {
+			logger.error("Error getting user from database at wallet command.", e);
+			return;
+		}
+		int wallet = Objects.requireNonNull(user).getCurrency();
 		event.getChannel().sendMessage(String.format("You have `%d` morbcoins in your wallet.", wallet)).queue();
 	}
 }

@@ -11,4 +11,5 @@ public interface UserDao {
     void update(User user) throws SQLException;
     @Nullable
     User getUserByDiscordId(long discordId) throws SQLException;
+    int getUserRank(int userId) throws SQLException;
 }

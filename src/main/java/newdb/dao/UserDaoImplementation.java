@@ -87,4 +87,18 @@ public class UserDaoImplementation implements UserDao {
             return null;
         }
     }
+
+    @Override
+    public int getUserRank(int userId) throws SQLException {
+        String query = "SELECT RANK() OVER (ORDER BY experience DESC) `rank` FROM users WHERE id = ?";
+        PreparedStatement ps;
+        ps = con.prepareStatement(query);
+        ps.setInt(1, userId);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt("rank");
+        } else {
+            throw new IllegalArgumentException("User with id " + userId + " not found");
+        }
+    }
 }
