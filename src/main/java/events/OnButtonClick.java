@@ -3,8 +3,6 @@ package events;
 import commands.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
 import commands.games.hungergames.HungerGamesStartCmd;
-import database.DatabaseManager;
-import database.queries.UsersTableQueries;
 import games.Blackjack;
 import games.HungerGames;
 import games.Poker;
@@ -28,7 +26,6 @@ import utility.Paginator;
 
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -39,13 +36,11 @@ import java.util.Objects;
 public class OnButtonClick extends ListenerAdapter {
 
     private final EncounterGeneratorCmd encCmd;
-    private final DatabaseManager dbManager;
     private static final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
     private final UserDao userDao = UserDaoImplementation.getInstance();
 
     public OnButtonClick() {
         this.encCmd = EncounterGeneratorCmd.getInstance();
-        this.dbManager = DatabaseManager.getInstance();
     }
 
     @Override
