@@ -32,7 +32,7 @@ public class Blackjack {
 	private boolean finished;
 	private int winnings;
 	private final long startTime;
-	private final Logger logger = LoggerFactory.getLogger(Blackjack.class);
+	private static final Logger logger = LoggerFactory.getLogger(Blackjack.class);
 	private final UserDao userDao = UserDaoImplementation.getInstance();
 
 	public Blackjack(String userId) {

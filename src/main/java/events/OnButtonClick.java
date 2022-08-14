@@ -40,7 +40,7 @@ public class OnButtonClick extends ListenerAdapter {
 
     private final EncounterGeneratorCmd encCmd;
     private final DatabaseManager dbManager;
-    private final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
+    private static final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
     private final UserDao userDao = UserDaoImplementation.getInstance();
 
     public OnButtonClick() {

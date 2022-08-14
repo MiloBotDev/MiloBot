@@ -31,7 +31,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 
 	private final UserDao userDao = UserDaoImplementation.getInstance();
 
-	private final Logger logger = LoggerFactory.getLogger(BlackjackPlayCmd.class);
+	private static final Logger logger = LoggerFactory.getLogger(BlackjackPlayCmd.class);
 
 	public BlackjackPlayCmd() {
 		this.commandName = "play";
