@@ -19,6 +19,13 @@ public class User {
         this.discordId = discordId;
     }
 
+    public User(long discordId, int currency, int level, int experience) {
+        this.discordId = discordId;
+        this.currency = currency;
+        this.level = level;
+        this.experience = experience;
+    }
+
     public int getId() {
         return id;
     }
