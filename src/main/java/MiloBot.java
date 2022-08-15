@@ -11,9 +11,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import newdb.dao.PrefixDao;
-import newdb.dao.PrefixDaoImplementation;
-import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +20,6 @@ import utility.Paginator;
 
 import javax.security.auth.login.LoginException;
 import java.awt.*;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -51,8 +47,6 @@ public class MiloBot {
 				.build().awaitReady();
 
 		CommandLoader.loadAllCommands(bot);
-
-		loadPrefixes(config, bot);
 
 		Timer timer = new Timer();
 		TimerTask clearBlackjackInstances = clearInstances(bot);
@@ -155,34 +149,5 @@ public class MiloBot {
 				logs.sendMessageEmbeds(logEmbed.build()).queue();
 			}
 		};
-	}
-
-	/**
-	 * Loads prefixes for guilds that have the bot but are not in the database yet.
-	 */
-	private static void loadPrefixes(Config config, @NotNull JDA bot) {
-		List<Guild> guilds = bot.getGuilds();
-		PrefixDao prefixDao = PrefixDaoImplementation.getInstance();
-		List<Prefix> prefixes;
-		try {
-			prefixes = prefixDao.getAllPrefixes();
-		} catch (SQLException e) {
-			logger.error("Error loading prefixes.", e);
-			return;
-		}
-		for (Guild guild : guilds) {
-			long id = guild.getIdLong();
-			if (prefixes.stream().noneMatch(prefix -> prefix.getGuildId() == id)) {
-				logger.info(String.format("Guild: %s does not have a configured prefix.", id) +
-						" Setting default prefix for guild.");
-				Prefix prefix = new Prefix(id, config.getDefaultPrefix());
-				try {
-					prefixDao.add(prefix);
-				} catch (SQLException e) {
-					logger.error("Error adding prefix.", e);
-				}
-				CommandHandler.prefixes.put(id, config.getDefaultPrefix());
-			}
-		}
 	}
 }

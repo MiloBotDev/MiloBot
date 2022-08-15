@@ -2,16 +2,19 @@ package commands;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import newdb.dao.PrefixDaoImplementation;
+import newdb.dao.PrefixDao;
 import newdb.dao.UserDao;
 import newdb.dao.UserDaoImplementation;
 import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utility.Config;
 import utility.User;
 
 import java.awt.*;
@@ -36,13 +39,43 @@ public class CommandHandler extends ListenerAdapter {
 		// loads all the prefixes into a map
 		List<Prefix> prefixesDbObj;
 		try {
-			prefixesDbObj = PrefixDaoImplementation.getInstance().getAllPrefixes();
+			prefixesDbObj = PrefixDao.getInstance().getAllPrefixes();
 		} catch (SQLException e) {
 			logger.error("CommandHandler: Could not load prefixes", e);
 			return;
 		}
 		for (Prefix prefixDbObj : prefixesDbObj) {
 			prefixes.put(prefixDbObj.getGuildId(), prefixDbObj.getPrefix());
+		}
+	}
+
+	/**
+	 * Loads prefixes for guilds that have the bot but are not in the database yet.
+	 */
+	@Override
+	public void onReady(@NotNull ReadyEvent event) {
+		List<Guild> guilds = event.getJDA().getGuilds();
+		PrefixDao prefixDao = PrefixDao.getInstance();
+		List<Prefix> prefixes;
+		try {
+			prefixes = prefixDao.getAllPrefixes();
+		} catch (SQLException e) {
+			logger.error("Error loading prefixes.", e);
+			return;
+		}
+		for (Guild guild : guilds) {
+			long id = guild.getIdLong();
+			if (prefixes.stream().noneMatch(prefix -> prefix.getGuildId() == id)) {
+				logger.info(String.format("Guild: %s does not have a configured prefix.", id) +
+						" Setting default prefix for guild.");
+				Prefix prefix = new Prefix(id, Config.getInstance().getDefaultPrefix());
+				try {
+					prefixDao.add(prefix);
+				} catch (SQLException e) {
+					logger.error("Error adding prefix.", e);
+				}
+				CommandHandler.prefixes.put(id, Config.getInstance().getDefaultPrefix());
+			}
 		}
 	}
 

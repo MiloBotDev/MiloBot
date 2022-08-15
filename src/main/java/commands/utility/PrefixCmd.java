@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import newdb.dao.PrefixDao;
-import newdb.dao.PrefixDaoImplementation;
 import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -22,7 +21,7 @@ import java.util.Objects;
  */
 public class PrefixCmd extends Command implements UtilityCmd {
 	private final Logger logger = LoggerFactory.getLogger(PrefixCmd.class);
-	private final PrefixDao prefixDao = PrefixDaoImplementation.getInstance();
+	private final PrefixDao prefixDao = PrefixDao.getInstance();
 
 	public PrefixCmd() {
 		this.commandName = "prefix";

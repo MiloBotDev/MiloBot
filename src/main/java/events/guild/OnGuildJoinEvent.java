@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import newdb.dao.PrefixDao;
-import newdb.dao.PrefixDaoImplementation;
 import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ import java.util.Objects;
 public class OnGuildJoinEvent extends ListenerAdapter {
 
 	final static Logger logger = LoggerFactory.getLogger(OnGuildJoinEvent.class);
-	private final PrefixDao prefixDao = PrefixDaoImplementation.getInstance();
+	private final PrefixDao prefixDao = PrefixDao.getInstance();
 
 	@Override
 	public void onGuildJoin(@NotNull GuildJoinEvent event) {
