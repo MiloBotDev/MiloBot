@@ -225,7 +225,7 @@ public abstract class Command {
 	public EmbedBuilder generateHelp(String commandName, String commandDescription, String @NotNull [] commandArgs,
 									 String @NotNull [] aliases, String[] flags, int cooldown,
 									 @NotNull ArrayList<Command> subCommands, @NotNull Guild guild, @NotNull User author) {
-		String prefix = CommandHandler.prefixes.get(guild.getId());
+		String prefix = CommandHandler.prefixes.get(guild.getIdLong());
 
 		EmbedBuilder info = new EmbedBuilder();
 		EmbedUtils.styleEmbed(info, author);
@@ -324,7 +324,7 @@ public abstract class Command {
 	 * Generates and sends a message for when the command has been improperly used.
 	 */
 	public void sendCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
-		String prefix = CommandHandler.prefixes.get(event.getGuild().getId());
+		String prefix = CommandHandler.prefixes.get(event.getGuild().getIdLong());
 
 		EmbedBuilder info = new EmbedBuilder();
 		EmbedUtils.styleEmbed(info, event.getAuthor());

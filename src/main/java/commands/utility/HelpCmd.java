@@ -106,7 +106,7 @@ public class HelpCmd extends Command implements UtilityCmd {
 	 * Builds the embeds for the help command.
 	 */
 	private void createEmbed(@NotNull User author, @NotNull Guild guild) {
-		String prefix = CommandHandler.prefixes.get(guild.getId());
+		String prefix = CommandHandler.prefixes.get(guild.getIdLong());
 
 		StringBuilder utility = new StringBuilder();
 		StringBuilder morbconomy = new StringBuilder();
