@@ -12,7 +12,7 @@ import java.util.List;
 public class PrefixDao {
     private static final Connection con = DatabaseConnection.getConnection();
     private static PrefixDao instance = null;
-    private static final Logger logger = LoggerFactory.getLogger(UserDaoImplementation.class);
+    private static final Logger logger = LoggerFactory.getLogger(PrefixDao.class);
 
     private PrefixDao() {
         try {
