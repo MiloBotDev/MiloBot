@@ -31,7 +31,7 @@ public class UserDaoImplementation implements UserDao {
     private void creteTableIfNotExists() throws SQLException {
         String query = "CREATE TABLE IF NOT EXISTS users (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
-                "discord_id BIGINT NOT NULL," +
+                "discord_id BIGINT NOT NULL UNIQUE," +
                 "currency INT NOT NULL," +
                 "level INT NOT NULL," +
                 "experience INT NOT NULL" +
