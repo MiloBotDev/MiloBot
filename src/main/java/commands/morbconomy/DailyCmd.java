@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,7 @@ public class DailyCmd extends Command implements MorbconomyCmd {
     private final DatabaseManager dbManager;
     private final Random random;
     private static final Logger logger = LoggerFactory.getLogger(DailyCmd.class);
-    private final UserDao userDao = UserDaoImplementation.getInstance();
+    private final UserDao userDao = UserDao.getInstance();
 
     public DailyCmd() {
         this.commandName = "daily";

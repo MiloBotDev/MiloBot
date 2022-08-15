@@ -17,7 +17,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,7 @@ public class OnButtonClick extends ListenerAdapter {
 
     private final EncounterGeneratorCmd encCmd;
     private static final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
-    private final UserDao userDao = UserDaoImplementation.getInstance();
+    private final UserDao userDao = UserDao.getInstance();
 
     public OnButtonClick() {
         this.encCmd = EncounterGeneratorCmd.getInstance();

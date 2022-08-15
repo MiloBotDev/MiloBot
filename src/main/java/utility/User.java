@@ -7,21 +7,16 @@ import database.DatabaseManager;
 import games.HungerGames;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.spi.FileSystemProvider;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -41,7 +36,7 @@ public class User {
 
 	private User() {
 		this.manager = DatabaseManager.getInstance();
-		this.userDao = UserDaoImplementation.getInstance();
+		this.userDao = UserDao.getInstance();
 		Config config = Config.getInstance();
 		String levelsJsonPath = config.getLevelsJsonPath();
 		this.levels = new HashMap<>();

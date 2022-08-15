@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,7 @@ import java.util.*;
 public class ProfileCmd extends Command implements MorbconomyCmd {
 	private final User user;
 	private static final Logger logger = LoggerFactory.getLogger(ProfileCmd.class);
-	private final UserDao userDao = UserDaoImplementation.getInstance();
+	private final UserDao userDao = UserDao.getInstance();
 
 	public ProfileCmd() {
 		this.commandName = "profile";

@@ -2,7 +2,6 @@ package database;
 
 import database.queries.WordleTableQueries;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import newdb.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +13,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class DatabaseSeeder {
 	private static void fillDatabase() {
 		DatabaseManager manager = DatabaseManager.getInstance();
-		final UserDao userDao = UserDaoImplementation.getInstance();
+		final UserDao userDao = UserDao.getInstance();
 		final Logger logger = LoggerFactory.getLogger(DatabaseSeeder.class);
 		Random random = new Random();
 		for (int i = 0; i < 100; i++) {

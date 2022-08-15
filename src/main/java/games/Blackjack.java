@@ -6,7 +6,6 @@ import models.BlackjackStates;
 import models.cards.CardDeck;
 import models.cards.PlayingCards;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -33,7 +32,7 @@ public class Blackjack {
 	private int winnings;
 	private final long startTime;
 	private static final Logger logger = LoggerFactory.getLogger(Blackjack.class);
-	private final UserDao userDao = UserDaoImplementation.getInstance();
+	private final UserDao userDao = UserDao.getInstance();
 
 	public Blackjack(String userId) {
 		this.playerHand = new ArrayList<>();

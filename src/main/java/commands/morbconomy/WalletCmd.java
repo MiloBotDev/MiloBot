@@ -3,7 +3,6 @@ package commands.morbconomy;
 import commands.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import newdb.model.User;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -15,7 +14,7 @@ import java.util.Objects;
 
 public class WalletCmd extends Command implements MorbconomyCmd {
 	private static final Logger logger = LoggerFactory.getLogger(WalletCmd.class);
-	private final UserDao userDao = UserDaoImplementation.getInstance();
+	private final UserDao userDao = UserDao.getInstance();
 
 	public WalletCmd() {
 		this.commandName = "wallet";

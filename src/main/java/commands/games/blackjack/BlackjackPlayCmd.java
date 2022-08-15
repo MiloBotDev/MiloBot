@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 
 	private final DatabaseManager dbManager;
 
-	private final UserDao userDao = UserDaoImplementation.getInstance();
+	private final UserDao userDao = UserDao.getInstance();
 
 	private static final Logger logger = LoggerFactory.getLogger(BlackjackPlayCmd.class);
 

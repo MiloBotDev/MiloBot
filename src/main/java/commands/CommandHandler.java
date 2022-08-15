@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import newdb.dao.PrefixDao;
 import newdb.dao.UserDao;
-import newdb.dao.UserDaoImplementation;
 import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -32,7 +31,7 @@ public class CommandHandler extends ListenerAdapter {
 	public final static HashMap<Long, String> prefixes = new HashMap<>();
 	private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 	private final User user;
-	private final UserDao userDao = UserDaoImplementation.getInstance();
+	private final UserDao userDao = UserDao.getInstance();
 
 	public CommandHandler() {
 		this.user = User.getInstance();
