@@ -1,8 +1,6 @@
 import commands.CommandHandler;
 import commands.CommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
-import database.DatabaseManager;
-import database.queries.PrefixTableQueries;
 import events.OnButtonClick;
 import events.OnReadyEvent;
 import events.guild.OnGuildJoinEvent;
@@ -13,6 +11,9 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import newdb.dao.PrefixDao;
+import newdb.dao.PrefixDaoImplementation;
+import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import utility.Paginator;
 
 import javax.security.auth.login.LoginException;
 import java.awt.*;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -36,7 +38,6 @@ public class MiloBot {
 	private final static Logger logger = LoggerFactory.getLogger(MiloBot.class);
 
 	public static void main(String[] args) throws LoginException, InterruptedException {
-		DatabaseManager manager = DatabaseManager.getInstance();
 		Config config = Config.getInstance();
 
 		JDA bot = JDABuilder.createDefault(config.getBotToken(),
@@ -51,7 +52,7 @@ public class MiloBot {
 
 		CommandLoader.loadAllCommands(bot);
 
-		loadPrefixes(manager, config, bot);
+		loadPrefixes(config, bot);
 
 		Timer timer = new Timer();
 		TimerTask clearBlackjackInstances = clearInstances(bot);
@@ -159,14 +160,27 @@ public class MiloBot {
 	/**
 	 * Loads prefixes for guilds that have the bot but are not in the database yet.
 	 */
-	private static void loadPrefixes(@NotNull DatabaseManager manager, Config config, @NotNull JDA bot) {
+	private static void loadPrefixes(Config config, @NotNull JDA bot) {
 		List<Guild> guilds = bot.getGuilds();
-		ArrayList<String> result = manager.query(PrefixTableQueries.getAllPrefixes, DatabaseManager.QueryTypes.RETURN);
+		PrefixDao prefixDao = PrefixDaoImplementation.getInstance();
+		List<Prefix> prefixes;
+		try {
+			prefixes = prefixDao.getAllPrefixes();
+		} catch (SQLException e) {
+			logger.error("Error loading prefixes.", e);
+			return;
+		}
 		for (Guild guild : guilds) {
-			String id = guild.getId();
-			if (!result.contains(id)) {
-				logger.info(String.format("Guild: %s does not have a configured prefix.", id));
-				manager.query(PrefixTableQueries.addServerPrefix, DatabaseManager.QueryTypes.UPDATE, id, config.getDefaultPrefix());
+			long id = guild.getIdLong();
+			if (prefixes.stream().noneMatch(prefix -> prefix.getGuildId() == id)) {
+				logger.info(String.format("Guild: %s does not have a configured prefix.", id) +
+						" Setting default prefix for guild.");
+				Prefix prefix = new Prefix(id, config.getDefaultPrefix());
+				try {
+					prefixDao.add(prefix);
+				} catch (SQLException e) {
+					logger.error("Error adding prefix.", e);
+				}
 				CommandHandler.prefixes.put(id, config.getDefaultPrefix());
 			}
 		}

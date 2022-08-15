@@ -1,14 +1,14 @@
 package commands;
 
-import database.DatabaseManager;
-import database.queries.PrefixTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import newdb.dao.PrefixDaoImplementation;
 import newdb.dao.UserDao;
 import newdb.dao.UserDaoImplementation;
+import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,22 +26,23 @@ import java.util.stream.Collectors;
  */
 public class CommandHandler extends ListenerAdapter {
 
-	public final static HashMap<String, String> prefixes = new HashMap<>();
+	public final static HashMap<Long, String> prefixes = new HashMap<>();
 	private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 	private final User user;
-	private final DatabaseManager manager;
 	private final UserDao userDao = UserDaoImplementation.getInstance();
 
 	public CommandHandler() {
 		this.user = User.getInstance();
-		this.manager = DatabaseManager.getInstance();
 		// loads all the prefixes into a map
-		ArrayList<String> query = manager.query(PrefixTableQueries.getAllPrefixes, DatabaseManager.QueryTypes.RETURN);
-		for (int i = 0; i < query.size(); i += 2) {
-			prefixes.put(query.get(i), query.get(i + 1));
-			if (i == query.size()) {
-				break;
-			}
+		List<Prefix> prefixesDbObj;
+		try {
+			prefixesDbObj = PrefixDaoImplementation.getInstance().getAllPrefixes();
+		} catch (SQLException e) {
+			logger.error("CommandHandler: Could not load prefixes", e);
+			return;
+		}
+		for (Prefix prefixDbObj : prefixesDbObj) {
+			prefixes.put(prefixDbObj.getGuildId(), prefixDbObj.getPrefix());
 		}
 	}
 
@@ -56,7 +57,7 @@ public class CommandHandler extends ListenerAdapter {
 			return;
 		}
 
-		String guildId = event.getGuild().getId();
+		long guildId = event.getGuild().getIdLong();
 		List<String> receivedMessage = Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
 				.map(String::toLowerCase).collect(Collectors.toList());
 		AtomicBoolean commandFound = new AtomicBoolean(false);
@@ -176,7 +177,7 @@ public class CommandHandler extends ListenerAdapter {
 				} else {
 					command = CommandLoader.commandList.get(strings);
 				}
-				String prefix = prefixes.get(event.getGuild().getId());
+				String prefix = prefixes.get(event.getGuild().getIdLong());
 				if (!command.checkRequiredPermissions(event, command.permissions)) {
 					command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
 					return;

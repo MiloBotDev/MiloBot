@@ -2,13 +2,17 @@ package commands.utility;
 
 import commands.Command;
 import commands.CommandHandler;
-import database.DatabaseManager;
-import database.queries.PrefixTableQueries;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import newdb.dao.PrefixDao;
+import newdb.dao.PrefixDaoImplementation;
+import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -17,8 +21,8 @@ import java.util.Objects;
  * Change the prefix the bot listens to for a guild.
  */
 public class PrefixCmd extends Command implements UtilityCmd {
-
-	public DatabaseManager manager;
+	private final Logger logger = LoggerFactory.getLogger(PrefixCmd.class);
+	private final PrefixDao prefixDao = PrefixDaoImplementation.getInstance();
 
 	public PrefixCmd() {
 		this.commandName = "prefix";
@@ -26,8 +30,6 @@ public class PrefixCmd extends Command implements UtilityCmd {
 		this.commandArgs = new String[]{"prefix"};
 		this.cooldown = 60;
 		this.permissions.put("Administrator", Permission.ADMINISTRATOR);
-
-		this.manager = DatabaseManager.getInstance();
 	}
 
 	@Override
@@ -37,10 +39,10 @@ public class PrefixCmd extends Command implements UtilityCmd {
 			event.getChannel().sendMessage("A prefix cant be longer then 2 characters.").queue();
 		} else {
 			if(isValidPrefix(prefix)) {
-				String id = event.getGuild().getId();
-				this.manager.query(PrefixTableQueries.updateServerPrefix, DatabaseManager.QueryTypes.UPDATE, prefix, id);
-				CommandHandler.prefixes.replace(id, prefix);
-				event.getChannel().sendMessage(String.format("Prefix successfully changed to: %s", prefix)).queue();
+				long id = event.getGuild().getIdLong();
+				if (updatePrefix(prefix, id)) {
+					event.getChannel().sendMessage(String.format("Prefix successfully changed to: %s", prefix)).queue();
+				}
 			} else {
 				event.getChannel().sendMessage(String.format("`%s` is not a valid prefix", prefix)).queue();
 			}
@@ -54,14 +56,33 @@ public class PrefixCmd extends Command implements UtilityCmd {
 			event.reply("A prefix cant be longer then 2 characters.").queue();
 		} else {
 			if(isValidPrefix(prefix)) {
-				String id = Objects.requireNonNull(event.getGuild()).getId();
-				this.manager.query(PrefixTableQueries.updateServerPrefix, DatabaseManager.QueryTypes.UPDATE, prefix, id);
-				CommandHandler.prefixes.replace(id, prefix);
-				event.reply(String.format("Prefix successfully changed to: %s", prefix)).queue();
+				long id = Objects.requireNonNull(event.getGuild()).getIdLong();
+				if (updatePrefix(prefix, id)) {
+					event.reply(String.format("Prefix successfully changed to: %s", prefix)).queue();
+				}
 			} else {
 				event.reply(String.format("`%s` is not a valid prefix", prefix)).queue();
 			}
 		}
+	}
+
+	private boolean updatePrefix(String prefix, long id) {
+		Prefix prefixDbObj;
+		try {
+			prefixDbObj = prefixDao.getPrefixByGuildId(id);
+		} catch (SQLException e) {
+			logger.error("Could not get prefix for guild", e);
+			return false;
+		}
+		Objects.requireNonNull(prefixDbObj).setPrefix(prefix);
+		try {
+			prefixDao.update(prefixDbObj);
+		} catch (SQLException e) {
+			logger.error("Could not update prefix for guild", e);
+			return false;
+		}
+		CommandHandler.prefixes.replace(id, prefix);
+		return true;
 	}
 
 	private boolean isValidPrefix(@NotNull String prefix) {
