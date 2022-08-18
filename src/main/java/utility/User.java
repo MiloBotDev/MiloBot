@@ -4,23 +4,21 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import database.DatabaseManager;
-import database.queries.UsersTableQueries;
 import games.HungerGames;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import newdb.dao.UserDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * All methods related to users.
@@ -34,9 +32,11 @@ public class User {
 	public final HashMap<Integer, Integer> levels;
 	private final DatabaseManager manager;
 	public int maxLevel;
+	private final UserDao userDao;
 
 	private User() {
 		this.manager = DatabaseManager.getInstance();
+		this.userDao = UserDao.getInstance();
 		Config config = Config.getInstance();
 		String levelsJsonPath = config.getLevelsJsonPath();
 		this.levels = new HashMap<>();
@@ -58,14 +58,17 @@ public class User {
 	/**
 	 * Checks if a user exists in the database.
 	 *
-	 * @param userId - The id of the user
+	 * @param userDiscordId - The id of the user
 	 * @return true if the user exists, false if not
 	 */
-	public boolean checkIfUserExists(String userId) {
+	public boolean checkIfUserExists(long userDiscordId) {
 		boolean exists = false;
-		ArrayList<String> result = manager.query(UsersTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, userId);
-		if (result.size() > 0) {
-			exists = true;
+		try {
+			if (userDao.getUserByDiscordId(userDiscordId) != null) {
+				exists = true;
+			}
+		} catch (SQLException e) {
+			logger.error("Error checking if user exists", e);
 		}
 		return exists;
 	}
@@ -73,35 +76,29 @@ public class User {
 	/**
 	 * Updates a users experience and increases their level if needed.
 	 *
-	 * @param userId     - The id of the user
+	 * @param discordUserId     - The id of the user
 	 * @param experience - The amount of experience to add
 	 */
-	public void updateExperience(String userId, int experience, String asMention, MessageChannel channel) {
+	public void updateExperience(long discordUserId, int experience, String asMention, MessageChannel channel) throws SQLException {
 		// load in their current experience and level
-		ArrayList<String> query = manager.query(UsersTableQueries.getUserExperienceAndLevel, DatabaseManager.QueryTypes.RETURN, userId);
-		int currentExperience = Integer.parseInt(query.get(0));
-		int currentLevel = Integer.parseInt(query.get(1));
-		int newExperience = currentExperience + experience;
+		newdb.model.User user = userDao.getUserByDiscordId(discordUserId);
+		Objects.requireNonNull(user).addExperience(experience);
 		// check if they leveled up
-		if (currentLevel < maxLevel) {
-			int nextLevel = currentLevel + 1;
+		if (user.getLevel() < maxLevel) {
+			int nextLevel = user.getLevel() + 1;
 			int nextLevelExperience = levels.get(nextLevel);
-			if (newExperience >= nextLevelExperience) {
+			if (user.getExperience() >= nextLevelExperience) {
 				// user leveled up so update their level and experience
-				manager.query(UsersTableQueries.updateUserLevelAndExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(nextLevel),
-						String.valueOf(newExperience), userId);
-				logger.info(String.format("%s leveled up to level %d!", userId, nextLevel));
+				user.incrementLevel();
+				userDao.update(user);
+				logger.info(String.format("%s leveled up to level %d!", discordUserId, nextLevel));
 				// send a message to the channel the user leveled up in
 				channel.sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
 			} else {
-				// user didn't level up so just update their experience
-				manager.query(UsersTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
-						userId);
+				userDao.update(user);
 			}
 		} else {
-			// user didn't level up so just update their experience
-			manager.query(UsersTableQueries.updateUserExperience, DatabaseManager.QueryTypes.UPDATE, String.valueOf(newExperience),
-					userId);
+			userDao.update(user);
 		}
 	}
 

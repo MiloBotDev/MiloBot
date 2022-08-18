@@ -14,6 +14,7 @@ import java.util.ArrayList;
  * Manages queries sent to the database.
  * This class is a singleton.
  */
+@Deprecated(forRemoval = true, since = "8/12/22")
 public class DatabaseManager {
 
 	final static Logger logger = LoggerFactory.getLogger(DatabaseManager.class);

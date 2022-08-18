@@ -1,18 +1,19 @@
 package events.guild;
 
 import commands.CommandHandler;
-import database.DatabaseManager;
-import database.queries.PrefixTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import newdb.dao.PrefixDao;
+import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
 
 import java.awt.*;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -25,10 +26,10 @@ import java.util.Objects;
 public class OnGuildJoinEvent extends ListenerAdapter {
 
 	final static Logger logger = LoggerFactory.getLogger(OnGuildJoinEvent.class);
+	private final PrefixDao prefixDao = PrefixDao.getInstance();
 
 	@Override
 	public void onGuildJoin(@NotNull GuildJoinEvent event) {
-		DatabaseManager manager = DatabaseManager.getInstance();
 		Config config = Config.getInstance();
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))
@@ -53,8 +54,13 @@ public class OnGuildJoinEvent extends ListenerAdapter {
 		logs.sendTyping().queue();
 		logs.sendMessageEmbeds(embed.build()).queue();
 
-		manager.query(PrefixTableQueries.addServerPrefix, DatabaseManager.QueryTypes.UPDATE, event.getGuild().getId(), "!");
-		CommandHandler.prefixes.put(event.getGuild().getId(), "!");
+		Prefix prefix = new Prefix(event.getGuild().getIdLong(), config.getDefaultPrefix());
+		try {
+			prefixDao.add(prefix);
+			CommandHandler.prefixes.put(event.getGuild().getIdLong(), config.getDefaultPrefix());
+		} catch (SQLException e) {
+			logger.error("Error adding prefix on guild join event", e);
+		}
 		logger.info(String.format("Bot has been added to: %s.", event.getGuild().getName()));
 	}
 

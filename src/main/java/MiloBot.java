@@ -1,12 +1,8 @@
 import commands.CommandHandler;
 import commands.CommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
-import database.DatabaseManager;
-import database.queries.PrefixTableQueries;
-import database.queries.UsersTableQueries;
 import events.OnButtonClick;
 import events.OnReadyEvent;
-import events.OnUserUpdateNameEvent;
 import events.guild.OnGuildJoinEvent;
 import events.guild.OnGuildLeaveEvent;
 import games.Blackjack;
@@ -38,7 +34,6 @@ public class MiloBot {
 	private final static Logger logger = LoggerFactory.getLogger(MiloBot.class);
 
 	public static void main(String[] args) throws LoginException, InterruptedException {
-		DatabaseManager manager = DatabaseManager.getInstance();
 		Config config = Config.getInstance();
 
 		JDA bot = JDABuilder.createDefault(config.getBotToken(),
@@ -48,13 +43,10 @@ public class MiloBot {
 						GatewayIntent.DIRECT_MESSAGES)
 				.setActivity(Activity.watching("Morbius"))
 				.addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent(),
-						new OnReadyEvent(), new OnUserUpdateNameEvent(), new OnButtonClick())
+						new OnReadyEvent(), new OnButtonClick())
 				.build().awaitReady();
 
 		CommandLoader.loadAllCommands(bot);
-
-		loadPrefixes(manager, config, bot);
-		updateUserNames(manager, bot);
 
 		Timer timer = new Timer();
 		TimerTask clearBlackjackInstances = clearInstances(bot);
@@ -157,56 +149,5 @@ public class MiloBot {
 				logs.sendMessageEmbeds(logEmbed.build()).queue();
 			}
 		};
-	}
-
-	/**
-	 * Loads prefixes for guilds that have the bot but are not in the database yet.
-	 */
-	private static void loadPrefixes(@NotNull DatabaseManager manager, Config config, @NotNull JDA bot) {
-		List<Guild> guilds = bot.getGuilds();
-		ArrayList<String> result = manager.query(PrefixTableQueries.getAllPrefixes, DatabaseManager.QueryTypes.RETURN);
-		for (Guild guild : guilds) {
-			String id = guild.getId();
-			if (!result.contains(id)) {
-				logger.info(String.format("Guild: %s does not have a configured prefix.", id));
-				manager.query(PrefixTableQueries.addServerPrefix, DatabaseManager.QueryTypes.UPDATE, id, config.getDefaultPrefix());
-				CommandHandler.prefixes.put(id, config.getDefaultPrefix());
-			}
-		}
-	}
-
-	/**
-	 * Checks if any users updated their name. If so update it in the database.
-	 */
-	private static void updateUserNames(@NotNull DatabaseManager manager, @NotNull JDA bot) {
-		List<Guild> guilds = bot.getGuilds();
-		ArrayList<String> result = manager.query(UsersTableQueries.getAllUserIdsAndNames, DatabaseManager.QueryTypes.RETURN);
-		HashMap<String, String> users = new HashMap<>();
-		for (int i = 0; i < result.size(); i += 2) {
-			if (!(i + 2 == result.size() && users.containsKey(result.get(i)))) {
-				users.put(result.get(i), result.get(i + 1));
-			}
-		}
-		for (Guild guild : guilds) {
-			List<Member> members = new ArrayList<>();
-			guild.loadMembers().onSuccess(loadedMembers -> {
-				members.addAll(loadedMembers);
-				for (Member member : members) {
-					User user = member.getUser();
-					if (!(user.isBot())) {
-						String userId = user.getId();
-						if (users.containsKey(userId)) {
-							String nameInDatabase = users.get(userId);
-							String currentName = user.getName();
-							if (!(nameInDatabase.equals(currentName))) {
-								logger.info(String.format("%s changed their name to: %s.", nameInDatabase, currentName));
-								manager.query(UsersTableQueries.updateUserName, DatabaseManager.QueryTypes.UPDATE, currentName, userId);
-							}
-						}
-					}
-				}
-			});
-
-		}
 	}
 }

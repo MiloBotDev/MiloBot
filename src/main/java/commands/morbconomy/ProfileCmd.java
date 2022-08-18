@@ -1,17 +1,19 @@
 package commands.morbconomy;
 
 import commands.Command;
-import database.DatabaseManager;
-import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
+import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 import utility.User;
 
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -19,16 +21,15 @@ import java.util.*;
  * Shows the user their own profile or that of someone else.
  */
 public class ProfileCmd extends Command implements MorbconomyCmd {
-
-	private final DatabaseManager manager;
 	private final User user;
+	private static final Logger logger = LoggerFactory.getLogger(ProfileCmd.class);
+	private final UserDao userDao = UserDao.getInstance();
 
 	public ProfileCmd() {
 		this.commandName = "profile";
 		this.commandDescription = "View your own or someone else's profile.";
 		this.commandArgs = new String[]{"*user"};
 		this.cooldown = 0;
-		this.manager = DatabaseManager.getInstance();
 		this.user = User.getInstance();
 	}
 
@@ -116,25 +117,32 @@ public class ProfileCmd extends Command implements MorbconomyCmd {
 	 * Builds the embed for the Profile command.
 	 */
 	private Optional<EmbedBuilder> makeEmbed(String name, net.dv8tion.jda.api.entities.User author, String id) {
-		ArrayList<String> resultSelectUser = manager.query(UsersTableQueries.selectUser, DatabaseManager.QueryTypes.RETURN, id);
-		ArrayList<String> resultGetUserRank = manager.query(UsersTableQueries.getUserRankByExperience, DatabaseManager.QueryTypes.RETURN, id);
-		ArrayList<String> resultGetUserAmount = manager.query(UsersTableQueries.getUserAmount, DatabaseManager.QueryTypes.RETURN);
-		if(resultSelectUser.size() == 0 || resultGetUserRank.size() == 0) {
+		newdb.model.User userDbObj;
+		try {
+			userDbObj = userDao.getUserByDiscordId(author.getIdLong());
+		} catch (SQLException e) {
+			logger.error("Error getting user at making user embed at profile command", e);
 			return Optional.empty();
 		}
-		String userName = resultSelectUser.get(1);
-		String currency = resultSelectUser.get(2);
-		String level = resultSelectUser.get(3);
-		String experience = resultSelectUser.get(4);
-		String rank = resultGetUserRank.get(0);
-		String userAmount = resultGetUserAmount.get(0);
+		int rank;
+		try {
+			rank = userDao.getUserRank(Objects.requireNonNull(userDbObj).getId());
+		} catch (SQLException e) {
+			logger.error("Error getting user rank at making user embed at profile command", e);
+			return Optional.empty();
+		}
+		String userName = author.getName();
+		int currency = userDbObj.getCurrency();
+		int level = userDbObj.getLevel();
+		int experience = userDbObj.getExperience();
+		int userAmount = userDbObj.getCurrency();
 
 		EmbedBuilder embed = new EmbedBuilder();
 		EmbedUtils.styleEmbed(embed, author);
 		embed.setTitle(name);
 
 		StringBuilder levelDescription = new StringBuilder();
-		Optional<String> levelProgressBar = generateLevelProgressBar(Integer.parseInt(level), Integer.parseInt(experience));
+		Optional<String> levelProgressBar = generateLevelProgressBar(level, experience);
 		levelDescription.append(String.format("**Level:** `%s`\n", level));
 		levelDescription.append(String.format("**Experience:** `%s`\n", experience));
 		if (levelProgressBar.isPresent()) {

@@ -1,20 +1,23 @@
 package commands;
 
-import database.DatabaseManager;
-import database.queries.DailiesTableQueries;
-import database.queries.PrefixTableQueries;
-import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import newdb.dao.PrefixDao;
+import newdb.dao.UserDao;
+import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utility.Config;
 import utility.User;
 
 import java.awt.*;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,20 +28,52 @@ import java.util.stream.Collectors;
  */
 public class CommandHandler extends ListenerAdapter {
 
-	public final static HashMap<String, String> prefixes = new HashMap<>();
+	public final static HashMap<Long, String> prefixes = new HashMap<>();
 	private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 	private final User user;
-	private final DatabaseManager manager;
+	private final UserDao userDao = UserDao.getInstance();
 
 	public CommandHandler() {
 		this.user = User.getInstance();
-		this.manager = DatabaseManager.getInstance();
 		// loads all the prefixes into a map
-		ArrayList<String> query = manager.query(PrefixTableQueries.getAllPrefixes, DatabaseManager.QueryTypes.RETURN);
-		for (int i = 0; i < query.size(); i += 2) {
-			prefixes.put(query.get(i), query.get(i + 1));
-			if (i == query.size()) {
-				break;
+		List<Prefix> prefixesDbObj;
+		try {
+			prefixesDbObj = PrefixDao.getInstance().getAllPrefixes();
+		} catch (SQLException e) {
+			logger.error("CommandHandler: Could not load prefixes", e);
+			return;
+		}
+		for (Prefix prefixDbObj : prefixesDbObj) {
+			prefixes.put(prefixDbObj.getGuildId(), prefixDbObj.getPrefix());
+		}
+	}
+
+	/**
+	 * Loads prefixes for guilds that have the bot but are not in the database yet.
+	 */
+	@Override
+	public void onReady(@NotNull ReadyEvent event) {
+		List<Guild> guilds = event.getJDA().getGuilds();
+		PrefixDao prefixDao = PrefixDao.getInstance();
+		List<Prefix> prefixes;
+		try {
+			prefixes = prefixDao.getAllPrefixes();
+		} catch (SQLException e) {
+			logger.error("Error loading prefixes.", e);
+			return;
+		}
+		for (Guild guild : guilds) {
+			long id = guild.getIdLong();
+			if (prefixes.stream().noneMatch(prefix -> prefix.getGuildId() == id)) {
+				logger.info(String.format("Guild: %s does not have a configured prefix.", id) +
+						" Setting default prefix for guild.");
+				Prefix prefix = new Prefix(id, Config.getInstance().getDefaultPrefix());
+				try {
+					prefixDao.add(prefix);
+				} catch (SQLException e) {
+					logger.error("Error adding prefix.", e);
+				}
+				CommandHandler.prefixes.put(id, Config.getInstance().getDefaultPrefix());
 			}
 		}
 	}
@@ -54,7 +89,7 @@ public class CommandHandler extends ListenerAdapter {
 			return;
 		}
 
-		String guildId = event.getGuild().getId();
+		long guildId = event.getGuild().getIdLong();
 		List<String> receivedMessage = Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
 				.map(String::toLowerCase).collect(Collectors.toList());
 		AtomicBoolean commandFound = new AtomicBoolean(false);
@@ -123,10 +158,20 @@ public class CommandHandler extends ListenerAdapter {
 					String userId = event.getAuthor().getId();
 					command.updateCommandTrackerUser(fullCommandName, userId);
 					// check if this user exists in the database otherwise add it
-					if (!user.checkIfUserExists(userId)) {
-						addUserToDatabase(event.getAuthor());
+					if (!user.checkIfUserExists(event.getAuthor().getIdLong())) {
+						try {
+							addUserToDatabase(event.getAuthor());
+						} catch (SQLException e) {
+							logger.error("Couldn't add user to database", e);
+							return;
+						}
 					}
-					user.updateExperience(userId, 10, event.getAuthor().getAsMention(), event.getChannel());
+					try {
+						user.updateExperience(event.getAuthor().getIdLong(), 10, event.getAuthor().getAsMention(),
+								event.getChannel());
+					} catch (SQLException e) {
+						logger.error("Couldn't update user experience", e);
+					}
 					// execute the command
 					command.executeCommand(event, receivedMessage);
 					logger.info(String.format("Executed command: %s | Author: %s.", fullCommandName,
@@ -164,27 +209,35 @@ public class CommandHandler extends ListenerAdapter {
 				} else {
 					command = CommandLoader.commandList.get(strings);
 				}
-				String prefix = prefixes.get(event.getGuild().getId());
+				String prefix = prefixes.get(event.getGuild().getIdLong());
 				if (!command.checkRequiredPermissions(event, command.permissions)) {
 					command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
 					return;
 				}
-				if (!user.checkIfUserExists(event.getUser().getId())) {
-					addUserToDatabase(event.getUser());
+				if (!user.checkIfUserExists(event.getUser().getIdLong())) {
+					try {
+						addUserToDatabase(event.getUser());
+					} catch (SQLException e) {
+						logger.error("Couldn't add user to database", e);
+						return;
+					}
 				}
 				command.executeSlashCommand(event);
 				command.updateCommandTrackerUser(fullCommandName, event.getUser().getId());
-				user.updateExperience(event.getUser().getId(), 10, event.getUser().getAsMention(), event.getChannel());
+				try {
+					user.updateExperience(event.getUser().getIdLong(), 10, event.getUser().getAsMention(),
+							event.getChannel());
+				} catch (SQLException e) {
+					logger.error("Couldn't update user experience", e);
+				}
 			}
 		});
 
 	}
 
-	private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) {
-		String userId = user.getId();
-		manager.query(UsersTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, userId,
-				user.getName(), "0", "1", "0");
-		manager.query(DailiesTableQueries.addUserDaily, DatabaseManager.QueryTypes.UPDATE, userId);
+	private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
+		newdb.model.User newUser = new newdb.model.User(user.getIdLong());
+		userDao.add(newUser);
 	}
 
 }

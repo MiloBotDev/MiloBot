@@ -3,8 +3,6 @@ package events;
 import commands.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
 import commands.games.hungergames.HungerGamesStartCmd;
-import database.DatabaseManager;
-import database.queries.UsersTableQueries;
 import games.Blackjack;
 import games.HungerGames;
 import games.Poker;
@@ -18,14 +16,18 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.Lobby;
 import utility.Paginator;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Triggers when a button is clicked by a user.
@@ -33,11 +35,11 @@ import java.util.List;
 public class OnButtonClick extends ListenerAdapter {
 
     private final EncounterGeneratorCmd encCmd;
-    private final DatabaseManager dbManager;
+    private static final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
+    private final UserDao userDao = UserDao.getInstance();
 
     public OnButtonClick() {
         this.encCmd = EncounterGeneratorCmd.getInstance();
-        this.dbManager = DatabaseManager.getInstance();
     }
 
     @Override
@@ -166,8 +168,14 @@ public class OnButtonClick extends ListenerAdapter {
                 } else {
                     String s = description.replaceAll("[^0-9]", "");
                     int bet = Integer.parseInt(s);
-                    ArrayList<String> result = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, user.getId());
-                    int wallet = Integer.parseInt(result.get(0));
+                    newdb.model.User user2;
+                    try {
+                        user2 = userDao.getUserByDiscordId(event.getUser().getIdLong());
+                    } catch (SQLException e) {
+                        logger.error("Error getting user from database when user wanted to replay blackjack.", e);
+                        return;
+                    }
+                    int wallet = Objects.requireNonNull(user2).getCurrency();
                     if (bet > wallet) {
                         event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();
                         break;

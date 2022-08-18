@@ -1,17 +1,18 @@
 package events.guild;
 
 import commands.CommandHandler;
-import database.DatabaseManager;
-import database.queries.PrefixTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import newdb.dao.PrefixDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utility.Config;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -25,14 +26,14 @@ import java.util.Objects;
 public class OnGuildLeaveEvent extends ListenerAdapter {
 
 	final static Logger logger = LoggerFactory.getLogger(OnGuildLeaveEvent.class);
+	private final PrefixDao prefixDao = PrefixDao.getInstance();
 
 	@Override
 	public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
-		DatabaseManager manager = DatabaseManager.getInstance();
-
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById("920316842902454343"))
-				.getTextChannelsByName("logs", true).get(0);
+		Config config = Config.getInstance();
+		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))
+				.getTextChannelsByName(config.getLoggingChannelName(), true).get(0);
 
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.setImage(event.getGuild().getIconUrl());
@@ -53,8 +54,12 @@ public class OnGuildLeaveEvent extends ListenerAdapter {
 		logs.sendTyping().queue();
 		logs.sendMessageEmbeds(embed.build()).queue();
 
-		manager.query(PrefixTableQueries.deleteServerPrefix, DatabaseManager.QueryTypes.UPDATE, event.getGuild().getId());
-		CommandHandler.prefixes.remove(event.getGuild().getId());
+		try {
+			prefixDao.deleteByGuildId(event.getGuild().getIdLong());
+			CommandHandler.prefixes.remove(event.getGuild().getIdLong());
+		} catch (SQLException e) {
+			logger.error("Error deleting prefix from database on guild leave event", e);
+		}
 		logger.info(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
 	}
 
