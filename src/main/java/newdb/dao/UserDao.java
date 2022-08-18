@@ -2,6 +2,7 @@ package newdb.dao;
 
 import newdb.model.User;
 import newdb.util.DatabaseConnection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,9 +10,10 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 
 public class UserDao {
+
     private static final Connection con = DatabaseConnection.getConnection();
-    private static UserDao instance = null;
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+    private static UserDao instance = null;
 
     private UserDao() {
         try {
@@ -40,7 +42,7 @@ public class UserDao {
         st.execute(query);
     }
 
-    public void add(User user) throws SQLException {
+    public void add(@NotNull User user) throws SQLException {
         String query = "INSERT INTO users (discord_id, currency, level, experience) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setLong(1, user.getDiscordId());
@@ -50,14 +52,14 @@ public class UserDao {
         ps.executeUpdate();
     }
 
-    public void delete(User user) throws SQLException {
+    public void delete(@NotNull User user) throws SQLException {
         String query = "DELETE FROM users WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setLong(1, user.getDiscordId());
         ps.executeUpdate();
     }
 
-    public void update(User user) throws SQLException {
+    public void update(@NotNull User user) throws SQLException {
         String query = "UPDATE users SET discord_id = ?, currency = ?, level = ?, experience = ? WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setLong(1, user.getDiscordId());
@@ -90,6 +92,7 @@ public class UserDao {
         ps = con.prepareStatement(query);
         ps.setInt(1, userId);
         ResultSet rs = ps.executeQuery();
+
         if (rs.next()) {
             return rs.getInt("rank");
         } else {

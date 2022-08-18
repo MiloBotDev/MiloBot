@@ -11,8 +11,8 @@ import java.util.List;
 
 public class PrefixDao {
     private static final Connection con = DatabaseConnection.getConnection();
-    private static PrefixDao instance = null;
     private static final Logger logger = LoggerFactory.getLogger(PrefixDao.class);
+    private static PrefixDao instance = null;
 
     private PrefixDao() {
         try {
@@ -20,6 +20,13 @@ public class PrefixDao {
         } catch (SQLException e) {
             logger.error("Error creating table prefixes ", e);
         }
+    }
+
+    public static PrefixDao getInstance() {
+        if (instance == null) {
+            instance = new PrefixDao();
+        }
+        return instance;
     }
 
     private void creteTableIfNotExists() throws SQLException {
@@ -30,13 +37,6 @@ public class PrefixDao {
                 ")";
         Statement st = con.createStatement();
         st.execute(query);
-    }
-
-    public static PrefixDao getInstance() {
-        if (instance == null) {
-            instance = new PrefixDao();
-        }
-        return instance;
     }
 
     public void add(Prefix prefix) throws SQLException {

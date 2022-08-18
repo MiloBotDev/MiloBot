@@ -13,24 +13,24 @@ import java.util.List;
 import java.util.Objects;
 
 public class WalletCmd extends Command implements MorbconomyCmd {
-	private static final Logger logger = LoggerFactory.getLogger(WalletCmd.class);
-	private final UserDao userDao = UserDao.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(WalletCmd.class);
+    private final UserDao userDao = UserDao.getInstance();
 
-	public WalletCmd() {
-		this.commandName = "wallet";
-		this.commandDescription = "Check your wallet.";
-	}
+    public WalletCmd() {
+        this.commandName = "wallet";
+        this.commandDescription = "Check your wallet.";
+    }
 
-	@Override
-	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-		User user;
-		try {
-			user = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
-		} catch (SQLException e) {
-			logger.error("Error getting user from database at wallet command.", e);
-			return;
-		}
-		int wallet = Objects.requireNonNull(user).getCurrency();
-		event.getChannel().sendMessage(String.format("You have `%d` morbcoins in your wallet.", wallet)).queue();
-	}
+    @Override
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+        User user;
+        try {
+            user = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
+        } catch (SQLException e) {
+            logger.error("Error getting user from database at wallet command.", e);
+            return;
+        }
+        int wallet = Objects.requireNonNull(user).getCurrency();
+        event.getChannel().sendMessage(String.format("You have `%d` morbcoins in your wallet.", wallet)).queue();
+    }
 }

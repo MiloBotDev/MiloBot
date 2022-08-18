@@ -34,8 +34,8 @@ import java.util.Objects;
  */
 public class OnButtonClick extends ListenerAdapter {
 
-    private final EncounterGeneratorCmd encCmd;
     private static final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
+    private final EncounterGeneratorCmd encCmd;
     private final UserDao userDao = UserDao.getInstance();
 
     public OnButtonClick() {

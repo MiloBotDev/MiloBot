@@ -1,20 +1,20 @@
-local damage = 40
+local damage = 10
 
 return {
-    name = "gun",
-    rarity = 5,
+    name = "slingshot",
+    rarity = 20,
     type = "usable",
     onUse = function(self, lobbyEntry)
         victim = game:getRandomPlayer(lobbyEntry)
         remainingHealth = victim:getHealth()
         if victim:damage(damage) then
-            game:log(string.format("%s shot %s and it looked pretty painful.",
+            game:log(string.format("%s loads up their slingshot with their own feces and kills %s with it.",
                     lobbyEntry:getUserName(), victim:getUserName()))
             lobbyEntry:addDamageDone(remainingHealth)
             lobbyEntry:addKill()
             victim:onDeath()
         else
-            game:log(string.format("%s shoots their gun at  %s. It deals %d damage, their HP is now %d.",
+            game:log(string.format("%s loads up their slingshot with a rock and fires at %s. It deals %d damage, their hp is now %d.",
                     lobbyEntry:getUserName(), victim:getUserName(), damage, victim:getHealth()))
             lobbyEntry:addDamageDone(damage)
         end

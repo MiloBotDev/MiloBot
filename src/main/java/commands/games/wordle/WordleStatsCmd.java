@@ -46,15 +46,15 @@ public class WordleStatsCmd extends Command implements SubCmd {
         embed.setTitle(String.format("Wordle Statistics for %s", user.getName()));
 
         ArrayList<String> result = dbManager.query(WordleTableQueries.selectUserWordle, DatabaseManager.QueryTypes.RETURN, user.getId());
-        if(result.size() == 0) {
+        if (result.size() == 0) {
             embed.setDescription("No wordle statistics on record.");
-        } else  {
+        } else {
             String fastestTime = result.get(1);
             String currentStreak = result.get(3);
             String totalGames = result.get(4);
             String highestStreak = result.get(5);
 
-            if(Objects.equals(fastestTime, "null")) {
+            if (Objects.equals(fastestTime, "null")) {
                 fastestTime = "0";
             }
 

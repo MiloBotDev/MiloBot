@@ -11,12 +11,12 @@ import commands.bot.BotCmd;
  */
 public class BugCmd extends Command implements BotCmd, ParentCmd {
 
-	public BugCmd() {
-		this.commandName = "bug";
-		this.commandDescription = "Add bugs to the bots issue tracker, or view them.";
-		this.subCommands.add(new BugReportCmd());
-		this.subCommands.add(new BugViewCmd());
-		this.subCommands.add(new BugListCmd());
-	}
+    public BugCmd() {
+        this.commandName = "bug";
+        this.commandDescription = "Add bugs to the bots issue tracker, or view them.";
+        this.subCommands.add(new BugReportCmd());
+        this.subCommands.add(new BugViewCmd());
+        this.subCommands.add(new BugListCmd());
+    }
 
 }

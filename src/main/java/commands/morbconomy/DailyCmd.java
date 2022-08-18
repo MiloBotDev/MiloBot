@@ -22,9 +22,9 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 
 public class DailyCmd extends Command implements MorbconomyCmd {
 
+    private static final Logger logger = LoggerFactory.getLogger(DailyCmd.class);
     private final DatabaseManager dbManager;
     private final Random random;
-    private static final Logger logger = LoggerFactory.getLogger(DailyCmd.class);
     private final UserDao userDao = UserDao.getInstance();
 
     public DailyCmd() {
@@ -67,33 +67,33 @@ public class DailyCmd extends Command implements MorbconomyCmd {
         String lastDailyDate = userDaily.get(1);
         int streak = Integer.parseInt(userDaily.get(2));
         int totalClaimed = Integer.parseInt(userDaily.get(3)) + 1;
-        if(lastDailyDate.equals("null")) {
+        if (lastDailyDate.equals("null")) {
             result.append(String.format("You claimed your first daily! You earn `%d` morbcoins.", reward));
             streak++;
         } else {
             LocalDateTime lastDailyTime = LocalDateTime.parse(lastDailyDate);
             long minutesSinceLastDaily = MINUTES.between(lastDailyTime, currentTime);
-            if(minutesSinceLastDaily < 1440) {
+            if (minutesSinceLastDaily < 1440) {
                 // 24 hours haven't passed yet
                 long minutesTillNextDaily = 1440 - minutesSinceLastDaily;
                 long waitHours = Math.floorDiv(minutesTillNextDaily, 60);
                 long waitMinutes = minutesTillNextDaily % 60;
                 String waitTime;
-                if(waitHours == 0) {
+                if (waitHours == 0) {
                     waitTime = String.format("%d minute(s)", waitMinutes);
                 } else {
-                   waitTime = String.format("%d hours and %d minute(s)", waitHours, waitMinutes);
+                    waitTime = String.format("%d hours and %d minute(s)", waitHours, waitMinutes);
                 }
                 result.append(String.format("You can claim your next daily in %s.", waitTime));
                 return result.toString();
-            } else if(minutesSinceLastDaily > 2880) {
+            } else if (minutesSinceLastDaily > 2880) {
                 // it's been 48 hours so you lose your streak
                 result.append(String.format("You earn `%d` morbcoins. Sadly you lost your streak of `%d` day(s).", reward, streak));
                 streak = 1;
             } else {
                 // you keep your streak
                 streak++;
-                if(streak == 1) {
+                if (streak == 1) {
                     result.append(String.format("You earn `%d` morbcoins.", reward));
                 } else {
                     int bonusMorbcoins = streak * random.nextInt(100) + 25;

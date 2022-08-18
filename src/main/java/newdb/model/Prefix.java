@@ -1,6 +1,7 @@
 package newdb.model;
 
 public class Prefix {
+
     private final int id;
     private final long guildId;
     private String prefix;

@@ -39,24 +39,26 @@ public class ItemTest {
 
     @Test
     public void testApple() {
-        System.out.println(game);
         Item apple = game.getItemByName("apple").orElseThrow(() -> new RuntimeException("apple not found"));
 
-        this.player.damage(10);
+        this.player.damage(apple.getHeal() + 5);
+        this.player.useItem(apple);
         this.player.useItem(apple);
 
-        Assertions.assertEquals(100, player.getHealth());
-        Assertions.assertEquals(10, player.getHealingDone());
+        Assertions.assertEquals(Player.PLAYER_MAX_HEALTH, player.getHealth());
+        Assertions.assertEquals(apple.getHeal() + 5, player.getHealingDone());
     }
 
     @Test
     public void testBandAid() {
         Item bandAid = game.getItemByName("band aid").orElseThrow(() -> new RuntimeException("band aid not found"));
 
-        this.player.damage(30);
+        this.player.damage(bandAid.getHeal() + 5);
+        this.player.useItem(bandAid);
         this.player.useItem(bandAid);
 
-        Assertions.assertEquals(100, player.getHealth());
+        Assertions.assertEquals(Player.PLAYER_MAX_HEALTH, player.getHealth());
+        Assertions.assertEquals(bandAid.getHeal() + 5, player.getHealingDone());
     }
 
     @Test
@@ -65,16 +67,18 @@ public class ItemTest {
 
         this.player.useItem(bomb);
 
-        Assertions.assertEquals(60, victim.getHealth());
+        Assertions.assertEquals(Player.PLAYER_MAX_HEALTH - bomb.getDamage(), victim.getHealth());
 
-        this.victim.damage(50);
+        this.victim.heal(bomb.getDamage() - 5);
         this.victim.addItem(bomb);
-        this.player.useItem(bomb);
+        while (this.game.getAlivePlayers().size() != 1) {
+            this.player.useItem(bomb);
+        }
 
-        Assertions.assertEquals(1, game.getAlivePlayers().size());
+        Assertions.assertEquals(1, this.game.getAlivePlayers().size());
         Assertions.assertEquals(1, this.player.getKills());
-        Assertions.assertEquals(50, this.player.getDamageDone());
-        Assertions.assertEquals(40, this.player.getDamageTaken());
+        Assertions.assertEquals(bomb.getDamage(), this.player.getDamageTaken());
+        Assertions.assertEquals(bomb.getDamage() + Player.PLAYER_MAX_HEALTH - 5, this.player.getDamageDone());
     }
 
     @Test
@@ -93,15 +97,16 @@ public class ItemTest {
 
         this.player.useItem(sword);
 
-        Assertions.assertEquals(80, victim.getHealth());
+        Assertions.assertEquals(Player.PLAYER_MAX_HEALTH - sword.getDamage(), victim.getHealth());
 
-        this.victim.damage(70);
-        this.player.useItem(sword);
+        this.victim.damage(5);
+        while (this.game.getAlivePlayers().size() != 1) {
+            this.player.useItem(sword);
+        }
 
         Assertions.assertEquals(1, game.getAlivePlayers().size());
         Assertions.assertEquals(1, this.player.getKills());
-        Assertions.assertEquals(30, this.player.getDamageDone());
-        Assertions.assertEquals(1, this.player.getKills());
+        Assertions.assertEquals(Player.PLAYER_MAX_HEALTH - 5, this.player.getDamageDone());
     }
 
     @Test
@@ -112,6 +117,7 @@ public class ItemTest {
         this.player.onDeath();
 
         Assertions.assertEquals(2, game.getAlivePlayers().size());
+        Assertions.assertEquals(Player.PLAYER_MAX_HEALTH, this.player.getHealth());
 
         this.player.onDeath();
 
@@ -124,15 +130,16 @@ public class ItemTest {
 
         this.player.useItem(bow);
 
-        Assertions.assertEquals(70, victim.getHealth());
+        Assertions.assertEquals(Player.PLAYER_MAX_HEALTH - bow.getDamage(), victim.getHealth());
 
-        this.victim.damage(50);
-        this.player.useItem(bow);
+        this.victim.damage(5);
+        while (this.game.getAlivePlayers().size() != 1) {
+            this.player.useItem(bow);
+        }
 
         Assertions.assertEquals(1, game.getAlivePlayers().size());
         Assertions.assertEquals(1, this.player.getKills());
-        Assertions.assertEquals(50, this.player.getDamageDone());
-        Assertions.assertEquals(1, this.player.getKills());
+        Assertions.assertEquals(Player.PLAYER_MAX_HEALTH - 5, this.player.getDamageDone());
     }
 
     @Test
@@ -151,6 +158,127 @@ public class ItemTest {
         Assertions.assertEquals(50, this.player.getDamageDone());
     }
 
+    @Test
+    public void testSlingShot() {
+        Item slingshot = game.getItemByName("slingshot").orElseThrow(() -> new RuntimeException("slingshot not found"));
+
+        this.player.useItem(slingshot);
+
+        Assertions.assertEquals(90, victim.getHealth());
+
+        this.victim.damage(85);
+        this.player.useItem(slingshot);
+
+        Assertions.assertEquals(1, game.getAlivePlayers().size());
+        Assertions.assertEquals(1, this.player.getKills());
+        Assertions.assertEquals(15, this.player.getDamageDone());
+    }
+
+    @Test
+    public void testRustyAxe() {
+        Item rustyAxe = game.getItemByName("rusty axe").orElseThrow(() -> new RuntimeException("rusty axe not found"));
+
+        this.player.useItem(rustyAxe);
+
+        Assertions.assertEquals(85, victim.getHealth());
+
+        this.victim.damage(80);
+        this.player.useItem(rustyAxe);
+
+        Assertions.assertEquals(1, game.getAlivePlayers().size());
+        Assertions.assertEquals(1, this.player.getKills());
+        Assertions.assertEquals(20, this.player.getDamageDone());
+    }
+
+    @Test
+    public void testBattleAxe() {
+        Item battleAxe = game.getItemByName("battleaxe").orElseThrow(() -> new RuntimeException("battleaxe not found"));
+
+        this.player.useItem(battleAxe);
+
+        Assertions.assertEquals(75, victim.getHealth());
+
+        this.victim.damage(70);
+        this.player.useItem(battleAxe);
+
+        Assertions.assertEquals(1, game.getAlivePlayers().size());
+        Assertions.assertEquals(1, this.player.getKills());
+        Assertions.assertEquals(30, this.player.getDamageDone());
+    }
+
+    @Test
+    public void testRocketLauncher() {
+
+    }
+
+    @Test
+    public void testMorningstar() {
+
+    }
+
+    @Test
+    public void testRustySword() {
+
+    }
+
+    @Test
+    public void testBaseballBat() {
+
+    }
+
+    @Test
+    public void testSpikedBaseballBat() {
+
+    }
+
+    @Test
+    public void testNuclearBomb() {
+
+    }
+
+    @Test
+    public void testPear() {
+        Item pear = game.getItemByName("pear").orElseThrow(() -> new RuntimeException("pear not found"));
+
+        this.player.damage(50);
+        this.player.useItem(pear);
+
+        Assertions.assertEquals(61, player.getHealth());
+        Assertions.assertEquals(11, player.getHealingDone());
+    }
+
+    @Test
+    public void testStrawberry() {
+        Item strawberry = game.getItemByName("strawberry").orElseThrow(() -> new RuntimeException("strawberry not found"));
+
+        this.player.damage(50);
+        this.player.useItem(strawberry);
+
+        Assertions.assertEquals(53, player.getHealth());
+        Assertions.assertEquals(3, player.getHealingDone());
+    }
+
+    @Test
+    public void testPineapple() {
+        Item pineapple = game.getItemByName("pineapple").orElseThrow(() -> new RuntimeException("pineapple not found"));
+
+        this.player.damage(50);
+        this.player.useItem(pineapple);
+
+        Assertions.assertEquals(57, player.getHealth());
+        Assertions.assertEquals(7, player.getHealingDone());
+    }
+
+    @Test
+    public void testIcedCoffee() {
+        Item icedCoffee = game.getItemByName("iced coffee").orElseThrow(() -> new RuntimeException("iced coffee not found"));
+
+        this.player.damage(50);
+        this.player.useItem(icedCoffee);
+
+        Assertions.assertEquals(57, player.getHealth());
+        Assertions.assertEquals(7, player.getHealingDone());
+    }
 
 
 }

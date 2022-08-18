@@ -1,4 +1,3 @@
-
 package newdb.util;
 
 import utility.Config;
@@ -11,8 +10,7 @@ public class DatabaseConnection {
 
     private static Connection con = null;
 
-    static
-    {
+    static {
         Config config = Config.getInstance();
         String url = config.getConnectionUrl();
         String user = config.getUser();
@@ -21,13 +19,12 @@ public class DatabaseConnection {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             con = DriverManager.getConnection(url, user, pass);
-        }
-        catch (ClassNotFoundException | SQLException e) {
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
-    public static Connection getConnection()
-    {
+
+    public static Connection getConnection() {
         return con;
     }
 }

@@ -1,6 +1,6 @@
 {
-  "apple" : {
-    "heals" : 10,
-    "rarity" : 20
+  "apple": {
+    "heals": 10,
+    "rarity": 20
   }
 }

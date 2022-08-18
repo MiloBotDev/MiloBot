@@ -17,12 +17,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Poker {
+
     private static final ArrayList<Poker> games = new ArrayList<>();
     private final User masterUser;
     private final List<User> players = new ArrayList<>();
     private final Map<User, PlayerData> playerData = new HashMap<>();
     private final TextChannel channel;
     private final CardDeck mainDeck = new CardDeck();
+    private final Random random = new Random();
     private PokerState state;
     private int nextPlayerIndex;
     private int playerRaise;
@@ -31,30 +33,6 @@ public class Poker {
     private boolean firstRound;
     private int lastRaisePlayerIndex;
     private int remainingPlayers;
-    private final Random random = new Random();
-
-    public enum PokerState {
-        WAITING_FOR_PLAYERS,
-        BET_ROUND_1,
-        REPLACING_CARDS,
-        BET_ROUND_2,
-        GAME_END
-    }
-
-    public enum PlayerAction {
-        FOLD,
-        CALL,
-        RAISE,
-        CHECK
-    }
-
-    private static class PlayerData {
-        private volatile Message embed;
-        private List<PlayingCards> hand;
-        private int moneyInPot = 0;
-        private boolean inGame = true;
-        private boolean replacedCards = false;
-    }
 
     public Poker(User user, TextChannel channel) {
         if (games.stream().anyMatch(game -> game.getChannel().equals(channel))) {
@@ -69,6 +47,16 @@ public class Poker {
 
     public static Poker getGameByChannel(TextChannel channel) {
         return games.stream().filter(game -> game.getChannel().equals(channel)).findFirst().orElse(null);
+    }
+
+    public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if (!event.getAuthor().isBot() && event.getChannelType() == ChannelType.PRIVATE) {
+            new ArrayList<>(games).forEach(game -> game.onMessage(event));
+        }
+    }
+
+    public static Poker getUserGame(User user) {
+        return games.stream().filter(game -> game.players.contains(user)).findAny().orElse(null);
     }
 
     public TextChannel getChannel() {
@@ -144,9 +132,9 @@ public class Poker {
                 if (firstRound && nextPlayerIndex == 0) {
                     players.stream().filter(player -> !player.equals(user)).forEach(player ->
                             player.openPrivateChannel()
-                            .queue(channel ->
-                                    channel.sendMessageEmbeds(generatePlayerEmbed(player).build())
-                                            .queue(message -> playerData.get(player).embed = message)));
+                                    .queue(channel ->
+                                            channel.sendMessageEmbeds(generatePlayerEmbed(player).build())
+                                                    .queue(message -> playerData.get(player).embed = message)));
                     user.openPrivateChannel().queue(channel ->
                             channel.sendMessageEmbeds(eb.build()).setActionRows(actionRow)
                                     .queue(message -> playerData.get(user).embed = message));
@@ -275,12 +263,6 @@ public class Poker {
         return actionRow;
     }
 
-    public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (!event.getAuthor().isBot() && event.getChannelType() == ChannelType.PRIVATE) {
-            new ArrayList<>(games).forEach(game -> game.onMessage(event));
-        }
-    }
-
     private void onMessage(@NotNull MessageReceivedEvent event) {
         if ((state == PokerState.BET_ROUND_1 || state == PokerState.BET_ROUND_2) &&
                 event.getAuthor().equals(players.get(nextPlayerIndex)) && waitingForUserRaise) {
@@ -346,17 +328,13 @@ public class Poker {
         embed.setTitle("Poker");
         embed.addField("------------", "**Your hand**", false);
         List<PlayingCards> hand = playerData.get(user).hand;
-        for(int i = 0; i < hand.size(); i++) {
+        for (int i = 0; i < hand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), hand.get(i).getLabel(), true);
         }
         embed.addBlankField(false);
         embed.addField("Your bet", String.valueOf(playerData.get(user).moneyInPot), true);
         embed.addField("Required money in pot", String.valueOf(requiredMoneyInPot), true);
         return embed;
-    }
-
-    public static Poker getUserGame(User user) {
-        return games.stream().filter(game -> game.players.contains(user)).findAny().orElse(null);
     }
 
     public void setPlayerAction(PlayerAction action) {
@@ -381,6 +359,29 @@ public class Poker {
         Comparator<PlayingCards> c1 = Comparator.comparingInt(o -> o.getRank().toInt());
         Comparator<PlayingCards> c2 = c1.thenComparing(PlayingCards::getSuit);
         hand.sort(c2);
+    }
+
+    public enum PokerState {
+        WAITING_FOR_PLAYERS,
+        BET_ROUND_1,
+        REPLACING_CARDS,
+        BET_ROUND_2,
+        GAME_END
+    }
+
+    public enum PlayerAction {
+        FOLD,
+        CALL,
+        RAISE,
+        CHECK
+    }
+
+    private static class PlayerData {
+        private volatile Message embed;
+        private List<PlayingCards> hand;
+        private int moneyInPot = 0;
+        private boolean inGame = true;
+        private boolean replacedCards = false;
     }
 
     public static class Hands {

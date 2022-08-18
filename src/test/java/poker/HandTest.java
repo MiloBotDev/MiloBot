@@ -372,8 +372,8 @@ public class HandTest {
     @Test
     void testRoyalFlush() {
         int index = 0;
-        for (int i=0; i<hands.size(); i++) {
-            for (List<PlayingCards> hand: hands.get(i)) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (List<PlayingCards> hand : hands.get(i)) {
                 if (i == index) {
                     assertEquals(ROYAL_FLUSH, Poker.Hands.getHandValue(hand), "Royal flush: " + hand);
                 } else {
@@ -387,8 +387,8 @@ public class HandTest {
     @Test
     void testStraightFlush() {
         int index = 1;
-        for (int i=0; i<hands.size(); i++) {
-            for (int j=0; j<hands.get(i).size(); j++) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (int j = 0; j < hands.get(i).size(); j++) {
                 List<PlayingCards> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(STRAIGHT_FLUSH | highCards.get(i).get(j),
@@ -404,8 +404,8 @@ public class HandTest {
     @Test
     void testFourOfAKind() {
         int index = 2;
-        for (int i=0; i<hands.size(); i++) {
-            for (int j=0; j<hands.get(i).size(); j++) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (int j = 0; j < hands.get(i).size(); j++) {
                 List<PlayingCards> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FOUR_OF_A_KIND | highCards.get(i).get(j),
@@ -421,8 +421,8 @@ public class HandTest {
     @Test
     void testFullHouse() {
         int index = 3;
-        for (int i=0; i<hands.size(); i++) {
-            for (int j=0; j<hands.get(i).size(); j++) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (int j = 0; j < hands.get(i).size(); j++) {
                 List<PlayingCards> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FULL_HOUSE | highCards.get(i).get(j),
@@ -438,8 +438,8 @@ public class HandTest {
     @Test
     void testFlush() {
         int index = 4;
-        for (int i=0; i<hands.size(); i++) {
-            for (int j=0; j<hands.get(i).size(); j++) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (int j = 0; j < hands.get(i).size(); j++) {
                 List<PlayingCards> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FLUSH | highCards.get(i).get(j),
@@ -455,8 +455,8 @@ public class HandTest {
     @Test
     void testStraight() {
         int index = 5;
-        for (int i=0; i<hands.size(); i++) {
-            for (int j=0; j<hands.get(i).size(); j++) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (int j = 0; j < hands.get(i).size(); j++) {
                 List<PlayingCards> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(STRAIGHT | highCards.get(i).get(j),
@@ -472,8 +472,8 @@ public class HandTest {
     @Test
     void testThreeOfAKind() {
         int index = 6;
-        for (int i=0; i<hands.size(); i++) {
-            for (int j=0; j<hands.get(i).size(); j++) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (int j = 0; j < hands.get(i).size(); j++) {
                 List<PlayingCards> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(THREE_OF_A_KIND | highCards.get(i).get(j),
@@ -489,8 +489,8 @@ public class HandTest {
     @Test
     void testTwoPair() {
         int index = 7;
-        for (int i=0; i<hands.size(); i++) {
-            for (int j=0; j<hands.get(i).size(); j++) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (int j = 0; j < hands.get(i).size(); j++) {
                 List<PlayingCards> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(TWO_PAIR | highCards.get(i).get(j),
@@ -506,8 +506,8 @@ public class HandTest {
     @Test
     void testPair() {
         int index = 8;
-        for (int i=0; i<hands.size(); i++) {
-            for (int j=0; j<hands.get(i).size(); j++) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (int j = 0; j < hands.get(i).size(); j++) {
                 List<PlayingCards> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(PAIR | highCards.get(i).get(j),

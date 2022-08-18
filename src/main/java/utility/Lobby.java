@@ -56,28 +56,28 @@ public class Lobby {
         sb.append("**Minimum Players:** ").append(this.minPlayers).append("\n");
         sb.append("**Maximum Players:** ").append(this.maxPlayers).append("\n");
         sb.append("**Current Players:** \n");
-        for(LobbyEntry lobbyEntry : lobbyEntries) {
+        for (LobbyEntry lobbyEntry : lobbyEntries) {
             sb.append("- ").append(lobbyEntry.username()).append("\n");
         }
         return sb.toString();
     }
 
     public void destroy() {
-        if(this.lobbyId != null) {
+        if (this.lobbyId != null) {
             lobbyInstances.remove(lobbyId);
         }
     }
 
     public void fillLobby() {
         String[] randomNames = {"Morbius", "Milo", "Jane Foster", "Captain America", "Walter White", "Jesse Pinkman",
-                                "Obama", "Kanye West", "Bill Gates", "Elon Musk", "Steve Harrington", "John Oliver",
-                                "Mother of Bram", "Nancy Wheeler", "Jonathan Byers", "Will Byers", "Vecna", "Darth Vader",
-                                "Lilo & Stitch", "Your Mom", "Riot Games", "The Rock", "The Joker", "Batman", "The Flash",
-                                "Jack Daniels"};
+                "Obama", "Kanye West", "Bill Gates", "Elon Musk", "Steve Harrington", "John Oliver",
+                "Mother of Bram", "Nancy Wheeler", "Jonathan Byers", "Will Byers", "Vecna", "Darth Vader",
+                "Lilo & Stitch", "Your Mom", "Riot Games", "The Rock", "The Joker", "Batman", "The Flash",
+                "Jack Daniels"};
         List<String> randomNamesList = new ArrayList<>(Arrays.asList(randomNames));
         Collections.shuffle(randomNamesList);
         int count = 1;
-        while(lobbyEntries.size() < maxPlayers) {
+        while (lobbyEntries.size() < maxPlayers) {
             addPlayer(String.format("#%d", count), randomNamesList.get(count - 1));
             count++;
         }

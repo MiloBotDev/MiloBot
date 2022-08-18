@@ -1,8 +1,9 @@
 package newdb.model;
 
 public class User {
-    private int id = -1;
+
     private final long discordId;
+    private int id = -1;
     private int currency = 0;
     private int level = 1;
     private int experience = 0;

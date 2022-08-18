@@ -19,22 +19,22 @@ import java.util.Objects;
  */
 public class OnReadyEvent extends ListenerAdapter {
 
-	final static Logger logger = LoggerFactory.getLogger(OnReadyEvent.class);
+    final static Logger logger = LoggerFactory.getLogger(OnReadyEvent.class);
 
-	@Override
-	public void onReady(@Nonnull ReadyEvent event) {
-		Config config = Config.getInstance();
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))
-				.getTextChannelsByName(config.getLoggingChannelName(), true).get(0);
+    @Override
+    public void onReady(@Nonnull ReadyEvent event) {
+        Config config = Config.getInstance();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))
+                .getTextChannelsByName(config.getLoggingChannelName(), true).get(0);
 
-		EmbedBuilder embed = new EmbedBuilder();
-		embed.setColor(Color.green);
-		embed.setDescription("Bot is ready.");
-		embed.setFooter(dtf.format(LocalDateTime.now()));
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setColor(Color.green);
+        embed.setDescription("Bot is ready.");
+        embed.setFooter(dtf.format(LocalDateTime.now()));
 
-		logs.sendTyping().queue();
-		logs.sendMessageEmbeds(embed.build()).queue();
-		logger.info("Bot is ready.");
-	}
+        logs.sendTyping().queue();
+        logs.sendMessageEmbeds(embed.build()).queue();
+        logger.info("Bot is ready.");
+    }
 }

@@ -6,52 +6,52 @@ import java.util.*;
 
 public class Paginator {
 
-	public final static Map<String, Paginator> paginatorInstances = new HashMap<>();
+    public final static Map<String, Paginator> paginatorInstances = new HashMap<>();
 
-	private final List<EmbedBuilder> pages;
-	private final long startTime;
-	private int currentPage;
+    private final List<EmbedBuilder> pages;
+    private final long startTime;
+    private int currentPage;
 
-	public Paginator(EmbedBuilder embed) {
-		pages = new ArrayList<>();
-		pages.add(embed);
-		this.currentPage = 0;
-		this.startTime = System.nanoTime();
-	}
+    public Paginator(EmbedBuilder embed) {
+        pages = new ArrayList<>();
+        pages.add(embed);
+        this.currentPage = 0;
+        this.startTime = System.nanoTime();
+    }
 
-	public void initialize(String messageId) {
-		paginatorInstances.put(messageId, this);
-	}
+    public void initialize(String messageId) {
+        paginatorInstances.put(messageId, this);
+    }
 
-	public void addPage(EmbedBuilder embed) {
-		pages.add(embed);
-	}
+    public void addPage(EmbedBuilder embed) {
+        pages.add(embed);
+    }
 
-	public void addPages(List<EmbedBuilder> embeds) {
-		pages.addAll(embeds);
-	}
+    public void addPages(List<EmbedBuilder> embeds) {
+        pages.addAll(embeds);
+    }
 
-	public Optional<EmbedBuilder> nextPage() {
-		if(currentPage + 1 < pages.size()) {
-			currentPage++;
-			return Optional.of(pages.get(currentPage));
-		}
-		return Optional.empty();
-	}
+    public Optional<EmbedBuilder> nextPage() {
+        if (currentPage + 1 < pages.size()) {
+            currentPage++;
+            return Optional.of(pages.get(currentPage));
+        }
+        return Optional.empty();
+    }
 
-	public Optional<EmbedBuilder> previousPage() {
-		if(currentPage - 1 >= 0) {
-			currentPage--;
-			return Optional.of(pages.get(currentPage));
-		}
-		return Optional.empty();
-	}
+    public Optional<EmbedBuilder> previousPage() {
+        if (currentPage - 1 >= 0) {
+            currentPage--;
+            return Optional.of(pages.get(currentPage));
+        }
+        return Optional.empty();
+    }
 
-	public EmbedBuilder currentPage() {
-		return pages.get(currentPage);
-	}
+    public EmbedBuilder currentPage() {
+        return pages.get(currentPage);
+    }
 
-	public long getStartTime() {
-		return startTime;
-	}
+    public long getStartTime() {
+        return startTime;
+    }
 }

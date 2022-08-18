@@ -45,7 +45,7 @@ public class BlackjackStatsCmd extends Command implements SubCmd {
         embed.setTitle(String.format("Blackjack Statistics for %s", user.getName()));
 
         ArrayList<String> result = dbManager.query(BlackjackTableQueries.getUser, DatabaseManager.QueryTypes.RETURN, user.getId());
-        if(result.size() != 0) {
+        if (result.size() != 0) {
             String currentStreak = result.get(2);
             String totalGames = result.get(3);
             String totalWins = result.get(4);

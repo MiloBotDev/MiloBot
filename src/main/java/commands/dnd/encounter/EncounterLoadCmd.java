@@ -15,30 +15,30 @@ import java.util.List;
  */
 public class EncounterLoadCmd extends Command implements SubCmd {
 
-	private final DatabaseManager manager;
-	private static EncounterLoadCmd instance;
+    private static EncounterLoadCmd instance;
+    private final DatabaseManager manager;
 
-	private EncounterLoadCmd() {
-		this.commandName = "load";
-		this.commandDescription = "Load a saved encounter.";
-		this.commandArgs = new String[]{"id*"};
-		this.manager = DatabaseManager.getInstance();
-	}
+    private EncounterLoadCmd() {
+        this.commandName = "load";
+        this.commandDescription = "Load a saved encounter.";
+        this.commandArgs = new String[]{"id*"};
+        this.manager = DatabaseManager.getInstance();
+    }
 
-	public static EncounterLoadCmd getInstance() {
-		if(instance == null) {
-			instance = new EncounterLoadCmd();
-		}
-		return instance;
-	}
+    public static EncounterLoadCmd getInstance() {
+        if (instance == null) {
+            instance = new EncounterLoadCmd();
+        }
+        return instance;
+    }
 
-	@Override
-	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-	}
+    @Override
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+    }
 
-	@Override
-	public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-	}
+    @Override
+    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    }
 
 
 }

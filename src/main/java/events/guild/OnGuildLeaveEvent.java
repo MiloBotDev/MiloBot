@@ -25,42 +25,42 @@ import java.util.Objects;
  */
 public class OnGuildLeaveEvent extends ListenerAdapter {
 
-	final static Logger logger = LoggerFactory.getLogger(OnGuildLeaveEvent.class);
-	private final PrefixDao prefixDao = PrefixDao.getInstance();
+    final static Logger logger = LoggerFactory.getLogger(OnGuildLeaveEvent.class);
+    private final PrefixDao prefixDao = PrefixDao.getInstance();
 
-	@Override
-	public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-		Config config = Config.getInstance();
-		TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))
-				.getTextChannelsByName(config.getLoggingChannelName(), true).get(0);
+    @Override
+    public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        Config config = Config.getInstance();
+        TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))
+                .getTextChannelsByName(config.getLoggingChannelName(), true).get(0);
 
-		EmbedBuilder embed = new EmbedBuilder();
-		embed.setImage(event.getGuild().getIconUrl());
-		embed.setColor(Color.red);
-		embed.setTitle(String.format("Bot has been removed from: %s", event.getGuild().getName()));
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setImage(event.getGuild().getIconUrl());
+        embed.setColor(Color.red);
+        embed.setTitle(String.format("Bot has been removed from: %s", event.getGuild().getName()));
 
-		String description = event.getGuild().getDescription();
-		description = description == null ? "None" : description;
-		embed.addField("Server Description", description, true);
+        String description = event.getGuild().getDescription();
+        description = description == null ? "None" : description;
+        embed.addField("Server Description", description, true);
 
-		embed.addField("Members", String.valueOf(event.getGuild().getMemberCount()), true);
-		embed.addField("Channel Count", String.valueOf(event.getGuild().getChannels().size()), true);
-		embed.addField("Role Count", String.valueOf(event.getGuild().getRoles().size()), true);
-		embed.addField("Server Boosts", String.valueOf(event.getGuild().getBoostCount()), true);
-		embed.addField("Date Created", String.valueOf(event.getGuild().getTimeCreated()), true);
-		embed.setFooter(dtf.format(LocalDateTime.now()));
+        embed.addField("Members", String.valueOf(event.getGuild().getMemberCount()), true);
+        embed.addField("Channel Count", String.valueOf(event.getGuild().getChannels().size()), true);
+        embed.addField("Role Count", String.valueOf(event.getGuild().getRoles().size()), true);
+        embed.addField("Server Boosts", String.valueOf(event.getGuild().getBoostCount()), true);
+        embed.addField("Date Created", String.valueOf(event.getGuild().getTimeCreated()), true);
+        embed.setFooter(dtf.format(LocalDateTime.now()));
 
-		logs.sendTyping().queue();
-		logs.sendMessageEmbeds(embed.build()).queue();
+        logs.sendTyping().queue();
+        logs.sendMessageEmbeds(embed.build()).queue();
 
-		try {
-			prefixDao.deleteByGuildId(event.getGuild().getIdLong());
-			CommandHandler.prefixes.remove(event.getGuild().getIdLong());
-		} catch (SQLException e) {
-			logger.error("Error deleting prefix from database on guild leave event", e);
-		}
-		logger.info(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
-	}
+        try {
+            prefixDao.deleteByGuildId(event.getGuild().getIdLong());
+            CommandHandler.prefixes.remove(event.getGuild().getIdLong());
+        } catch (SQLException e) {
+            logger.error("Error deleting prefix from database on guild leave event", e);
+        }
+        logger.info(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
+    }
 
 }
