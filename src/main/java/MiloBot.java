@@ -69,8 +69,8 @@ public class MiloBot {
                         .getTextChannelsByName(Config.getInstance().getLoggingChannelName(), true).get(0);
                 long currentNanoTime = System.nanoTime();
 
-                Map<String, Blackjack> blackjackGames = BlackjackPlayCmd.blackjackGames;
-                List<String> blackjackInstancesToRemove = new ArrayList<>();
+                Map<Long, Blackjack> blackjackGames = BlackjackPlayCmd.blackjackGames;
+                List<Long> blackjackInstancesToRemove = new ArrayList<>();
                 blackjackGames.forEach(
                         (s, blackjack) -> {
                             long startTime = blackjack.getStartTime();
@@ -117,7 +117,7 @@ public class MiloBot {
                 if (blackjackInstancesToRemove.size() == 0) {
                     logger.info("No blackjack instances timed out.");
                 } else {
-                    for (String s : blackjackInstancesToRemove) {
+                    for (Long s : blackjackInstancesToRemove) {
                         blackjackGames.remove(s);
                     }
                     logger.info(String.format("Removed %d blackjack instances.", blackjackInstancesToRemove.size()));

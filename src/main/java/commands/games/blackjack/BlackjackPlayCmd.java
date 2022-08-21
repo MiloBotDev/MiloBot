@@ -2,8 +2,6 @@ package commands.games.blackjack;
 
 import commands.Command;
 import commands.SubCmd;
-import database.DatabaseManager;
-import database.queries.BlackjackTableQueries;
 import games.Blackjack;
 import models.BlackjackStates;
 import models.cards.PlayingCards;
@@ -13,6 +11,7 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import newdb.dao.BlackjackDao;
 import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -20,24 +19,26 @@ import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class BlackjackPlayCmd extends Command implements SubCmd {
 
     private static final Logger logger = LoggerFactory.getLogger(BlackjackPlayCmd.class);
-    public static Map<String, Blackjack> blackjackGames = new HashMap<>();
-    private final DatabaseManager dbManager;
+    public static Map<Long, Blackjack> blackjackGames = new HashMap<>();
     private final UserDao userDao = UserDao.getInstance();
+    private final BlackjackDao blackjackDao = BlackjackDao.getInstance();
 
     public BlackjackPlayCmd() {
         this.commandName = "play";
         this.commandDescription = "Play a game of blackjack on discord.";
         this.commandArgs = new String[]{"bet*"};
-        this.dbManager = DatabaseManager.getInstance();
     }
 
     public static @NotNull EmbedBuilder generateBlackjackEmbed(@NotNull User user, BlackjackStates state) {
-        Blackjack game = blackjackGames.get(user.getId());
+        Blackjack game = blackjackGames.get(user.getIdLong());
 
         EmbedBuilder embed = new EmbedBuilder();
         EmbedUtils.styleEmbed(embed, user);
@@ -116,6 +117,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         String authorId = event.getAuthor().getId();
+        long authorIdLong = event.getAuthor().getIdLong();
 
         int bet = 0;
         if (args.size() > 0) {
@@ -157,19 +159,25 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
             }
         }
 
-        ArrayList<String> result = dbManager.query(BlackjackTableQueries.checkIfUserExists, DatabaseManager.QueryTypes.RETURN, authorId);
-        if (result.size() == 0) {
-            dbManager.query(BlackjackTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, authorId);
+        try {
+            if (blackjackDao.getByUserDiscordId(authorIdLong) != null) {
+                blackjackDao.add(new newdb.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
+                        .getId()));
+            }
+        } catch (SQLException e) {
+            logger.error("Error creating blackjack entry for user in database when user wanted to play blackjack.", e);
+            return;
         }
-        if (blackjackGames.containsKey(authorId)) {
+
+        if (blackjackGames.containsKey(authorIdLong)) {
             event.getChannel().sendMessage("You are already in a game of blackjack.").queue();
             return;
         }
 
-        Blackjack blackJack = new Blackjack(authorId, bet);
+        Blackjack blackJack = new Blackjack(authorIdLong, bet);
         blackJack.initializeGame();
 
-        blackjackGames.put(authorId, blackJack);
+        blackjackGames.put(authorIdLong, blackJack);
 
         BlackjackStates blackjackStates = blackJack.checkWin(false);
         EmbedBuilder embed;
@@ -178,7 +186,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
             blackJack.setDealerStand(true);
             blackjackStates = blackJack.checkWin(true);
             embed = generateBlackjackEmbed(event.getAuthor(), blackjackStates);
-            BlackjackPlayCmd.blackjackGames.remove(authorId);
+            BlackjackPlayCmd.blackjackGames.remove(authorIdLong);
             event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
                     Button.primary(authorId + ":replayBlackjack", "Replay"),
                     Button.secondary(authorId + ":delete", "Delete")
@@ -195,6 +203,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
         String authorId = event.getUser().getId();
+        long authorIdLong = event.getUser().getIdLong();
         int bet;
         if (event.getOption("bet") == null) {
             bet = 0;
@@ -219,19 +228,26 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                 return;
             }
         }
-        ArrayList<String> result = dbManager.query(BlackjackTableQueries.checkIfUserExists, DatabaseManager.QueryTypes.RETURN, authorId);
-        if (result.size() == 0) {
-            dbManager.query(BlackjackTableQueries.addUser, DatabaseManager.QueryTypes.UPDATE, authorId);
+
+        try {
+            if (blackjackDao.getByUserDiscordId(authorIdLong) == null) {
+                blackjackDao.add(new newdb.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
+                        .getId()));
+            }
+        } catch (SQLException e) {
+            logger.error("Error creating blackjack entry for user in database when user wanted to play blackjack.", e);
+            return;
         }
-        if (blackjackGames.containsKey(authorId)) {
+
+        if (blackjackGames.containsKey(authorIdLong)) {
             event.getHook().sendMessage("You are already in a game of blackjack.").queue();
             return;
         }
 
-        Blackjack blackJack = new Blackjack(authorId, bet);
+        Blackjack blackJack = new Blackjack(authorIdLong, bet);
         blackJack.initializeGame();
 
-        blackjackGames.put(authorId, blackJack);
+        blackjackGames.put(authorIdLong, blackJack);
 
         BlackjackStates blackjackStates = blackJack.checkWin(false);
         EmbedBuilder embed;
@@ -240,7 +256,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
             blackJack.setDealerStand(true);
             blackjackStates = blackJack.checkWin(true);
             embed = generateBlackjackEmbed(event.getUser(), blackjackStates);
-            BlackjackPlayCmd.blackjackGames.remove(authorId);
+            BlackjackPlayCmd.blackjackGames.remove(authorIdLong);
             event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
                     Button.primary(authorId + ":replayBlackjack", "Replay"),
                     Button.secondary(authorId + ":delete", "Delete")

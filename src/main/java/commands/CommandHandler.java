@@ -1,5 +1,7 @@
 package commands;
 
+import database.DatabaseManager;
+import database.queries.DailiesTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
@@ -34,6 +36,7 @@ public class CommandHandler extends ListenerAdapter {
     private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
     private final User user;
     private final UserDao userDao = UserDao.getInstance();
+    private final DatabaseManager manager = DatabaseManager.getInstance();
 
     public CommandHandler() {
         this.user = User.getInstance();
@@ -240,6 +243,7 @@ public class CommandHandler extends ListenerAdapter {
     private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
         newdb.model.User newUser = new newdb.model.User(user.getIdLong());
         userDao.add(newUser);
+        manager.query(DailiesTableQueries.addUserDaily, DatabaseManager.QueryTypes.UPDATE, user.getId());
     }
 
 }
