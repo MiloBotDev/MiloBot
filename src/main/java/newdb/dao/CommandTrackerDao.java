@@ -66,7 +66,7 @@ public class CommandTrackerDao {
         ps.executeUpdate();
     }
 
-    public int getUserCommandTracker(String commandName, int userId) throws SQLException {
+    public int getUserSpecificCommandUsage(String commandName, int userId) throws SQLException {
         String query = "SELECT amount FROM command_tracker WHERE command_name = ? AND user_id = ?;";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setString(1, commandName);
@@ -74,6 +74,18 @@ public class CommandTrackerDao {
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
             return rs.getInt("amount");
+        } else {
+            return 0;
+        }
+    }
+
+    public int getGlobalCommandUsage(String commandName) throws SQLException {
+        String query = "SELECT sum(amount) from command_tracker WHERE command_name = ?;";
+        PreparedStatement ps = con.prepareStatement(query);
+        ps.setString(1, commandName);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1);
         } else {
             return 0;
         }

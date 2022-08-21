@@ -194,5 +194,49 @@
   {
     "level": 49,
     "experience": 117600
+  },
+  {
+    "level": 50,
+    "experience": 122500
+  },
+  {
+    "level": 51,
+    "experience": 127500
+  },
+  {
+    "level": 52,
+    "experience": 132600
+  },
+  {
+    "level": 53,
+    "experience": 137800
+  },
+  {
+    "level": 54,
+    "experience": 143100
+  },
+  {
+    "level": 55,
+    "experience": 148500
+  },
+  {
+    "level": 56,
+    "experience": 154000
+  },
+  {
+    "level": 57,
+    "experience": 159600
+  },
+  {
+    "level": 58,
+    "experience": 165300
+  },
+  {
+    "level": 59,
+    "experience": 171100
+  },
+  {
+    "level": 60,
+    "experience": 177000
   }
 ]
