@@ -33,7 +33,7 @@ public class BlackjackStatsCmd extends Command implements SubCmd {
             event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
                     Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
         } catch (SQLException e) {
-            logger.error("SQL Error while generating embed for user " +  event.getAuthor().getId(), e);
+            logger.error("SQL Error while generating embed for user " + event.getAuthor().getId(), e);
         }
     }
 
@@ -44,7 +44,7 @@ public class BlackjackStatsCmd extends Command implements SubCmd {
             event.replyEmbeds(embedBuilder.build()).addActionRow(
                     Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
         } catch (SQLException e) {
-            logger.error("SQL Error while generating embed for user " +  event.getUser().getId(), e);
+            logger.error("SQL Error while generating embed for user " + event.getUser().getId(), e);
         }
     }
 
@@ -54,7 +54,7 @@ public class BlackjackStatsCmd extends Command implements SubCmd {
         embed.setTitle(String.format("Blackjack Statistics for %s", user.getName()));
 
         Blackjack blackjack = blackjackDao.getByUserDiscordId(user.getIdLong());
-        if(blackjack != null) {
+        if (blackjack != null) {
             int currentStreak = blackjack.getStreak();
             int highestStreak = blackjack.getHighestStreak();
             int totalGames = blackjack.getTotalGames();

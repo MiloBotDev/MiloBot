@@ -240,10 +240,10 @@ public class CommandHandler extends ListenerAdapter {
 
     }
 
-	private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
+    private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
         newdb.model.User newUser = new newdb.model.User(user.getIdLong());
         userDao.add(newUser);
         manager.query(DailiesTableQueries.addUserDaily, DatabaseManager.QueryTypes.UPDATE, user.getId());
-	}
+    }
 
 }

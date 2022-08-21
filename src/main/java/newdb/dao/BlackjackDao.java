@@ -10,8 +10,8 @@ import java.sql.*;
 
 public class BlackjackDao {
     private static final Connection con = DatabaseConnection.getConnection();
-    private static BlackjackDao instance = null;
     private static final Logger logger = LoggerFactory.getLogger(BlackjackDao.class);
+    private static BlackjackDao instance = null;
 
     private BlackjackDao() {
         try {
@@ -19,6 +19,13 @@ public class BlackjackDao {
         } catch (SQLException e) {
             logger.error("Error creating table prefixes ", e);
         }
+    }
+
+    public static BlackjackDao getInstance() {
+        if (instance == null) {
+            instance = new BlackjackDao();
+        }
+        return instance;
     }
 
     private void creteTableIfNotExists() throws SQLException {
@@ -40,13 +47,6 @@ public class BlackjackDao {
                 ")";
         Statement st = con.createStatement();
         st.execute(query);
-    }
-
-    public static BlackjackDao getInstance() {
-        if (instance == null) {
-            instance = new BlackjackDao();
-        }
-        return instance;
     }
 
     public void add(Blackjack blackjack) throws SQLException {

@@ -17,19 +17,19 @@ import java.util.Objects;
 
 public class Blackjack {
 
+    private static final Logger logger = LoggerFactory.getLogger(Blackjack.class);
     private final List<PlayingCards> playerHand;
     private final List<PlayingCards> dealerHand;
     private final CardDeck deck;
     private final int playerBet;
     private final long userDiscordId;
+    private final long startTime;
+    private final UserDao userDao = UserDao.getInstance();
+    private final BlackjackDao blackjackDao = BlackjackDao.getInstance();
     private boolean playerStand;
     private boolean dealerStand;
     private boolean finished;
     private int winnings;
-    private final long startTime;
-    private static final Logger logger = LoggerFactory.getLogger(Blackjack.class);
-    private final UserDao userDao = UserDao.getInstance();
-    private final BlackjackDao blackjackDao = BlackjackDao.getInstance();
 
     public Blackjack(long userDiscordId) {
         this.playerHand = new ArrayList<>();
@@ -186,7 +186,7 @@ public class Blackjack {
             return;
         }
         updateWallet(state);
-        if(state.equals(BlackjackStates.DRAW)) {
+        if (state.equals(BlackjackStates.DRAW)) {
             blackjack.addGame(newdb.model.Blackjack.BlackjackResult.DRAW, 0);
         } else if (state.equals(BlackjackStates.PLAYER_BLACKJACK) || state.equals(BlackjackStates.PLAYER_WIN)) {
             blackjack.addGame(newdb.model.Blackjack.BlackjackResult.WIN, this.winnings);

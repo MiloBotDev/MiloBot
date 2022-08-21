@@ -17,7 +17,6 @@ import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -199,7 +198,7 @@ public abstract class Command {
 
             CommandTrackerDao commandTrackerDao = CommandTrackerDao.getInstance();
             boolean tracked = commandTrackerDao.checkIfUserCommandTracked(commandName, userId);
-            if(tracked) {
+            if (tracked) {
                 int userCommandTracker = commandTrackerDao.getUserCommandTracker(commandName, userId);
                 userCommandTracker++;
                 commandTrackerDao.updateUserCommandTracker(commandName, userId, userCommandTracker);

@@ -65,10 +65,6 @@ public class Blackjack {
         return highestStreak;
     }
 
-    public enum BlackjackResult {
-        WIN, DRAW, LOSS
-    }
-
     public void addGame(BlackjackResult result, int earning) {
         wonLastGame = result == BlackjackResult.WIN;
         totalGames++;
@@ -85,5 +81,9 @@ public class Blackjack {
         if (result == BlackjackResult.DRAW) {
             totalDraws++;
         }
+    }
+
+    public enum BlackjackResult {
+        WIN, DRAW, LOSS
     }
 }
