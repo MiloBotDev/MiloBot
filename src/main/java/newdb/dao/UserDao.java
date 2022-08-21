@@ -87,7 +87,16 @@ public class UserDao {
     }
 
     public int getUserRank(int userId) throws SQLException {
-        String query = "SELECT RANK() OVER (ORDER BY experience DESC) `rank` FROM users WHERE id = ?";
+        String query =
+                """
+                        SELECT
+                            `rank`
+                        FROM
+                            (SELECT
+                                 id,
+                                 RANK() OVER (ORDER BY experience DESC) `rank`
+                             FROM users) AS user_ranks
+                        WHERE id=?""";
         PreparedStatement ps;
         ps = con.prepareStatement(query);
         ps.setInt(1, userId);

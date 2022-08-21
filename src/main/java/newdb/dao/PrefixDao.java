@@ -51,7 +51,7 @@ public class PrefixDao {
         String query = "UPDATE prefixes SET prefix = ? WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setString(1, prefix.getPrefix());
-        ps.setLong(2, prefix.getId());
+        ps.setInt(2, prefix.getId());
         ps.executeUpdate();
     }
 
@@ -68,7 +68,8 @@ public class PrefixDao {
         ps.setLong(1, guildId);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
-            return new Prefix(rs.getLong("guild_id"),
+            return new Prefix(rs.getInt("id"),
+                    rs.getLong("guild_id"),
                     rs.getString("prefix"));
         }
         return null;
