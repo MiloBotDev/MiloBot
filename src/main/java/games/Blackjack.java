@@ -1,17 +1,15 @@
 package games;
 
-import database.DatabaseManager;
-import database.queries.BlackjackTableQueries;
 import models.BlackjackStates;
 import models.cards.CardDeck;
 import models.cards.PlayingCards;
+import newdb.dao.BlackjackDao;
 import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,37 +17,35 @@ import java.util.Objects;
 
 public class Blackjack {
 
-    private static final Logger logger = LoggerFactory.getLogger(Blackjack.class);
     private final List<PlayingCards> playerHand;
     private final List<PlayingCards> dealerHand;
     private final CardDeck deck;
-    private final DatabaseManager dbManager;
     private final int playerBet;
-    private final String userId;
-    private final long startTime;
-    private final UserDao userDao = UserDao.getInstance();
+    private final long userDiscordId;
     private boolean playerStand;
     private boolean dealerStand;
     private boolean finished;
     private int winnings;
+    private final long startTime;
+    private static final Logger logger = LoggerFactory.getLogger(Blackjack.class);
+    private final UserDao userDao = UserDao.getInstance();
+    private final BlackjackDao blackjackDao = BlackjackDao.getInstance();
 
-    public Blackjack(String userId) {
+    public Blackjack(long userDiscordId) {
         this.playerHand = new ArrayList<>();
         this.dealerHand = new ArrayList<>();
         this.deck = new CardDeck();
-        this.dbManager = DatabaseManager.getInstance();
-        this.userId = userId;
+        this.userDiscordId = userDiscordId;
         this.playerBet = 0;
         this.winnings = 0;
         this.startTime = System.nanoTime();
     }
 
-    public Blackjack(String userId, int bet) {
+    public Blackjack(long userDiscordId, int bet) {
         this.playerHand = new ArrayList<>();
         this.dealerHand = new ArrayList<>();
         this.deck = new CardDeck();
-        this.dbManager = DatabaseManager.getInstance();
-        this.userId = userId;
+        this.userDiscordId = userDiscordId;
         this.playerBet = bet;
         this.winnings = 0;
         updateWallet(null);
@@ -68,7 +64,7 @@ public class Blackjack {
     public void updateWallet(@Nullable BlackjackStates state) {
         newdb.model.User user;
         try {
-            user = userDao.getUserByDiscordId(Long.parseLong(userId));
+            user = userDao.getUserByDiscordId(userDiscordId);
         } catch (SQLException e) {
             logger.error("Error getting user from database when user wanted to play blackjack.", e);
             return;
@@ -182,44 +178,26 @@ public class Blackjack {
     }
 
     private void updateBlackjackDatabase(BlackjackStates state) {
-        ArrayList<String> query = dbManager.query(BlackjackTableQueries.getUser, DatabaseManager.QueryTypes.RETURN, userId);
-        String wonLastGame = query.get(1);
-        String streak = query.get(2);
-        String totalGames = query.get(3);
-        String totalWins = query.get(4);
-        String totalEarnings = query.get(5);
-        String totalDraws = query.get(6);
-        String highestStreak = query.get(7);
-        String newTotalGames = String.valueOf(Integer.parseInt(totalGames) + 1);
-        String newTotalDraws = String.valueOf(Integer.parseInt(totalDraws) + 1);
-        String newTotalWins = String.valueOf(Integer.parseInt(totalWins) + 1);
-        String newStreak = String.valueOf(Integer.parseInt(streak) + 1);
-        String newHighestStreak;
-        if (Integer.parseInt(newStreak) > Integer.parseInt(highestStreak)) {
-            newHighestStreak = newStreak;
-        } else {
-            newHighestStreak = highestStreak;
+        newdb.model.Blackjack blackjack;
+        try {
+            blackjack = Objects.requireNonNull(blackjackDao.getByUserDiscordId(userDiscordId));
+        } catch (SQLException e) {
+            logger.error("Error getting blackjack entry from database when updating blackjack database.", e);
+            return;
         }
         updateWallet(state);
-        if (state.equals(BlackjackStates.DRAW)) {
-            dbManager.query(BlackjackTableQueries.updateUserDraw, DatabaseManager.QueryTypes.UPDATE,
-                    newTotalGames, newTotalDraws, totalEarnings, userId);
+        if(state.equals(BlackjackStates.DRAW)) {
+            blackjack.addGame(newdb.model.Blackjack.BlackjackResult.DRAW, 0);
+        } else if (state.equals(BlackjackStates.PLAYER_BLACKJACK) || state.equals(BlackjackStates.PLAYER_WIN)) {
+            blackjack.addGame(newdb.model.Blackjack.BlackjackResult.WIN, this.winnings);
         } else {
-            String newTotalEarnings = new BigInteger(totalEarnings).add(BigInteger.valueOf(this.winnings)).toString();
-            if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
-                dbManager.query(BlackjackTableQueries.updateUserWin, DatabaseManager.QueryTypes.UPDATE,
-                        newStreak, newTotalGames, newTotalWins, newTotalEarnings,
-                        newHighestStreak, userId);
-            } else if (state.equals(BlackjackStates.PLAYER_WIN)) {
-                dbManager.query(BlackjackTableQueries.updateUserWin, DatabaseManager.QueryTypes.UPDATE,
-                        newStreak, newTotalGames, newTotalWins, newTotalEarnings,
-                        newHighestStreak, userId);
-            } else {
-                // it's a loss;
-                String newEarnings = new BigInteger(totalEarnings).subtract(BigInteger.valueOf(this.winnings)).toString();
-                dbManager.query(BlackjackTableQueries.updateUserLoss, DatabaseManager.QueryTypes.UPDATE,
-                        newTotalGames, newEarnings, userId);
-            }
+            // it's a loss;
+            blackjack.addGame(newdb.model.Blackjack.BlackjackResult.LOSS, -this.winnings);
+        }
+        try {
+            blackjackDao.update(blackjack);
+        } catch (SQLException e) {
+            logger.error("Error updating blackjack entry in database when updating blackjack database.", e);
         }
     }
 

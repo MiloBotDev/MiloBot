@@ -123,7 +123,7 @@ public class OnButtonClick extends ListenerAdapter {
                 encCmd.saveEncounter(event.getMessage().getEmbeds().get(0), event.getUser());
                 break;
             case "hit":
-                Blackjack game = BlackjackPlayCmd.blackjackGames.get(event.getUser().getId());
+                Blackjack game = BlackjackPlayCmd.blackjackGames.get(user.getIdLong());
                 if (game.isFinished() || game.isPlayerStand()) {
                     break;
                 }
@@ -136,14 +136,14 @@ public class OnButtonClick extends ListenerAdapter {
                     event.getHook().editOriginalEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
                             Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
                             Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
-                    BlackjackPlayCmd.blackjackGames.remove(user.getId());
+                    BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
                 } else {
                     newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
                     event.getHook().editOriginalEmbeds(newEmbed.build()).queue();
                 }
                 break;
             case "stand":
-                Blackjack blackjack = BlackjackPlayCmd.blackjackGames.get(event.getUser().getId());
+                Blackjack blackjack = BlackjackPlayCmd.blackjackGames.get(user.getIdLong());
                 if (blackjack.isFinished() || blackjack.isPlayerStand()) {
                     break;
                 }
@@ -155,16 +155,16 @@ public class OnButtonClick extends ListenerAdapter {
                 event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
                         Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
                         Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
-                BlackjackPlayCmd.blackjackGames.remove(user.getId());
+                BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
                 break;
             case "replayBlackjack":
-                if (BlackjackPlayCmd.blackjackGames.containsKey(authorId)) {
+                if (BlackjackPlayCmd.blackjackGames.containsKey(user.getIdLong())) {
                     break;
                 }
                 String description = event.getMessage().getEmbeds().get(0).getDescription();
                 Blackjack value;
                 if (description == null) {
-                    value = new Blackjack(authorId);
+                    value = new Blackjack(user.getIdLong());
                 } else {
                     String s = description.replaceAll("[^0-9]", "");
                     int bet = Integer.parseInt(s);
@@ -180,10 +180,10 @@ public class OnButtonClick extends ListenerAdapter {
                         event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();
                         break;
                     }
-                    value = new Blackjack(authorId, bet);
+                    value = new Blackjack(user.getIdLong(), bet);
                 }
                 value.initializeGame();
-                BlackjackPlayCmd.blackjackGames.put(event.getUser().getId(), value);
+                BlackjackPlayCmd.blackjackGames.put(user.getIdLong(), value);
                 BlackjackStates state = value.checkWin(false);
                 EmbedBuilder embed;
                 if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
@@ -191,7 +191,7 @@ public class OnButtonClick extends ListenerAdapter {
                     value.setDealerStand(true);
                     blackjackStates = value.checkWin(true);
                     embed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
-                    BlackjackPlayCmd.blackjackGames.remove(authorId);
+                    BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
                     event.getHook().editOriginalEmbeds(embed.build()).setActionRows(ActionRow.of(
                             Button.primary(authorId + ":replayBlackjack", "Replay"),
                             Button.secondary(authorId + ":delete", "Delete")
