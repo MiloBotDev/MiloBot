@@ -2,28 +2,30 @@ package commands.games.wordle;
 
 import commands.Command;
 import commands.SubCmd;
-import database.DatabaseManager;
-import database.queries.WordleTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
+import newdb.dao.UserDao;
+import newdb.dao.WordleDao;
+import newdb.model.Wordle;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
 
 public class WordleStatsCmd extends Command implements SubCmd {
 
-    private final DatabaseManager dbManager;
+    private final WordleDao wordleDao;
+    private final UserDao userDao;
 
     public WordleStatsCmd() {
         this.commandName = "stats";
         this.commandDescription = "View your own wordle statistics";
-        this.dbManager = DatabaseManager.getInstance();
+        this.wordleDao = WordleDao.getInstance();
+        this.userDao = UserDao.getInstance();
     }
 
     @Override
@@ -41,29 +43,38 @@ public class WordleStatsCmd extends Command implements SubCmd {
     }
 
     private @NotNull EmbedBuilder generateEmbed(User user) {
-        EmbedBuilder embed = new EmbedBuilder();
-        EmbedUtils.styleEmbed(embed, user);
-        embed.setTitle(String.format("Wordle Statistics for %s", user.getName()));
+        try {
+            EmbedBuilder embed = new EmbedBuilder();
+            EmbedUtils.styleEmbed(embed, user);
+            embed.setTitle(String.format("Wordle Statistics for %s", user.getName()));
 
-        ArrayList<String> result = dbManager.query(WordleTableQueries.selectUserWordle, DatabaseManager.QueryTypes.RETURN, user.getId());
-        if (result.size() == 0) {
-            embed.setDescription("No wordle statistics on record.");
-        } else {
-            String fastestTime = result.get(1);
-            String currentStreak = result.get(3);
-            String totalGames = result.get(4);
-            String highestStreak = result.get(5);
+            int id = userDao.getUserByDiscordId(user.getIdLong()).getId();
+            Wordle userWordle = wordleDao.getByUserId(id);
+            if (userWordle == null) {
+                embed.setDescription("No wordle statistics on record.");
+            } else {
+                int fastestTime = userWordle.getFastestTime();
+                int currentStreak = userWordle.getCurrentStreak();
+                int totalGames = userWordle.getGamesPlayed();
+                int highestStreak = userWordle.getHighestStreak();
+                int totalWins = userWordle.getWins();
+                int totalLosses = totalGames - totalWins;
 
-            if (Objects.equals(fastestTime, "null")) {
-                fastestTime = "0";
+                embed.addField("Total Games", String.valueOf(totalGames), true);
+                embed.addField("Total Wins", String.valueOf(totalWins), true);
+                embed.addField("Total Losses", String.valueOf(totalLosses), true);
+                embed.addField("Current Streak", String.valueOf(currentStreak), true);
+                embed.addField("Highest Streak", String.valueOf(highestStreak), true);
+
+                if (fastestTime != 0) {
+                    embed.addField("Fastest Time", fastestTime + " Seconds", true);
+                } else {
+                    embed.addField("Fastest Time", "None", true);
+                }
             }
-
-            embed.addField("Total Games", totalGames, true);
-            embed.addField("Current Streak", currentStreak, true);
-            embed.addField("Highest Streak", highestStreak, true);
-            embed.addField("Fastest Time", fastestTime + " Seconds", true);
+            return embed;
+        } catch (SQLException e) {
+            return new EmbedBuilder().setTitle("Error").setDescription("An error occurred while fetching your wordle statistics.");
         }
-
-        return embed;
     }
 }

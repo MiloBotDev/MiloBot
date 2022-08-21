@@ -2,6 +2,7 @@ package newdb.dao;
 
 import newdb.model.Wordle;
 import newdb.util.DatabaseConnection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +38,10 @@ public class WordleDao {
                 "fastest_time INT NOT NULL," +
                 "highest_streak INT NOT NULL," +
                 "current_streak INT NOT NULL," +
-                "CONSTRAINT FK_user_id_wordle FOREIGN KEY (user_id)" +
-                "REFERENCES users(id)" +
+                "CONSTRAINT FK_user_id_wordle FOREIGN KEY (user_id) " +
+                "REFERENCES users(id) " +
+                "ON UPDATE CASCADE " +
+                "ON DELETE CASCADE" +
                 ");";
         Statement st = con.createStatement();
         st.execute(query);
@@ -70,7 +73,7 @@ public class WordleDao {
     }
 
     @Nullable
-    public Wordle getUserWordle(int userId) throws SQLException {
+    public Wordle getByUserId(int userId) throws SQLException {
         String query = "SELECT * FROM wordle WHERE user_id = ?;";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setInt(1, userId);

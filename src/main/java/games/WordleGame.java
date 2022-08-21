@@ -16,9 +16,9 @@ import java.util.Scanner;
 /**
  * Representation of a Wordle game.
  */
-public class Wordle {
+public class WordleGame {
 
-    final static Logger logger = LoggerFactory.getLogger(Wordle.class);
+    final static Logger logger = LoggerFactory.getLogger(WordleGame.class);
 
     public final int maxGuesses = 7;
     public final int wordLength = 5;
@@ -29,7 +29,7 @@ public class Wordle {
 
     private ArrayList<String> words;
 
-    public Wordle() {
+    public WordleGame() {
         loadWordsAsList();
 
         this.guesses = 0;

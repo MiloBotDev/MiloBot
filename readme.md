@@ -16,7 +16,7 @@ a pull request.
 | **Morbconomy**               |                          |                    |                |
 | [!wallet](#wallet)           | [!profile](#profile)     | [!daily](#daily)   |                |
 | **Games**                    |                          |                    |                |
-| [!hungergames](#hungergames) | [!blackjack](#blackjack) | [!wordle](#wordle) |                |
+| [!hungergames](#hungergames) | [!blackjack](#blackjack) | [!wordleGame](#wordleGame) |                |
 | **Bot**                      |                          |                    |                |
 | [!bug](#bug)                 | [!status](#status)       |                    |                |
 | **Dungeons & Dragons**       |                          |                    |                |

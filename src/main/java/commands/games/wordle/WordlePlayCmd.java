@@ -2,7 +2,7 @@ package commands.games.wordle;
 
 import commands.Command;
 import commands.SubCmd;
-import games.Wordle;
+import games.WordleGame;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.Button;
 import newdb.dao.UserDao;
 import newdb.dao.WordleDao;
+import newdb.model.Wordle;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -42,7 +43,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         OffsetDateTime timeStarted = event.getMessage().getTimeCreated();
         String authorId = event.getAuthor().getId();
-        Wordle wordle = new Wordle();
+        WordleGame wordleGame = new WordleGame();
         StringBuilder editDescription = new StringBuilder();
         final boolean[] gameOver = {false};
 
@@ -51,7 +52,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
         EmbedUtils.styleEmbed(wordleEmbed, event.getAuthor());
 
         event.getChannel().sendMessageEmbeds(wordleEmbed.build()).queue(message -> {
-            extracted(null, timeStarted, authorId, wordle, editDescription, gameOver, wordleEmbed, message);
+            extracted(null, timeStarted, authorId, wordleGame, editDescription, gameOver, wordleEmbed, message);
         });
     }
 
@@ -60,7 +61,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
         event.deferReply().queue();
         OffsetDateTime timeStarted = event.getTimeCreated();
         String authorId = event.getUser().getId();
-        Wordle wordle = new Wordle();
+        WordleGame wordleGame = new WordleGame();
         StringBuilder editDescription = new StringBuilder();
         final boolean[] gameOver = {false};
 
@@ -69,12 +70,12 @@ public class WordlePlayCmd extends Command implements SubCmd {
         EmbedUtils.styleEmbed(wordleEmbed, event.getUser());
 
         event.getHook().sendMessageEmbeds(wordleEmbed.build()).queue(message -> {
-            extracted(event, timeStarted, authorId, wordle, editDescription, gameOver, wordleEmbed, message);
+            extracted(event, timeStarted, authorId, wordleGame, editDescription, gameOver, wordleEmbed, message);
         });
     }
 
     private void extracted(SlashCommandEvent SlashCommandEvent,
-                           OffsetDateTime timeStarted, String authorId, Wordle wordle, StringBuilder editDescription,
+                           OffsetDateTime timeStarted, String authorId, WordleGame wordleGame, StringBuilder editDescription,
                            boolean[] gameOver, EmbedBuilder wordleEmbed, @NotNull Message message) {
         ListenerAdapter listener = new ListenerAdapter() {
             @Override
@@ -93,8 +94,8 @@ public class WordlePlayCmd extends Command implements SubCmd {
                         editDescription.append(wordleEmbed.getDescriptionBuilder());
                         String guess = event.getMessage().getContentRaw().toLowerCase(Locale.ROOT);
                         char[] chars = guess.toCharArray();
-                        if (!(chars.length > wordle.wordLength || chars.length < wordle.wordLength)) {
-                            String[] result = wordle.guessWord(guess);
+                        if (!(chars.length > wordleGame.wordLength || chars.length < wordleGame.wordLength)) {
+                            String[] result = wordleGame.guessWord(guess);
                             editDescription.append("` ");
                             int count = 0;
                             for (char letter : chars) {
@@ -110,17 +111,17 @@ public class WordlePlayCmd extends Command implements SubCmd {
                                 editDescription.append(String.format("%s ", check));
                             }
                             editDescription.append("\n");
-                            if (wordle.guessed) {
+                            if (wordleGame.guessed) {
                                 OffsetDateTime timeWon = event.getMessage().getTimeCreated();
                                 int timeTaken = Integer.parseInt(String.valueOf(timeWon.toEpochSecond() - timeStarted.toEpochSecond()));
                                 editDescription.append(String.format("You guessed the word in %d seconds. ", timeTaken));
 
                                 event.getJDA().removeEventListener(this);
                                 int fastestTime;
-                                int user_id = userDao.getUserByDiscordId(event.getAuthor().getIdLong()).getId();
-                                newdb.model.Wordle userWordle = wordleDao.getUserWordle(user_id);
+                                Wordle userWordle = wordleDao.getByUserDiscordId(event.getAuthor().getIdLong());
                                 if (userWordle == null) {
-                                    wordleDao.addUserWordle(user_id, timeTaken, 1, 1, 1);
+                                    int user_id = userDao.getUserByDiscordId(event.getAuthor().getIdLong()).getId();
+                                    wordleDao.add(new Wordle(user_id, 1, 1, timeTaken, 1, 1));
                                 } else {
                                     if (userWordle.getFastestTime() != 0) {
                                         int currentFastestTime = Math.min(userWordle.getFastestTime(), timeTaken);
@@ -130,42 +131,32 @@ public class WordlePlayCmd extends Command implements SubCmd {
                                         } else if (currentFastestTime == userWordle.getFastestTime()) {
                                             editDescription.append("You tied your personal best.");
                                         }
-                                        fastestTime = currentFastestTime;
-                                    } else {
-                                        fastestTime = timeTaken;
                                     }
-                                    int newStreak = userWordle.getCurrentStreak() + 1;
-                                    int highestStreak = Math.max(userWordle.getHighestStreak(), newStreak);
-                                    int gamesPlayed = userWordle.getGamesPlayed() + 1;
-                                    int gamesWon = userWordle.getWins() + 1;
-                                    int currentStreak = userWordle.getCurrentStreak() + 1;
-                                    wordleDao.updateUserWordle(user_id, fastestTime, gamesWon, highestStreak, currentStreak, gamesPlayed);
-                                    editDescription.append(String.format("\n**Personal Best:** %s seconds.\n", fastestTime));
-                                    editDescription.append(String.format("**Current Streak:** %d games.\n", newStreak));
-                                    editDescription.append(String.format("**Highest Streak:** %d games.\n", highestStreak));
-                                    editDescription.append(String.format("**Total Games Played:** %d games.", gamesPlayed));
+                                    userWordle.addGame(true, timeTaken);
+                                    wordleDao.update(userWordle);
+                                    editDescription.append(String.format("\n**Personal Best:** %s seconds.\n", userWordle.getFastestTime()));
+                                    editDescription.append(String.format("**Current Streak:** %d games.\n", userWordle.getCurrentStreak()));
+                                    editDescription.append(String.format("**Highest Streak:** %d games.\n", userWordle.getHighestStreak()));
+                                    editDescription.append(String.format("**Total Games Played:** %d games.", userWordle.getGamesPlayed()));
                                 }
                                 gameOver[0] = true;
-                            } else if (wordle.guesses + 1 == wordle.maxGuesses) {
+                            } else if (wordleGame.guesses + 1 == wordleGame.maxGuesses) {
                                 int user_id = userDao.getUserByDiscordId(event.getAuthor().getIdLong()).getId();
-                                newdb.model.Wordle userWordle = wordleDao.getUserWordle(user_id);
+                                Wordle userWordle = wordleDao.getByUserId(user_id);
                                 editDescription.append(String.format("You ran out of guesses. The correct word was: `%s`.",
-                                        wordle.word));
+                                        wordleGame.word));
                                 if (userWordle == null) {
-                                    wordleDao.addUserWordle(user_id, 0, 0, 0, 0);
+                                    wordleDao.add(new Wordle(user_id, 1, 0, 0, 0, 0));
                                 } else {
-                                    int highestStreak = userWordle.getHighestStreak();
-                                    int gamesPlayed = userWordle.getGamesPlayed() + 1;
-                                    int fastestTime = userWordle.getFastestTime();
-                                    int wins = userWordle.getWins();
-                                    wordleDao.updateUserWordle(user_id, fastestTime, wins, highestStreak, 0, gamesPlayed);
-                                    if (fastestTime == 0) {
+                                    userWordle.addGame(false, 0);
+                                    wordleDao.update(userWordle);
+                                    if (userWordle.getFastestTime() == 0) {
                                         editDescription.append("\n**Personal Best:** not set yet.\n");
                                     } else {
-                                        editDescription.append(String.format("\n**Personal Best:** %d seconds.\n", fastestTime));
+                                        editDescription.append(String.format("\n**Personal Best:** %d seconds.\n", userWordle.getFastestTime()));
                                     }
-                                    editDescription.append(String.format("**Highest Streak:** %s games.\n", highestStreak));
-                                    editDescription.append(String.format("**Total Games Played:** %d games.", gamesPlayed));
+                                    editDescription.append(String.format("**Highest Streak:** %s games.\n", userWordle.getHighestStreak()));
+                                    editDescription.append(String.format("**Total Games Played:** %d games.", userWordle.getGamesPlayed()));
                                 }
                                 event.getJDA().removeEventListener(this);
                                 gameOver[0] = true;
