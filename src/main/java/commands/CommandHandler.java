@@ -1,7 +1,5 @@
 package commands;
 
-import database.DatabaseManager;
-import database.queries.DailiesTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
@@ -9,8 +7,10 @@ import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import newdb.dao.DailyDao;
 import newdb.dao.PrefixDao;
 import newdb.dao.UserDao;
+import newdb.model.Daily;
 import newdb.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -20,10 +20,8 @@ import utility.User;
 
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -36,7 +34,7 @@ public class CommandHandler extends ListenerAdapter {
     private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
     private final User user;
     private final UserDao userDao = UserDao.getInstance();
-    private final DatabaseManager manager = DatabaseManager.getInstance();
+    private final DailyDao dailyDao = DailyDao.getInstance();
 
     public CommandHandler() {
         this.user = User.getInstance();
@@ -243,7 +241,8 @@ public class CommandHandler extends ListenerAdapter {
     private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
         newdb.model.User newUser = new newdb.model.User(user.getIdLong());
         userDao.add(newUser);
-        manager.query(DailiesTableQueries.addUserDaily, DatabaseManager.QueryTypes.UPDATE, user.getId());
+        Daily daily = new Daily(Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId());
+        dailyDao.add(daily);
     }
 
 }
