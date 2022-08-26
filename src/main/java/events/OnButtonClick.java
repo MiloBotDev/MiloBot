@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.requests.RestAction;
 import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -219,6 +220,24 @@ public class OnButtonClick extends ListenerAdapter {
             case "poker_raise":
                 Poker pokerGame4 = Poker.getUserGame(user);
                 pokerGame4.setPlayerAction(Poker.PlayerAction.RAISE);
+                break;
+            case "start_poker":
+                Lobby lobby4 = Lobby.lobbyInstances.get(event.getMessage().getId());
+                if (lobby4 != null) {
+                    if (lobby4.getPlayers().size() < 2) {
+                        event.getChannel().sendMessage("You need at least 2 players to start a poker game.").queue();
+                    } else {
+                        lobby4.destroy();
+                        List<RestAction<User>> actions = new ArrayList<>();
+                        for (LobbyEntry user1 : lobby4.getPlayers()) {
+                            actions.add(event.getJDA().retrieveUserById(user1.userId()));
+                        }
+                        RestAction.allOf(actions).queue(players -> {
+                            Poker poker = new Poker(players);
+                            poker.start();
+                        });
+                    }
+                }
                 break;
             case "fillLobby":
                 Lobby filledLobby = Lobby.lobbyInstances.get(event.getMessage().getId());
