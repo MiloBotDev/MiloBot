@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
-import utility.User;
+import utility.Users;
 
 import java.awt.*;
 import java.sql.SQLException;
@@ -32,12 +32,12 @@ public class CommandHandler extends ListenerAdapter {
 
     public final static HashMap<Long, String> prefixes = new HashMap<>();
     private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
-    private final User user;
+    private final Users user;
     private final UserDao userDao = UserDao.getInstance();
     private final DailyDao dailyDao = DailyDao.getInstance();
 
     public CommandHandler() {
-        this.user = User.getInstance();
+        this.user = Users.getInstance();
         // loads all the prefixes into a map
         List<Prefix> prefixesDbObj;
         try {
