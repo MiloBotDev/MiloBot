@@ -5,7 +5,6 @@ import models.cards.PlayingCards;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -19,10 +18,8 @@ import java.util.stream.Collectors;
 public class Poker {
 
     private static final ArrayList<Poker> games = new ArrayList<>();
-    private final User masterUser;
-    private final List<User> players = new ArrayList<>();
+    private final List<User> players;
     private final Map<User, PlayerData> playerData = new HashMap<>();
-    private final TextChannel channel;
     private final CardDeck mainDeck = new CardDeck();
     private final Random random = new Random();
     private PokerState state;
@@ -33,16 +30,36 @@ public class Poker {
     private boolean firstRound;
     private int lastRaisePlayerIndex;
     private int remainingPlayers;
+    private final Random random = new Random();
+    private final Set<PlayerAction> authorizedActions = new HashSet<>();
 
-    public Poker(User user, TextChannel channel) {
-        if (games.stream().anyMatch(game -> game.getChannel().equals(channel))) {
-            throw new IllegalArgumentException("There is already a game in this channel");
-        }
-        this.masterUser = user;
-        this.players.add(user);
-        this.channel = channel;
+    public enum PokerState {
+        WAITING_TO_START,
+        BET_ROUND_1,
+        REPLACING_CARDS,
+        BET_ROUND_2,
+        GAME_END
+    }
+
+    public enum PlayerAction {
+        FOLD,
+        CALL,
+        RAISE,
+        CHECK
+    }
+
+    private static class PlayerData {
+        private volatile Message embed;
+        private List<PlayingCards> hand;
+        private int moneyInPot = 0;
+        private boolean inGame = true;
+        private boolean replacedCards = false;
+    }
+
+    public Poker(List<User> players) {
         games.add(this);
-        state = PokerState.WAITING_FOR_PLAYERS;
+        this.players = new ArrayList<>(players);
+        state = PokerState.WAITING_TO_START;
     }
 
     public static Poker getGameByChannel(TextChannel channel) {
@@ -81,10 +98,8 @@ public class Poker {
     }
 
     public void start() {
-        if (state != PokerState.WAITING_FOR_PLAYERS) {
-            channel.sendMessage("The game has already started.").queue();
-        } else if (players.size() == 1) {
-            channel.sendMessage("You need at least 2 players to play poker.").queue();
+        if (players.size() < 2) {
+            throw new IllegalStateException("Need at least 2 players to start a game");
         } else {
             players.forEach(player -> {
                 playerData.put(player, new PlayerData());
@@ -95,13 +110,12 @@ public class Poker {
                 sortHand(hand);
                 playerData.get(player).hand = hand;
             });
-            channel.sendMessage("Poker game started.").queue();
             next();
         }
     }
 
     private void next() {
-        if (state == PokerState.WAITING_FOR_PLAYERS) {
+        if (state == PokerState.WAITING_TO_START) {
             firstRound = true;
             waitingForUserRaise = false;
             requiredMoneyInPot = 0;
@@ -257,8 +271,10 @@ public class Poker {
         ActionRow actionRow;
         if (moneyInPot < requiredMoneyInPot) {
             actionRow = ActionRow.of(fold, call, raise);
+            authorizedActions.addAll(List.of(PlayerAction.FOLD, PlayerAction.CALL, PlayerAction.RAISE));
         } else {
             actionRow = ActionRow.of(check, raise);
+            authorizedActions.addAll(List.of(PlayerAction.CHECK, PlayerAction.RAISE));
         }
         return actionRow;
     }
@@ -338,20 +354,23 @@ public class Poker {
     }
 
     public void setPlayerAction(PlayerAction action) {
-        switch (action) {
-            case CHECK -> next();
-            case FOLD -> {
-                playerData.get(players.get(nextPlayerIndex)).inGame = false;
-                remainingPlayers--;
-                next();
+        if (authorizedActions.contains(action)) {
+            authorizedActions.clear();
+            switch (action) {
+                case CHECK -> next();
+                case FOLD -> {
+                    playerData.get(players.get(nextPlayerIndex)).inGame = false;
+                    remainingPlayers--;
+                    next();
+                }
+                case CALL -> {
+                    playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
+                    next();
+                }
+                case RAISE -> players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
+                        channel.sendMessage("How much would you like to raise by?")
+                                .queue(msg -> waitingForUserRaise = true));
             }
-            case CALL -> {
-                playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
-                next();
-            }
-            case RAISE -> players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
-                    channel.sendMessage("How much would you like to raise by?")
-                            .queue(msg -> waitingForUserRaise = true));
         }
     }
 
