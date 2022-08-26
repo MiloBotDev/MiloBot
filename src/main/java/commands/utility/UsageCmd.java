@@ -15,19 +15,19 @@ import java.util.List;
  */
 public class UsageCmd extends Command implements UtilityCmd {
 
-	public final DatabaseManager manager;
+    public final DatabaseManager manager;
 
-	public UsageCmd() {
-		this.commandName = "usage";
-		this.commandDescription = "See the amount of times each command has been used.";
-		this.cooldown = 60;
-		this.commandArgs = new String[]{"*command"};
+    public UsageCmd() {
+        this.commandName = "usage";
+        this.commandDescription = "See the amount of times each command has been used.";
+        this.cooldown = 60;
+        this.commandArgs = new String[]{"*command"};
 
-		this.manager = DatabaseManager.getInstance();
-	}
+        this.manager = DatabaseManager.getInstance();
+    }
 
-	@Override
-	public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+    @Override
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
 //		event.getChannel().sendTyping().queue();
 //		if (args.size() == 0) {
 //			ArrayList<String> result = manager.query(manager.getAllCommandUsages, DatabaseManager.QueryTypes.RETURN);
@@ -45,7 +45,7 @@ public class UsageCmd extends Command implements UtilityCmd {
 //			embed.setDescription(usages.toString());
 //			event.getChannel().sendMessageEmbeds(embed.build()).queue(EmbedUtils.deleteEmbedButton(event, event.getAuthor().getId()));
 //		}
-	}
+    }
 
 
 }

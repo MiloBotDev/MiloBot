@@ -10,6 +10,7 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import utility.Config;
+import utility.Lobby;
 
 import java.io.IOException;
 import java.net.URI;
@@ -26,13 +27,13 @@ public class HungerGames {
 
     private final List<Player> players;
     private final List<Player> alivePlayers;
-    private List<String> messages;
     private final Map<Integer, Map<List<String>, List<Player>>> roundData;
     private final List<Item> items;
     private final List<Event> events;
+    private final long startTime;
+    private List<String> messages;
     private boolean startedGame;
     private Player winner;
-    private final long startTime;
 
     public HungerGames() {
         this.startedGame = false;
@@ -64,6 +65,28 @@ public class HungerGames {
         Globals globals = getGlobals();
         loadAllItems(globals);
         loadAllEvents(globals);
+    }
+
+    public static void fileLoadHack(@NotNull URI uri) throws IOException {
+        if ("jar".equals(uri.getScheme())) {
+            for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
+                if (provider.getScheme().equalsIgnoreCase("jar")) {
+                    try {
+                        provider.getFileSystem(uri);
+                    } catch (FileSystemNotFoundException e) {
+                        // in this case we need to initialize it first:
+                        provider.newFileSystem(uri, Collections.emptyMap());
+                    }
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Lobby lobby = new Lobby("RubenJ01", "1");
+        lobby.fillLobby();
+
+        new HungerGames(lobby.getPlayers()).startGame();
     }
 
     public void addPlayer(Player player) {
@@ -134,14 +157,13 @@ public class HungerGames {
 
         return null; // should not happen
     }
-    
+
     public void startGame() {
         this.startedGame = true;
 
         int round = 1;
         List<Player> playersAliveInRound;
         while (this.alivePlayers.size() > 1) {
-
             for (Player player : this.players) {
                 if (this.alivePlayers.contains(player)) {
                     player.doAction();
@@ -155,7 +177,7 @@ public class HungerGames {
             }
 
             playersAliveInRound = new ArrayList<>();
-            for(Player player : this.alivePlayers) {
+            for (Player player : this.alivePlayers) {
                 playersAliveInRound.add(player.clone());
             }
 
@@ -168,6 +190,10 @@ public class HungerGames {
 
     public Optional<Item> getItemByName(String name) {
         return this.items.stream().filter(item -> item.getName().equals(name)).findFirst();
+    }
+
+    public Optional<Event> getEventByName(String name) {
+        return this.events.stream().filter(event -> event.getName().equals(name)).findFirst();
     }
 
     public Globals getGlobals() {
@@ -183,14 +209,14 @@ public class HungerGames {
             fileLoadHack(uri);
             try (Stream<Path> paths = Files.walk(Paths.get(uri))) {
                 paths
-                    .filter(Files::isRegularFile)
-                    .forEach((file) -> {
-                        try {
-                            this.items.add(new Item(globals, new String(Files.readAllBytes(file))));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                        .filter(Files::isRegularFile)
+                        .forEach((file) -> {
+                            try {
+                                this.items.add(new Item(globals, new String(Files.readAllBytes(file))));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
             }
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
@@ -217,22 +243,8 @@ public class HungerGames {
         }
     }
 
-    public static void fileLoadHack(@NotNull URI uri) throws IOException {
-        if ("jar".equals(uri.getScheme())) {
-            for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
-                if (provider.getScheme().equalsIgnoreCase("jar")) {
-                    try {
-                        provider.getFileSystem(uri);
-                    } catch (FileSystemNotFoundException e) {
-                        // in this case we need to initialize it first:
-                        provider.newFileSystem(uri, Collections.emptyMap());
-                    }
-                }
-            }
-        }
-    }
-
     public void log(String message) {
+        System.out.println(message);
         this.messages.add(message);
     }
 
@@ -255,4 +267,5 @@ public class HungerGames {
     public Player getWinner() {
         return winner;
     }
+
 }

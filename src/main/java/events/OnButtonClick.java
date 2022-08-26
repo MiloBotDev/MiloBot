@@ -3,8 +3,6 @@ package events;
 import commands.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
 import commands.games.hungergames.HungerGamesStartCmd;
-import database.DatabaseManager;
-import database.queries.UsersTableQueries;
 import games.Blackjack;
 import games.HungerGames;
 import games.Poker;
@@ -19,26 +17,30 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.RestAction;
+import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.Lobby;
 import utility.Paginator;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Triggers when a button is clicked by a user.
  */
 public class OnButtonClick extends ListenerAdapter {
 
+    private static final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
     private final EncounterGeneratorCmd encCmd;
-    private final DatabaseManager dbManager;
+    private final UserDao userDao = UserDao.getInstance();
 
     public OnButtonClick() {
         this.encCmd = EncounterGeneratorCmd.getInstance();
-        this.dbManager = DatabaseManager.getInstance();
     }
 
     @Override
@@ -122,7 +124,7 @@ public class OnButtonClick extends ListenerAdapter {
                 encCmd.saveEncounter(event.getMessage().getEmbeds().get(0), event.getUser());
                 break;
             case "hit":
-                Blackjack game = BlackjackPlayCmd.blackjackGames.get(event.getUser().getId());
+                Blackjack game = BlackjackPlayCmd.blackjackGames.get(user.getIdLong());
                 if (game.isFinished() || game.isPlayerStand()) {
                     break;
                 }
@@ -135,14 +137,14 @@ public class OnButtonClick extends ListenerAdapter {
                     event.getHook().editOriginalEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
                             Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
                             Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
-                    BlackjackPlayCmd.blackjackGames.remove(user.getId());
+                    BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
                 } else {
                     newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
                     event.getHook().editOriginalEmbeds(newEmbed.build()).queue();
                 }
                 break;
             case "stand":
-                Blackjack blackjack = BlackjackPlayCmd.blackjackGames.get(event.getUser().getId());
+                Blackjack blackjack = BlackjackPlayCmd.blackjackGames.get(user.getIdLong());
                 if (blackjack.isFinished() || blackjack.isPlayerStand()) {
                     break;
                 }
@@ -154,29 +156,35 @@ public class OnButtonClick extends ListenerAdapter {
                 event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
                         Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
                         Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
-                BlackjackPlayCmd.blackjackGames.remove(user.getId());
+                BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
                 break;
             case "replayBlackjack":
-                if (BlackjackPlayCmd.blackjackGames.containsKey(authorId)) {
+                if (BlackjackPlayCmd.blackjackGames.containsKey(user.getIdLong())) {
                     break;
                 }
                 String description = event.getMessage().getEmbeds().get(0).getDescription();
                 Blackjack value;
                 if (description == null) {
-                    value = new Blackjack(authorId);
+                    value = new Blackjack(user.getIdLong());
                 } else {
                     String s = description.replaceAll("[^0-9]", "");
                     int bet = Integer.parseInt(s);
-                    ArrayList<String> result = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, user.getId());
-                    int wallet = Integer.parseInt(result.get(0));
+                    newdb.model.User user2;
+                    try {
+                        user2 = userDao.getUserByDiscordId(event.getUser().getIdLong());
+                    } catch (SQLException e) {
+                        logger.error("Error getting user from database when user wanted to replay blackjack.", e);
+                        return;
+                    }
+                    int wallet = Objects.requireNonNull(user2).getCurrency();
                     if (bet > wallet) {
                         event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();
                         break;
                     }
-                    value = new Blackjack(authorId, bet);
+                    value = new Blackjack(user.getIdLong(), bet);
                 }
                 value.initializeGame();
-                BlackjackPlayCmd.blackjackGames.put(event.getUser().getId(), value);
+                BlackjackPlayCmd.blackjackGames.put(user.getIdLong(), value);
                 BlackjackStates state = value.checkWin(false);
                 EmbedBuilder embed;
                 if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
@@ -184,7 +192,7 @@ public class OnButtonClick extends ListenerAdapter {
                     value.setDealerStand(true);
                     blackjackStates = value.checkWin(true);
                     embed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
-                    BlackjackPlayCmd.blackjackGames.remove(authorId);
+                    BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
                     event.getHook().editOriginalEmbeds(embed.build()).setActionRows(ActionRow.of(
                             Button.primary(authorId + ":replayBlackjack", "Replay"),
                             Button.secondary(authorId + ":delete", "Delete")

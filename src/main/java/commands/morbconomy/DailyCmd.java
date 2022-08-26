@@ -1,99 +1,108 @@
 package commands.morbconomy;
 
 import commands.Command;
-import database.DatabaseManager;
-import database.queries.DailiesTableQueries;
-import database.queries.UsersTableQueries;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import newdb.dao.DailyDao;
+import newdb.dao.UserDao;
+import newdb.model.Daily;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.sql.SQLException;
+import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 
 public class DailyCmd extends Command implements MorbconomyCmd {
 
-    private final DatabaseManager dbManager;
+    private static final Logger logger = LoggerFactory.getLogger(DailyCmd.class);
     private final Random random;
+    private final UserDao userDao = UserDao.getInstance();
+    private final DailyDao dailyDao = DailyDao.getInstance();
 
     public DailyCmd() {
         this.commandName = "daily";
         this.commandDescription = "Collect your daily reward.";
-        this.dbManager = DatabaseManager.getInstance();
         this.random = new Random();
     }
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
-        String s = updateDailies(event.getAuthor());
-        event.getChannel().sendMessage(s).queue();
+        try {
+            String s = updateDailies(event.getAuthor());
+            event.getChannel().sendMessage(s).queue();
+        } catch (SQLException e) {
+            logger.error("Error updating dailies", e);
+        }
     }
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
-        String s = updateDailies(event.getUser());
-        event.getHook().sendMessage(s).queue();
+        try {
+            String s = updateDailies(event.getUser());
+            event.getHook().sendMessage(s).queue();
+        } catch (SQLException e) {
+            logger.error("Error updating dailies", e);
+            event.getHook().sendMessage("Internal error. Please try again later.").queue();
+        }
     }
 
-    private @NotNull String updateDailies(@NotNull User user) {
+    private @NotNull String updateDailies(@NotNull User user) throws SQLException {
         int reward = random.nextInt(5000) + 1000;
 
         StringBuilder result = new StringBuilder();
-        String userId = user.getId();
-        LocalDateTime currentTime = LocalDateTime.now();
 
-        ArrayList<String> userDaily = dbManager.query(DailiesTableQueries.getUserDaily, DatabaseManager.QueryTypes.RETURN, userId);
-        String lastDailyDate = userDaily.get(1);
-        int streak = Integer.parseInt(userDaily.get(2));
-        int totalClaimed = Integer.parseInt(userDaily.get(3)) + 1;
-        if(lastDailyDate.equals("null")) {
+        Instant timeNow = Instant.now();
+        Daily daily = Objects.requireNonNull(dailyDao.getDailyByUserDiscordId(user.getIdLong()));
+        daily.incrementTotalClaimed();
+        if (daily.getLastDailyTime() == null) {
             result.append(String.format("You claimed your first daily! You earn `%d` morbcoins.", reward));
-            streak++;
+            daily.incrementStreak();
         } else {
-            LocalDateTime lastDailyTime = LocalDateTime.parse(lastDailyDate);
-            long minutesSinceLastDaily = MINUTES.between(lastDailyTime, currentTime);
-            if(minutesSinceLastDaily < 1440) {
+            long minutesSinceLastDaily = MINUTES.between(daily.getLastDailyTime(), timeNow);
+            if (minutesSinceLastDaily < 1440) {
                 // 24 hours haven't passed yet
                 long minutesTillNextDaily = 1440 - minutesSinceLastDaily;
                 long waitHours = Math.floorDiv(minutesTillNextDaily, 60);
                 long waitMinutes = minutesTillNextDaily % 60;
                 String waitTime;
-                if(waitHours == 0) {
+                if (waitHours == 0) {
                     waitTime = String.format("%d minute(s)", waitMinutes);
                 } else {
-                   waitTime = String.format("%d hours and %d minute(s)", waitHours, waitMinutes);
+                    waitTime = String.format("%d hours and %d minute(s)", waitHours, waitMinutes);
                 }
                 result.append(String.format("You can claim your next daily in %s.", waitTime));
                 return result.toString();
-            } else if(minutesSinceLastDaily > 2880) {
+            } else if (minutesSinceLastDaily > 2880) {
                 // it's been 48 hours so you lose your streak
-                result.append(String.format("You earn `%d` morbcoins. Sadly you lost your streak of `%d` day(s).", reward, streak));
-                streak = 1;
+                result.append(String.format("You earn `%d` morbcoins. Sadly you lost your streak of `%d` day(s).", reward, daily.getStreak()));
+                daily.resetStreak();
             } else {
                 // you keep your streak
-                streak++;
-                if(streak == 1) {
+                daily.incrementStreak();
+                if (daily.getStreak() == 1) {
                     result.append(String.format("You earn `%d` morbcoins.", reward));
                 } else {
-                    int bonusMorbcoins = streak * random.nextInt(100) + 25;
+                    int bonusMorbcoins = daily.getStreak() * random.nextInt(100) + 25;
                     result.append(String.format("You earn `%d` morboins plus an additional `%d` morbcoins for being on a " +
-                            "streak of `%d` day(s).", reward, bonusMorbcoins, streak));
+                            "streak of `%d` day(s).", reward, bonusMorbcoins, daily.getStreak()));
                     reward += bonusMorbcoins;
                 }
             }
         }
-        dbManager.query(DailiesTableQueries.updateUserDaily, DatabaseManager.QueryTypes.UPDATE,
-                currentTime.toString(), String.valueOf(streak), String.valueOf(totalClaimed), userId);
-        ArrayList<String> currency = dbManager.query(UsersTableQueries.getUserCurrency, DatabaseManager.QueryTypes.RETURN, userId);
-        String newTotalCurrency = new BigInteger(currency.get(0)).add(BigInteger.valueOf(reward)).toString();
-        dbManager.query(UsersTableQueries.updateUserCurrency, DatabaseManager.QueryTypes.UPDATE, newTotalCurrency, userId);
+        daily.setLastDailyTime(timeNow);
+        dailyDao.update(daily);
+
+        newdb.model.User userDbObj = userDao.getUserByDiscordId(user.getIdLong());
+        Objects.requireNonNull(userDbObj).setCurrency(userDbObj.getCurrency() + reward);
+        userDao.update(userDbObj);
         return result.toString();
     }
 

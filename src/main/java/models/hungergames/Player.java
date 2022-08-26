@@ -9,6 +9,8 @@ import java.util.Random;
 
 public class Player implements Cloneable {
 
+    public static final long PLAYER_MAX_HEALTH = 200;
+
     private final String userName;
     private final String userId;
     private List<Item> inventory;
@@ -25,7 +27,7 @@ public class Player implements Cloneable {
         this.userName = userName;
         this.userId = userId;
         this.inventory = new ArrayList<>();
-        this.health = 100;
+        this.health = PLAYER_MAX_HEALTH;
         this.game = null;
 
         this.kills = 0;
@@ -36,10 +38,13 @@ public class Player implements Cloneable {
     }
 
     public void heal(int amount) {
+        long remainingHealth = PLAYER_MAX_HEALTH - this.health;
         this.health += amount;
-        this.healingDone += amount;
-        if (this.health > 100) {
-            this.health = 100;
+        if (this.health > PLAYER_MAX_HEALTH) {
+            this.health = PLAYER_MAX_HEALTH;
+            this.healingDone += remainingHealth;
+        } else {
+            this.healingDone += amount;
         }
     }
 
@@ -60,6 +65,7 @@ public class Player implements Cloneable {
             }
         }
         this.game.killPlayer(this);
+        this.health = 0;
     }
 
     public void addItem(Item item) {
@@ -84,11 +90,11 @@ public class Player implements Cloneable {
             int itemNumber = rand.nextInt(this.inventory.size());
             Item chosenItem = this.inventory.get(itemNumber);
             chosenItem.onUse(this);
-        // 10% for an event to occur
+            // 10% for an event to occur
         } else if (odd < 7 && !this.inventory.isEmpty()) {
             Event event = this.game.getRandomEvent();
             event.onTrigger(this);
-        // 30% chance to find an item
+            // 30% chance to find an item
         } else {
             Item item = this.game.getRandomItem();
             this.inventory.add(item);
@@ -98,6 +104,10 @@ public class Player implements Cloneable {
 
     public void useItem(@NotNull Item item) {
         item.onUse(this);
+    }
+
+    public void triggerEvent(@NotNull Event event) {
+        event.onTrigger(this);
     }
 
     public void reset() {
@@ -135,12 +145,12 @@ public class Player implements Cloneable {
         return game;
     }
 
-    public long getHealth() {
-        return health;
-    }
-
     public void setGame(HungerGames game) {
         this.game = game;
+    }
+
+    public long getHealth() {
+        return health;
     }
 
     public List<Item> getInventory() {

@@ -9,11 +9,11 @@ import commands.dnd.DndCmd;
  */
 public class EncounterCmd extends Command implements ParentCmd, DndCmd {
 
-	public EncounterCmd() {
-		this.commandName = "encounter";
-		this.commandDescription = "D&D 5e encounter generator.";
+    public EncounterCmd() {
+        this.commandName = "encounter";
+        this.commandDescription = "D&D 5e encounter generator.";
 
-		this.subCommands.add(EncounterGeneratorCmd.getInstance());
-		this.subCommands.add(EncounterLoadCmd.getInstance());
-	}
+        this.subCommands.add(EncounterGeneratorCmd.getInstance());
+        this.subCommands.add(EncounterLoadCmd.getInstance());
+    }
 }

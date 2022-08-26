@@ -3,6 +3,7 @@ local damage = 40
 return {
     name = "gun",
     rarity = 5,
+    type = "usable",
     onUse = function(self, lobbyEntry)
         victim = game:getRandomPlayer(lobbyEntry)
         remainingHealth = victim:getHealth()
