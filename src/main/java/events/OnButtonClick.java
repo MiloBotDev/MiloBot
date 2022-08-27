@@ -16,12 +16,12 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
-import net.dv8tion.jda.api.requests.RestAction;
 import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Lobby;
+import utility.NewLobby;
 import utility.Paginator;
 
 import java.awt.*;
@@ -84,6 +84,31 @@ public class OnButtonClick extends ListenerAdapter {
                         lobby2.removePlayer(lobbyEntryToRemove);
 
                         updateLobbyEmbed(event, lobby2);
+                    }
+                }
+            }
+            return;
+        } else if (!authorId.equals(user.getId()) && (type.equals("joinNewLobby") || type.equals("leaveNewLobby"))) {
+            event.deferEdit().queue();
+            switch (type) {
+                case "joinNewLobby" -> {
+                    NewLobby lobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                    if (lobby != null) {
+                        if (lobby.addPlayer(user)) {
+                            updateNewLobbyEmbed(event, lobby);
+                        } else {
+                            event.getHook().sendMessage(event.getUser().getAsMention() +
+                                    " You are already in this lobby.").queue();
+                        }
+                    }
+                }
+                case "leaveNewLobby" -> {
+                    NewLobby lobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                    if (lobby != null) {
+                        if (lobby.removePlayer(user)) {
+                            updateNewLobbyEmbed(event, lobby);
+                            return;
+                        }
                     }
                 }
             }
@@ -221,24 +246,6 @@ public class OnButtonClick extends ListenerAdapter {
                 Poker pokerGame4 = Poker.getUserGame(user);
                 pokerGame4.setPlayerAction(Poker.PlayerAction.RAISE);
                 break;
-            case "start_poker":
-                Lobby lobby4 = Lobby.lobbyInstances.get(event.getMessage().getId());
-                if (lobby4 != null) {
-                    if (lobby4.getPlayers().size() < 2) {
-                        event.getChannel().sendMessage("You need at least 2 players to start a poker game.").queue();
-                    } else {
-                        lobby4.destroy();
-                        List<RestAction<User>> actions = new ArrayList<>();
-                        for (LobbyEntry user1 : lobby4.getPlayers()) {
-                            actions.add(event.getJDA().retrieveUserById(user1.userId()));
-                        }
-                        RestAction.allOf(actions).queue(players -> {
-                            Poker poker = new Poker(players);
-                            poker.start();
-                        });
-                    }
-                }
-                break;
             case "fillLobby":
                 Lobby filledLobby = Lobby.lobbyInstances.get(event.getMessage().getId());
                 int maxPlayers = filledLobby.getMaxPlayers();
@@ -257,6 +264,14 @@ public class OnButtonClick extends ListenerAdapter {
                 hungerGames.startGame();
                 HungerGamesStartCmd.runGame(event, hungerGames);
                 break;
+            case "startNewLobby":
+                NewLobby newLobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                if (newLobby != null && newLobby.getCreator().equals(event.getUser())) {
+                    if (!newLobby.start()) {
+                        event.getHook().sendMessage("Not enough players.").queue();
+                    }
+                }
+                break;
         }
 
     }
@@ -272,5 +287,9 @@ public class OnButtonClick extends ListenerAdapter {
         embedBuilder2.setDescription(lobby2.generateDescription());
 
         event.getHook().editOriginalEmbeds(embedBuilder2.build()).queue();
+    }
+
+    private void updateNewLobbyEmbed(@NotNull ButtonClickEvent event, @NotNull NewLobby lobby) {
+        event.getHook().editOriginalEmbeds(lobby.getEmbed()).setActionRows(lobby.getEmbedActionsRows()).queue();
     }
 }
