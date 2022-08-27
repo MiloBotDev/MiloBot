@@ -21,7 +21,6 @@ public class Poker {
     private final List<User> players;
     private final Map<User, PlayerData> playerData = new HashMap<>();
     private final CardDeck mainDeck = new CardDeck();
-    private final Random random = new Random();
     private PokerState state;
     private int nextPlayerIndex;
     private int playerRaise;
@@ -60,41 +59,6 @@ public class Poker {
         games.add(this);
         this.players = new ArrayList<>(players);
         state = PokerState.WAITING_TO_START;
-    }
-
-    public static Poker getGameByChannel(TextChannel channel) {
-        return games.stream().filter(game -> game.getChannel().equals(channel)).findFirst().orElse(null);
-    }
-
-    public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (!event.getAuthor().isBot() && event.getChannelType() == ChannelType.PRIVATE) {
-            new ArrayList<>(games).forEach(game -> game.onMessage(event));
-        }
-    }
-
-    public static Poker getUserGame(User user) {
-        return games.stream().filter(game -> game.players.contains(user)).findAny().orElse(null);
-    }
-
-    public TextChannel getChannel() {
-        return channel;
-    }
-
-    public User getMasterUser() {
-        return masterUser;
-    }
-
-    public boolean addPlayer(User user) {
-        if (!players.contains(user) && state == PokerState.WAITING_FOR_PLAYERS) {
-            players.add(user);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean containsPlayer(User user) {
-        return players.contains(user);
     }
 
     public void start() {
@@ -279,6 +243,12 @@ public class Poker {
         return actionRow;
     }
 
+    public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if (!event.getAuthor().isBot() && event.getChannelType() == ChannelType.PRIVATE) {
+            new ArrayList<>(games).forEach(game -> game.onMessage(event));
+        }
+    }
+
     private void onMessage(@NotNull MessageReceivedEvent event) {
         if ((state == PokerState.BET_ROUND_1 || state == PokerState.BET_ROUND_2) &&
                 event.getAuthor().equals(players.get(nextPlayerIndex)) && waitingForUserRaise) {
@@ -344,13 +314,17 @@ public class Poker {
         embed.setTitle("Poker");
         embed.addField("------------", "**Your hand**", false);
         List<PlayingCards> hand = playerData.get(user).hand;
-        for (int i = 0; i < hand.size(); i++) {
+        for(int i = 0; i < hand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), hand.get(i).getLabel(), true);
         }
         embed.addBlankField(false);
         embed.addField("Your bet", String.valueOf(playerData.get(user).moneyInPot), true);
         embed.addField("Required money in pot", String.valueOf(requiredMoneyInPot), true);
         return embed;
+    }
+
+    public static Poker getUserGame(User user) {
+        return games.stream().filter(game -> game.players.contains(user)).findAny().orElse(null);
     }
 
     public void setPlayerAction(PlayerAction action) {
@@ -378,29 +352,6 @@ public class Poker {
         Comparator<PlayingCards> c1 = Comparator.comparingInt(o -> o.getRank().toInt());
         Comparator<PlayingCards> c2 = c1.thenComparing(PlayingCards::getSuit);
         hand.sort(c2);
-    }
-
-    public enum PokerState {
-        WAITING_FOR_PLAYERS,
-        BET_ROUND_1,
-        REPLACING_CARDS,
-        BET_ROUND_2,
-        GAME_END
-    }
-
-    public enum PlayerAction {
-        FOLD,
-        CALL,
-        RAISE,
-        CHECK
-    }
-
-    private static class PlayerData {
-        private volatile Message embed;
-        private List<PlayingCards> hand;
-        private int moneyInPot = 0;
-        private boolean inGame = true;
-        private boolean replacedCards = false;
     }
 
     public static class Hands {
