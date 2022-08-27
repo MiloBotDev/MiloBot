@@ -65,17 +65,18 @@ public class BlackjackDao {
     }
 
     public void update(Blackjack blackjack) throws SQLException {
-        String query = "UPDATE blackjack SET won_last_game = ?, streak = ?, total_games = ?, total_wins = ?, " +
-                "total_draws = ?, total_earnings = ?, highest_streak = ? WHERE user_id = ?";
+        String query = "UPDATE blackjack SET user_id = ?, won_last_game = ?, streak = ?, total_games = ?, " +
+                "total_wins = ?, total_draws = ?, total_earnings = ?, highest_streak = ? WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
-        ps.setBoolean(1, blackjack.wonLastGame());
-        ps.setInt(2, blackjack.getStreak());
-        ps.setInt(3, blackjack.getTotalGames());
-        ps.setInt(4, blackjack.getTotalWins());
-        ps.setInt(5, blackjack.getTotalDraws());
-        ps.setInt(6, blackjack.getTotalEarnings());
-        ps.setInt(7, blackjack.getHighestStreak());
-        ps.setInt(8, blackjack.getUserId());
+        ps.setInt(1, blackjack.getUserId());
+        ps.setBoolean(2, blackjack.wonLastGame());
+        ps.setInt(3, blackjack.getStreak());
+        ps.setInt(4, blackjack.getTotalGames());
+        ps.setInt(5, blackjack.getTotalWins());
+        ps.setInt(6, blackjack.getTotalDraws());
+        ps.setInt(7, blackjack.getTotalEarnings());
+        ps.setInt(8, blackjack.getHighestStreak());
+        ps.setInt(9, blackjack.getId());
         ps.executeUpdate();
     }
 
