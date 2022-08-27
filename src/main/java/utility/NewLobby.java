@@ -53,7 +53,7 @@ public class NewLobby {
         }
         Button leaveButton = Button.primary(creator.getId() + ":" + "leaveNewLobby", "Leave");
         Button startButton = Button.primary(creator.getId() + ":" + "startNewLobby", "Start");
-        Button deleteButton = Button.secondary(creator.getId() + ":" + "delete", "Delete");
+        Button deleteButton = Button.secondary(creator.getId() + ":" + "deleteNewLobby", "Delete");
         return ActionRow.of(joinButton, leaveButton, startButton, deleteButton);
     }
 
@@ -77,6 +77,10 @@ public class NewLobby {
 
     public static NewLobby getLobbyById(long id) {
         return lobbyInstances.get(id);
+    }
+
+    public static void removeLobbyById(long id) {
+        lobbyInstances.remove(id);
     }
 
     public User getCreator() {

@@ -272,6 +272,10 @@ public class OnButtonClick extends ListenerAdapter {
                     }
                 }
                 break;
+            case "deleteNewLobby":
+                NewLobby.removeLobbyById(event.getMessage().getIdLong());
+                event.getHook().deleteOriginal().queue();
+                break;
         }
 
     }
