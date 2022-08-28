@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
-import utility.User;
+import utility.Users;
 
 import java.sql.SQLException;
 import java.text.DecimalFormat;
@@ -22,7 +22,7 @@ import java.util.*;
  */
 public class ProfileCmd extends Command implements MorbconomyCmd {
     private static final Logger logger = LoggerFactory.getLogger(ProfileCmd.class);
-    private final User user;
+    private final Users user;
     private final UserDao userDao = UserDao.getInstance();
 
     public ProfileCmd() {
@@ -30,7 +30,7 @@ public class ProfileCmd extends Command implements MorbconomyCmd {
         this.commandDescription = "View your own or someone else's profile.";
         this.commandArgs = new String[]{"*user"};
         this.cooldown = 0;
-        this.user = User.getInstance();
+        this.user = Users.getInstance();
     }
 
     @Override

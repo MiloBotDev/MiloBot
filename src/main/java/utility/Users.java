@@ -24,17 +24,17 @@ import java.util.Objects;
  * All methods related to users.
  * This class is a singleton.
  */
-public class User {
+public class Users {
 
-    final static Logger logger = LoggerFactory.getLogger(User.class);
+    final static Logger logger = LoggerFactory.getLogger(Users.class);
 
-    private static User instance;
+    private static Users instance;
     public final HashMap<Integer, Integer> levels;
     private final DatabaseManager manager;
     private final UserDao userDao;
     public int maxLevel;
 
-    private User() {
+    private Users() {
         this.manager = DatabaseManager.getInstance();
         this.userDao = UserDao.getInstance();
         Config config = Config.getInstance();
@@ -48,9 +48,9 @@ public class User {
      *
      * @return The instance of this class.
      */
-    public static User getInstance() {
+    public static Users getInstance() {
         if (instance == null) {
-            instance = new User();
+            instance = new Users();
         }
         return instance;
     }

@@ -5,7 +5,6 @@ import models.cards.PlayingCards;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -19,12 +18,9 @@ import java.util.stream.Collectors;
 public class Poker {
 
     private static final ArrayList<Poker> games = new ArrayList<>();
-    private final User masterUser;
-    private final List<User> players = new ArrayList<>();
+    private final List<User> players;
     private final Map<User, PlayerData> playerData = new HashMap<>();
-    private final TextChannel channel;
     private final CardDeck mainDeck = new CardDeck();
-    private final Random random = new Random();
     private PokerState state;
     private int nextPlayerIndex;
     private int playerRaise;
@@ -33,58 +29,41 @@ public class Poker {
     private boolean firstRound;
     private int lastRaisePlayerIndex;
     private int remainingPlayers;
+    private final Random random = new Random();
+    private final Set<PlayerAction> authorizedActions = new HashSet<>();
 
-    public Poker(User user, TextChannel channel) {
-        if (games.stream().anyMatch(game -> game.getChannel().equals(channel))) {
-            throw new IllegalArgumentException("There is already a game in this channel");
-        }
-        this.masterUser = user;
-        this.players.add(user);
-        this.channel = channel;
+    public enum PokerState {
+        WAITING_TO_START,
+        BET_ROUND_1,
+        REPLACING_CARDS,
+        BET_ROUND_2,
+        GAME_END
+    }
+
+    public enum PlayerAction {
+        FOLD,
+        CALL,
+        RAISE,
+        CHECK
+    }
+
+    private static class PlayerData {
+        private volatile Message embed;
+        private List<PlayingCards> hand;
+        private int moneyInPot = 0;
+        private boolean inGame = true;
+        private boolean replacedCards = false;
+    }
+
+    public Poker(List<User> players) {
         games.add(this);
-        state = PokerState.WAITING_FOR_PLAYERS;
-    }
-
-    public static Poker getGameByChannel(TextChannel channel) {
-        return games.stream().filter(game -> game.getChannel().equals(channel)).findFirst().orElse(null);
-    }
-
-    public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (!event.getAuthor().isBot() && event.getChannelType() == ChannelType.PRIVATE) {
-            new ArrayList<>(games).forEach(game -> game.onMessage(event));
-        }
-    }
-
-    public static Poker getUserGame(User user) {
-        return games.stream().filter(game -> game.players.contains(user)).findAny().orElse(null);
-    }
-
-    public TextChannel getChannel() {
-        return channel;
-    }
-
-    public User getMasterUser() {
-        return masterUser;
-    }
-
-    public boolean addPlayer(User user) {
-        if (!players.contains(user) && state == PokerState.WAITING_FOR_PLAYERS) {
-            players.add(user);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean containsPlayer(User user) {
-        return players.contains(user);
+        this.players = new ArrayList<>(players);
+        state = PokerState.WAITING_TO_START;
     }
 
     public void start() {
-        if (state != PokerState.WAITING_FOR_PLAYERS) {
-            channel.sendMessage("The game has already started.").queue();
-        } else if (players.size() == 1) {
-            channel.sendMessage("You need at least 2 players to play poker.").queue();
+        if (players.size() < 2) {
+            throw new IllegalStateException("Need at least 2 players to start a game");
         } else {
             players.forEach(player -> {
                 playerData.put(player, new PlayerData());
@@ -95,13 +74,12 @@ public class Poker {
                 sortHand(hand);
                 playerData.get(player).hand = hand;
             });
-            channel.sendMessage("Poker game started.").queue();
             next();
         }
     }
 
     private void next() {
-        if (state == PokerState.WAITING_FOR_PLAYERS) {
+        if (state == PokerState.WAITING_TO_START) {
             firstRound = true;
             waitingForUserRaise = false;
             requiredMoneyInPot = 0;
@@ -257,10 +235,18 @@ public class Poker {
         ActionRow actionRow;
         if (moneyInPot < requiredMoneyInPot) {
             actionRow = ActionRow.of(fold, call, raise);
+            authorizedActions.addAll(List.of(PlayerAction.FOLD, PlayerAction.CALL, PlayerAction.RAISE));
         } else {
             actionRow = ActionRow.of(check, raise);
+            authorizedActions.addAll(List.of(PlayerAction.CHECK, PlayerAction.RAISE));
         }
         return actionRow;
+    }
+
+    public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if (!event.getAuthor().isBot() && event.getChannelType() == ChannelType.PRIVATE) {
+            new ArrayList<>(games).forEach(game -> game.onMessage(event));
+        }
     }
 
     private void onMessage(@NotNull MessageReceivedEvent event) {
@@ -328,7 +314,7 @@ public class Poker {
         embed.setTitle("Poker");
         embed.addField("------------", "**Your hand**", false);
         List<PlayingCards> hand = playerData.get(user).hand;
-        for (int i = 0; i < hand.size(); i++) {
+        for(int i = 0; i < hand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), hand.get(i).getLabel(), true);
         }
         embed.addBlankField(false);
@@ -337,21 +323,28 @@ public class Poker {
         return embed;
     }
 
+    public static Poker getUserGame(User user) {
+        return games.stream().filter(game -> game.players.contains(user)).findAny().orElse(null);
+    }
+
     public void setPlayerAction(PlayerAction action) {
-        switch (action) {
-            case CHECK -> next();
-            case FOLD -> {
-                playerData.get(players.get(nextPlayerIndex)).inGame = false;
-                remainingPlayers--;
-                next();
+        if (authorizedActions.contains(action)) {
+            authorizedActions.clear();
+            switch (action) {
+                case CHECK -> next();
+                case FOLD -> {
+                    playerData.get(players.get(nextPlayerIndex)).inGame = false;
+                    remainingPlayers--;
+                    next();
+                }
+                case CALL -> {
+                    playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
+                    next();
+                }
+                case RAISE -> players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
+                        channel.sendMessage("How much would you like to raise by?")
+                                .queue(msg -> waitingForUserRaise = true));
             }
-            case CALL -> {
-                playerData.get(players.get(nextPlayerIndex)).moneyInPot = requiredMoneyInPot;
-                next();
-            }
-            case RAISE -> players.get(nextPlayerIndex).openPrivateChannel().queue(channel ->
-                    channel.sendMessage("How much would you like to raise by?")
-                            .queue(msg -> waitingForUserRaise = true));
         }
     }
 
@@ -359,29 +352,6 @@ public class Poker {
         Comparator<PlayingCards> c1 = Comparator.comparingInt(o -> o.getRank().toInt());
         Comparator<PlayingCards> c2 = c1.thenComparing(PlayingCards::getSuit);
         hand.sort(c2);
-    }
-
-    public enum PokerState {
-        WAITING_FOR_PLAYERS,
-        BET_ROUND_1,
-        REPLACING_CARDS,
-        BET_ROUND_2,
-        GAME_END
-    }
-
-    public enum PlayerAction {
-        FOLD,
-        CALL,
-        RAISE,
-        CHECK
-    }
-
-    private static class PlayerData {
-        private volatile Message embed;
-        private List<PlayingCards> hand;
-        private int moneyInPot = 0;
-        private boolean inGame = true;
-        private boolean replacedCards = false;
     }
 
     public static class Hands {
