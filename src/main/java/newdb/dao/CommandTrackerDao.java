@@ -29,11 +29,14 @@ public class CommandTrackerDao {
 
     private void createTableIfNotExists() throws SQLException {
         String query = "CREATE TABLE IF NOT EXISTS command_tracker (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL," +
                 "command_name VARCHAR(25) NOT NULL," +
                 "amount INT NOT NULL," +
-                "CONSTRAINT FK_user_id FOREIGN KEY (user_id)" +
-                "REFERENCES users(id)" +
+                "CONSTRAINT fk_user_id FOREIGN KEY (user_id) " +
+                "REFERENCES users(id) " +
+                "ON DELETE CASCADE " +
+                "ON UPDATE CASCADE" +
                 ");";
         Statement st = con.createStatement();
         st.execute(query);

@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Lobby;
+import utility.NewLobby;
 import utility.Paginator;
 
 import java.awt.*;
@@ -83,6 +84,31 @@ public class OnButtonClick extends ListenerAdapter {
                         lobby2.removePlayer(lobbyEntryToRemove);
 
                         updateLobbyEmbed(event, lobby2);
+                    }
+                }
+            }
+            return;
+        } else if (!authorId.equals(user.getId()) && (type.equals("joinNewLobby") || type.equals("leaveNewLobby"))) {
+            event.deferEdit().queue();
+            switch (type) {
+                case "joinNewLobby" -> {
+                    NewLobby lobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                    if (lobby != null) {
+                        if (lobby.addPlayer(user)) {
+                            updateNewLobbyEmbed(event, lobby);
+                        } else {
+                            event.getHook().sendMessage(event.getUser().getAsMention() +
+                                    " You are already in this lobby.").queue();
+                        }
+                    }
+                }
+                case "leaveNewLobby" -> {
+                    NewLobby lobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                    if (lobby != null) {
+                        if (lobby.removePlayer(user)) {
+                            updateNewLobbyEmbed(event, lobby);
+                            return;
+                        }
                     }
                 }
             }
@@ -238,6 +264,18 @@ public class OnButtonClick extends ListenerAdapter {
                 hungerGames.startGame();
                 HungerGamesStartCmd.runGame(event, hungerGames);
                 break;
+            case "startNewLobby":
+                NewLobby newLobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                if (newLobby != null && newLobby.getCreator().equals(event.getUser())) {
+                    if (!newLobby.start()) {
+                        event.getHook().sendMessage("Not enough players.").queue();
+                    }
+                }
+                break;
+            case "deleteNewLobby":
+                NewLobby.removeLobbyById(event.getMessage().getIdLong());
+                event.getHook().deleteOriginal().queue();
+                break;
         }
 
     }
@@ -253,5 +291,9 @@ public class OnButtonClick extends ListenerAdapter {
         embedBuilder2.setDescription(lobby2.generateDescription());
 
         event.getHook().editOriginalEmbeds(embedBuilder2.build()).queue();
+    }
+
+    private void updateNewLobbyEmbed(@NotNull ButtonClickEvent event, @NotNull NewLobby lobby) {
+        event.getHook().editOriginalEmbeds(lobby.getEmbed()).setActionRows(lobby.getEmbedActionsRows()).queue();
     }
 }

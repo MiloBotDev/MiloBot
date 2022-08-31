@@ -5,6 +5,7 @@ import commands.SubCmd;
 import games.Poker;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
+import utility.NewLobby;
 
 import java.util.List;
 
@@ -15,11 +16,14 @@ public class PokerPlayCmd extends Command implements SubCmd {
     }
 
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        if (Poker.getGameByChannel(event.getTextChannel()) == null) {
-            new Poker(event.getAuthor(), event.getTextChannel());
-            event.getChannel().sendMessage("New poker game issued.").queue();
-        } else {
-            event.getChannel().sendMessage("A game of poker is already in progress in this channel.").queue();
-        }
+        NewLobby lobby = new NewLobby("Poker lobby", event.getAuthor(),
+                (players) -> {
+                    Poker poker = new Poker(players);
+                    poker.start();
+                }, 2, 5);
+        event.getChannel().sendMessageEmbeds(lobby.getEmbed()).setActionRows(lobby.getEmbedActionsRows()).queue(
+                message -> {
+                    lobby.initialize(message.getIdLong());
+                });
     }
 }

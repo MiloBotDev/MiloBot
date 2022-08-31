@@ -42,7 +42,10 @@ public class UserCmd extends Command implements UtilityCmd {
             user[0] = event.getAuthor();
             userProfile[0] = user[0].retrieveProfile().complete();
             member[0] = event.getMember();
-            makeEmbed(event, dtf, userEmbed, user[0], userProfile[0], member[0]);
+            user[0].retrieveProfile().queue(profile -> {
+                userProfile[0] = profile;
+                makeEmbed(event, dtf, userEmbed, user[0], userProfile[0], member[0]);
+            });
         } else {
             String findUser = String.join(" ", args);
             try {
@@ -56,10 +59,11 @@ public class UserCmd extends Command implements UtilityCmd {
                             } else {
                                 event.getChannel().sendTyping().queue();
                                 user[0] = usersByName.get(0).getUser();
-                                userProfile[0] = user[0].retrieveProfile().complete();
                                 member[0] = usersByName.get(0);
-                                makeEmbed(event, dtf, userEmbed, user[0], userProfile[0]
-                                        , member[0]);
+                                user[0].retrieveProfile().queue(profile -> {
+                                    userProfile[0] = profile;
+                                    makeEmbed(event, dtf, userEmbed, user[0], userProfile[0], member[0]);
+                                });
                             }
                         });
             } catch (IllegalStateException e) {
