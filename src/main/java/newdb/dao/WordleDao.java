@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.List;
 
 public class WordleDao {
 
@@ -32,7 +33,8 @@ public class WordleDao {
 
     private void createTableIfNotExists() throws SQLException {
         String query = "CREATE TABLE IF NOT EXISTS wordle (" +
-                "user_id INT NOT NULL," +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "user_id INT NOT NULL UNIQUE," +
                 "games_played INT NOT NULL," +
                 "wins INT NOT NULL," +
                 "fastest_time INT NOT NULL," +
@@ -47,29 +49,32 @@ public class WordleDao {
         st.execute(query);
     }
 
-    public void addUserWordle(int userId, int fastestTime, int wins, int highestStreak, int currentStreak) throws SQLException {
-        String query = "INSERT INTO wordle(user_id, games_played, wins, fastest_time, highest_streak, current_streak) " +
-                "VALUES(?, ?, ?, ?, ?, ?)";
+    public void add(@NotNull Wordle wordle) throws SQLException {
+        String query = "INSERT INTO wordle (user_id, games_played, wins, fastest_time, highest_streak, current_streak) VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, userId);
-        ps.setInt(2, 1);
-        ps.setInt(3, wins);
-        ps.setInt(4, fastestTime);
-        ps.setInt(5, highestStreak);
-        ps.setInt(6, currentStreak);
-        ps.executeUpdate();
+        ps.setInt(1, wordle.getUserId());
+        ps.setInt(2, wordle.getGamesPlayed());
+        ps.setInt(3, wordle.getWins());
+        ps.setInt(4, wordle.getFastestTime());
+        ps.setInt(5, wordle.getHighestStreak());
+        ps.setInt(6, wordle.getCurrentStreak());
+        ps.execute();
     }
 
-    public void updateUserWordle(int userId, int timeTaken, int wins, int highestStreak, int currentStreak, int gamesPlayed) throws SQLException {
-        String query = "UPDATE wordle SET games_played = ?, wins = ?, fastest_time = ?, highest_streak = ?, current_streak = ? WHERE user_id = ?;";
+    public void update(@NotNull Wordle wordle) throws SQLException {
+        String query = "UPDATE wordle SET games_played = ?, wins = ?, fastest_time = ?, highest_streak = ?, current_streak = ? WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, gamesPlayed);
-        ps.setInt(2, wins);
-        ps.setInt(3, timeTaken);
-        ps.setInt(4, highestStreak);
-        ps.setInt(5, currentStreak);
-        ps.setInt(6, userId);
-        ps.executeUpdate();
+        ps.setInt(1, wordle.getGamesPlayed());
+        ps.setInt(2, wordle.getWins());
+        ps.setInt(3, wordle.getFastestTime());
+        ps.setInt(4, wordle.getHighestStreak());
+        ps.setInt(5, wordle.getCurrentStreak());
+        ps.setInt(6, wordle.getId());
+        ps.execute();
+    }
+
+    public List<Wordle> getTopHighestStreak() throws SQLException {
+        return null;
     }
 
     @Nullable
@@ -79,7 +84,20 @@ public class WordleDao {
         ps.setInt(1, userId);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
-            return new Wordle(rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+            return new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+                    rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak"));
+        }
+        return null;
+    }
+
+    @Nullable
+    public Wordle getByUserDiscordId(long userDiscordId) throws SQLException {
+        String query = "SELECT * FROM wordle WHERE user_id = (SELECT id FROM users WHERE discord_id = ?);";
+        PreparedStatement ps = con.prepareStatement(query);
+        ps.setLong(1, userDiscordId);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
                     rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak"));
         }
         return null;

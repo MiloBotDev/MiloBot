@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import newdb.dao.WordleDao;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 import utility.Paginator;
@@ -17,6 +18,7 @@ import utility.Paginator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * View all the leaderboards for the Wordle command.
@@ -24,11 +26,13 @@ import java.util.Locale;
 public class WordleLeaderboardCmd extends Command implements SubCmd {
 
     private static final DatabaseManager manager = DatabaseManager.getInstance();
+    private final WordleDao wordleDao;
 
     public WordleLeaderboardCmd() {
         this.commandName = "leaderboard";
         this.commandDescription = "View the wordle leaderboards.";
         this.commandArgs = new String[]{"*leaderboard"};
+        this.wordleDao = WordleDao.getInstance();
     }
 
     @Override
@@ -83,22 +87,13 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
         User user = event.getUser();
-        String totalGamesPlayed = event.getOption("leaderboard").getAsString();
-        ArrayList<EmbedBuilder> embeds = null;
-        switch (totalGamesPlayed) {
-            case "totalGamesPlayed":
-                embeds = makeLeaderboardEmbeds(user, "Top Total Games Played",
-                        WordleTableQueries.wordleGetTopTotalGamesPlayed);
-                break;
-            case "highestStreak":
-                embeds = makeLeaderboardEmbeds(user, "Top Highest Streak",
-                        WordleTableQueries.wordleGetTopHighestStreak);
-                break;
-            case "currentStreak":
-                embeds = makeLeaderboardEmbeds(user, "Top Current Streak",
-                        WordleTableQueries.wordleGetTopCurrentStreak);
-                break;
-        }
+        String totalGamesPlayed = Objects.requireNonNull(event.getOption("leaderboard")).getAsString();
+        ArrayList<EmbedBuilder> embeds = switch (totalGamesPlayed) {
+            case "totalGamesPlayed" -> makeLeaderboardEmbeds(user, "Top Total Games Played");
+            case "highestStreak" -> makeLeaderboardEmbeds(user, "Top Highest Streak");
+            case "currentStreak" -> makeLeaderboardEmbeds(user, "Top Current Streak");
+            default -> null;
+        };
         if (embeds == null) {
             // this should never happen
             return;
@@ -115,9 +110,19 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
     }
 
 
-    private @NotNull ArrayList<EmbedBuilder> makeLeaderboardEmbeds(User author, String title, String query) {
+    private @NotNull ArrayList<EmbedBuilder> makeLeaderboardEmbeds(User author, String title) {
         ArrayList<EmbedBuilder> embedPages = new ArrayList<>();
-        ArrayList<String> result = manager.query(query, DatabaseManager.QueryTypes.RETURN);
+
+        switch (title) {
+            case "Top Total Games Played":
+                break;
+            case "Top Highest Streak":
+                break;
+            case "Top Current Streak":
+                break;
+        }
+
+        ArrayList<String> result = new ArrayList<>();
 
         int rowCount = 0;
         int rank = 1;
