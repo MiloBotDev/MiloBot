@@ -88,27 +88,19 @@ public class OnButtonClick extends ListenerAdapter {
                 }
             }
             return;
-        } else if (!authorId.equals(user.getId()) && (type.equals("joinNewLobby") || type.equals("leaveNewLobby"))) {
+        } else if ((type.equals("joinNewLobby") || type.equals("leaveNewLobby"))) {
             event.deferEdit().queue();
             switch (type) {
                 case "joinNewLobby" -> {
-                    NewLobby lobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                    NewLobby lobby = NewLobby.getLobbyByMessage(event.getMessage());
                     if (lobby != null) {
-                        if (lobby.addPlayer(user)) {
-                            updateNewLobbyEmbed(event, lobby);
-                        } else {
-                            event.getHook().sendMessage(event.getUser().getAsMention() +
-                                    " You are already in this lobby.").queue();
-                        }
+                        lobby.addPlayer(user);
                     }
                 }
                 case "leaveNewLobby" -> {
-                    NewLobby lobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                    NewLobby lobby = NewLobby.getLobbyByMessage(event.getMessage());
                     if (lobby != null) {
-                        if (lobby.removePlayer(user)) {
-                            updateNewLobbyEmbed(event, lobby);
-                            return;
-                        }
+                        lobby.removePlayer(user);
                     }
                 }
             }
@@ -265,7 +257,7 @@ public class OnButtonClick extends ListenerAdapter {
                 HungerGamesStartCmd.runGame(event, hungerGames);
                 break;
             case "startNewLobby":
-                NewLobby newLobby = NewLobby.getLobbyById(event.getMessage().getIdLong());
+                NewLobby newLobby = NewLobby.getLobbyByMessage(event.getMessage());
                 if (newLobby != null && newLobby.getCreator().equals(event.getUser())) {
                     if (!newLobby.start()) {
                         event.getHook().sendMessage("Not enough players.").queue();
@@ -273,8 +265,7 @@ public class OnButtonClick extends ListenerAdapter {
                 }
                 break;
             case "deleteNewLobby":
-                NewLobby.removeLobbyById(event.getMessage().getIdLong());
-                event.getHook().deleteOriginal().queue();
+                NewLobby.removeLobbyByMessage(event.getMessage());
                 break;
         }
 
@@ -291,9 +282,5 @@ public class OnButtonClick extends ListenerAdapter {
         embedBuilder2.setDescription(lobby2.generateDescription());
 
         event.getHook().editOriginalEmbeds(embedBuilder2.build()).queue();
-    }
-
-    private void updateNewLobbyEmbed(@NotNull ButtonClickEvent event, @NotNull NewLobby lobby) {
-        event.getHook().editOriginalEmbeds(lobby.getEmbed()).setActionRows(lobby.getEmbedActionsRows()).queue();
     }
 }

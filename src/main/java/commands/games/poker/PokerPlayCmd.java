@@ -16,14 +16,10 @@ public class PokerPlayCmd extends Command implements SubCmd {
     }
 
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        NewLobby lobby = new NewLobby("Poker lobby", event.getAuthor(),
+        new NewLobby("Poker lobby", event.getAuthor(),
                 (players) -> {
                     Poker poker = new Poker(players);
                     poker.start();
-                }, 2, 5);
-        event.getChannel().sendMessageEmbeds(lobby.getEmbed()).setActionRows(lobby.getEmbedActionsRows()).queue(
-                message -> {
-                    lobby.initialize(message.getIdLong());
-                });
+                }, 2, 5).initialize(event.getChannel());
     }
 }
