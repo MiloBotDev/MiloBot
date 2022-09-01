@@ -20,8 +20,8 @@ import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utility.Lobby;
-import utility.NewLobby;
+import utility.lobby.AbstractLobby;
+import utility.lobby.Lobby;
 import utility.Paginator;
 
 import java.awt.*;
@@ -54,7 +54,7 @@ public class OnButtonClick extends ListenerAdapter {
             event.deferEdit().queue();
             switch (type) {
                 case "joinLobby" -> {
-                    Lobby lobby = Lobby.lobbyInstances.get(event.getMessage().getId());
+                    utility.Lobby lobby = utility.Lobby.lobbyInstances.get(event.getMessage().getId());
                     if (lobby != null) {
                         List<LobbyEntry> lobbyEntries = lobby.getPlayers();
                         for (LobbyEntry lobbyEntry : lobbyEntries) {
@@ -69,7 +69,7 @@ public class OnButtonClick extends ListenerAdapter {
                     }
                 }
                 case "leaveLobby" -> {
-                    Lobby lobby2 = Lobby.lobbyInstances.get(event.getMessage().getId());
+                    utility.Lobby lobby2 = utility.Lobby.lobbyInstances.get(event.getMessage().getId());
                     LobbyEntry lobbyEntryToRemove = null;
                     if (lobby2 != null) {
                         List<LobbyEntry> players2 = lobby2.getPlayers();
@@ -92,13 +92,13 @@ public class OnButtonClick extends ListenerAdapter {
             event.deferEdit().queue();
             switch (type) {
                 case "joinNewLobby" -> {
-                    NewLobby lobby = NewLobby.getLobbyByMessage(event.getMessage());
+                    AbstractLobby lobby = Lobby.getLobbyByMessage(event.getMessage());
                     if (lobby != null) {
                         lobby.addPlayer(user);
                     }
                 }
                 case "leaveNewLobby" -> {
-                    NewLobby lobby = NewLobby.getLobbyByMessage(event.getMessage());
+                    AbstractLobby lobby = Lobby.getLobbyByMessage(event.getMessage());
                     if (lobby != null) {
                         lobby.removePlayer(user);
                     }
@@ -239,7 +239,7 @@ public class OnButtonClick extends ListenerAdapter {
                 pokerGame4.setPlayerAction(Poker.PlayerAction.RAISE);
                 break;
             case "fillLobby":
-                Lobby filledLobby = Lobby.lobbyInstances.get(event.getMessage().getId());
+                utility.Lobby filledLobby = utility.Lobby.lobbyInstances.get(event.getMessage().getId());
                 int maxPlayers = filledLobby.getMaxPlayers();
                 int size = filledLobby.getPlayers().size();
                 if (size >= maxPlayers) {
@@ -250,28 +250,23 @@ public class OnButtonClick extends ListenerAdapter {
                 }
                 break;
             case "startHg":
-                Lobby lobby3 = Lobby.lobbyInstances.get(event.getMessage().getId());
+                utility.Lobby lobby3 = utility.Lobby.lobbyInstances.get(event.getMessage().getId());
                 lobby3.destroy();
                 HungerGames hungerGames = new HungerGames(lobby3.getPlayers());
                 hungerGames.startGame();
                 HungerGamesStartCmd.runGame(event, hungerGames);
                 break;
             case "startNewLobby":
-                NewLobby newLobby = NewLobby.getLobbyByMessage(event.getMessage());
-                if (newLobby != null && newLobby.getCreator().equals(event.getUser())) {
-                    if (!newLobby.start()) {
-                        event.getHook().sendMessage("Not enough players.").queue();
-                    }
-                }
+                Lobby.getLobbyByMessage(event.getMessage()).start();
                 break;
             case "deleteNewLobby":
-                NewLobby.removeLobbyByMessage(event.getMessage());
+                Lobby.removeLobbyByMessage(event.getMessage());
                 break;
         }
 
     }
 
-    private void updateLobbyEmbed(@NotNull ButtonClickEvent event, @NotNull Lobby lobby2) {
+    private void updateLobbyEmbed(@NotNull ButtonClickEvent event, @NotNull utility.Lobby lobby2) {
         MessageEmbed messageEmbed = event.getMessage().getEmbeds().get(0);
         String title = messageEmbed.getTitle();
 
