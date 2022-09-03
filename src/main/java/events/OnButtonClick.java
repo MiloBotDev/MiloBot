@@ -256,12 +256,15 @@ public class OnButtonClick extends ListenerAdapter {
                 HungerGamesStartCmd.runGame(event, hungerGames);
                 break;
             case "startNewLobby":
-                AbstractLobby.getLobbyByMessage(event.getMessage()).start();
-                break;
-            case "deleteNewLobby":
                 AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
                 if (lobby != null) {
-                    lobby.remove();
+                    lobby.start();
+                }
+                break;
+            case "deleteNewLobby":
+                AbstractLobby lobby4 = AbstractLobby.getLobbyByMessage(event.getMessage());
+                if (lobby4 != null) {
+                    lobby4.remove();
                 }
                 break;
         }

@@ -63,7 +63,6 @@ public abstract class AbstractLobby {
     }
 
     public final void remove() {
-        // TODO: In new button click handler race condition will be eliminated that user presses start and then quickly after delete
         if (cancelIdleInstanceCleanup()) {
             lobbyInstances.remove(message);
             message.delete().queue();
@@ -71,7 +70,12 @@ public abstract class AbstractLobby {
     }
 
     protected void editMessage() {
-        message.editMessageEmbeds(getEmbed()).setActionRows(getEmbedActionsRows()).queue();
+        ActionRow actionRow = getEmbedActionsRows();
+        if (actionRow != null) {
+            message.editMessageEmbeds(getEmbed()).setActionRows(actionRow).queue();
+        } else {
+            message.editMessageEmbeds(getEmbed()).setActionRows().queue();
+        }
     }
 
     protected abstract MessageEmbed getEmbed();
