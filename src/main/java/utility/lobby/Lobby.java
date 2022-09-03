@@ -32,9 +32,6 @@ public class Lobby extends AbstractLobby {
     @Override
     public void addPlayer(User user) {
         checkInitialized();
-        if (started) {
-            return;
-        }
         if (!cancelIdleInstanceCleanup()) {
             return;
         }
@@ -51,9 +48,6 @@ public class Lobby extends AbstractLobby {
     @Override
     public void removePlayer(User user) {
         checkInitialized();
-        if (started) {
-            return;
-        }
         if (!cancelIdleInstanceCleanup()) {
             return;
         }
@@ -73,7 +67,7 @@ public class Lobby extends AbstractLobby {
     protected ActionRow getEmbedActionsRows() {
         ActionRow ret;
         if (started) {
-            ret = ActionRow.of();
+            ret = null;
         } else {
             Button joinButton;
             if (players.size() == maxPlayers) {
@@ -111,14 +105,14 @@ public class Lobby extends AbstractLobby {
     @Override
     public void start() {
         checkInitialized();
-        // TODO: In new button click handler race condition will be eliminated that user presses start and then quickly start again
         if (!cancelIdleInstanceCleanup()) {
             return;
         }
         if (players.size() >= minPlayers) {
-            startConsumer.accept(players.stream().toList(), message);
-            editMessage();
+            lobbyInstances.remove(message);
             started = true;
+            editMessage();
+            startConsumer.accept(players.stream().toList(), message);
         } else {
             message.reply("Not enough players to start the lobby.").queue();
             setIdleInstanceCleanup();
