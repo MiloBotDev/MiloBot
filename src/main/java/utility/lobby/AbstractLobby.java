@@ -62,14 +62,16 @@ public abstract class AbstractLobby {
         return lobbyInstances.get(message);
     }
 
-    public static void removeLobbyByMessage(Message message) {
-        AbstractLobby lobby = lobbyInstances.get(message);
-        if (lobby != null) {
-            if (lobby.cancelIdleInstanceCleanup()) {
-                lobbyInstances.remove(message);
-                message.delete().queue();
-            }
+    public final void remove() {
+        // TODO: In new button click handler race condition will be eliminated that user presses start and then quickly after delete
+        if (cancelIdleInstanceCleanup()) {
+            lobbyInstances.remove(message);
+            message.delete().queue();
         }
+    }
+
+    protected void editMessage() {
+        message.editMessageEmbeds(getEmbed()).setActionRows(getEmbedActionsRows()).queue();
     }
 
     protected abstract MessageEmbed getEmbed();

@@ -1,24 +1,25 @@
 package utility.lobby;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public class Lobby extends AbstractLobby {
     private final Set<User> players = new HashSet<>();
-    private final Consumer<List<User>> startConsumer;
+    private final BiConsumer<List<User>, Message> startConsumer;
     private final int minPlayers;
     private final int maxPlayers;
     private final String title;
     private final User creator;
     private boolean started = false;
 
-    public Lobby(String title, User creator, Consumer<List<User>> startConsumer,
+    public Lobby(String title, User creator, BiConsumer<List<User>, Message> startConsumer,
                  int minPlayers, int maxPlayers) {
         this.creator = creator;
         players.add(this.creator);
@@ -31,6 +32,9 @@ public class Lobby extends AbstractLobby {
     @Override
     public void addPlayer(User user) {
         checkInitialized();
+        if (started) {
+            return;
+        }
         if (!cancelIdleInstanceCleanup()) {
             return;
         }
@@ -47,6 +51,9 @@ public class Lobby extends AbstractLobby {
     @Override
     public void removePlayer(User user) {
         checkInitialized();
+        if (started) {
+            return;
+        }
         if (!cancelIdleInstanceCleanup()) {
             return;
         }
@@ -62,22 +69,24 @@ public class Lobby extends AbstractLobby {
         setIdleInstanceCleanup();
     }
 
-    private void editMessage() {
-        message.editMessageEmbeds(getEmbed()).setActionRows(getEmbedActionsRows()).queue();
-    }
-
     @Override
     protected ActionRow getEmbedActionsRows() {
-        Button joinButton;
-        if (players.size() == maxPlayers) {
-            joinButton = Button.danger(creator.getId() + ":" + "joinNewLobby", "Join");
+        ActionRow ret;
+        if (started) {
+            ret = ActionRow.of();
         } else {
-            joinButton = Button.primary(creator.getId() + ":" + "joinNewLobby", "Join");
+            Button joinButton;
+            if (players.size() == maxPlayers) {
+                joinButton = Button.danger(creator.getId() + ":" + "joinNewLobby", "Join");
+            } else {
+                joinButton = Button.primary(creator.getId() + ":" + "joinNewLobby", "Join");
+            }
+            Button leaveButton = Button.primary(creator.getId() + ":" + "leaveNewLobby", "Leave");
+            Button startButton = Button.primary(creator.getId() + ":" + "startNewLobby", "Start");
+            Button deleteButton = Button.secondary(creator.getId() + ":" + "deleteNewLobby", "Delete");
+            ret = ActionRow.of(joinButton, leaveButton, startButton, deleteButton);
         }
-        Button leaveButton = Button.primary(creator.getId() + ":" + "leaveNewLobby", "Leave");
-        Button startButton = Button.primary(creator.getId() + ":" + "startNewLobby", "Start");
-        Button deleteButton = Button.secondary(creator.getId() + ":" + "deleteNewLobby", "Delete");
-        return ActionRow.of(joinButton, leaveButton, startButton, deleteButton);
+        return ret;
     }
 
     @Override
@@ -101,13 +110,18 @@ public class Lobby extends AbstractLobby {
 
     @Override
     public void start() {
+        checkInitialized();
+        // TODO: In new button click handler race condition will be eliminated that user presses start and then quickly start again
+        if (!cancelIdleInstanceCleanup()) {
+            return;
+        }
         if (players.size() >= minPlayers) {
-            if (!started) {
-                startConsumer.accept(players.stream().toList());
-                started = true;
-            }
+            startConsumer.accept(players.stream().toList(), message);
+            editMessage();
+            started = true;
         } else {
             message.reply("Not enough players to start the lobby.").queue();
+            setIdleInstanceCleanup();
         }
     }
 }

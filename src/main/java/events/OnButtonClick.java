@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.lobby.AbstractLobby;
-import utility.lobby.Lobby;
 import utility.Paginator;
 
 import java.awt.*;
@@ -92,13 +91,13 @@ public class OnButtonClick extends ListenerAdapter {
             event.deferEdit().queue();
             switch (type) {
                 case "joinNewLobby" -> {
-                    AbstractLobby lobby = Lobby.getLobbyByMessage(event.getMessage());
+                    AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
                     if (lobby != null) {
                         lobby.addPlayer(user);
                     }
                 }
                 case "leaveNewLobby" -> {
-                    AbstractLobby lobby = Lobby.getLobbyByMessage(event.getMessage());
+                    AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
                     if (lobby != null) {
                         lobby.removePlayer(user);
                     }
@@ -257,10 +256,13 @@ public class OnButtonClick extends ListenerAdapter {
                 HungerGamesStartCmd.runGame(event, hungerGames);
                 break;
             case "startNewLobby":
-                Lobby.getLobbyByMessage(event.getMessage()).start();
+                AbstractLobby.getLobbyByMessage(event.getMessage()).start();
                 break;
             case "deleteNewLobby":
-                Lobby.removeLobbyByMessage(event.getMessage());
+                AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
+                if (lobby != null) {
+                    lobby.remove();
+                }
                 break;
         }
 
