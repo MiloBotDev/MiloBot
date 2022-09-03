@@ -49,7 +49,7 @@ public abstract class AbstractLobby {
         idleInstanceCleanupFuture = idleInstanceCleanupExecutorService.schedule(() -> {
             lobbyInstances.remove(message);
             message.delete().queue();
-        }, 15, TimeUnit.SECONDS);
+        }, 15, TimeUnit.MINUTES);
     }
 
     protected final void checkInitialized() {
