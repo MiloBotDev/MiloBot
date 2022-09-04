@@ -5,7 +5,7 @@ import commands.SubCmd;
 import games.Poker;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
-import utility.NewLobby;
+import utility.lobby.Lobby;
 
 import java.util.List;
 
@@ -16,14 +16,10 @@ public class PokerPlayCmd extends Command implements SubCmd {
     }
 
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        NewLobby lobby = new NewLobby("Poker lobby", event.getAuthor(),
-                (players) -> {
+        new Lobby("Poker lobby", event.getAuthor(),
+                (players, message) -> {
                     Poker poker = new Poker(players);
                     poker.start();
-                }, 2, 5);
-        event.getChannel().sendMessageEmbeds(lobby.getEmbed()).setActionRows(lobby.getEmbedActionsRows()).queue(
-                message -> {
-                    lobby.initialize(message.getIdLong());
-                });
+                }, 2, 5).initialize(event.getChannel());
     }
 }

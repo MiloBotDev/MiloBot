@@ -4,6 +4,7 @@ import models.LobbyEntry;
 
 import java.util.*;
 
+@Deprecated(forRemoval = true, since="8/13/22, migrate to new lobby system")
 public class Lobby {
 
     public final static Map<String, Lobby> lobbyInstances = new HashMap<>();
