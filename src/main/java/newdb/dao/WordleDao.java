@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class WordleDao {
@@ -74,7 +75,15 @@ public class WordleDao {
     }
 
     public List<Wordle> getTopHighestStreak() throws SQLException {
-        return null;
+        ArrayList<Wordle> highestStreaks = new ArrayList<>();
+        String query = "SELECT * FROM wordle ORDER BY wordle.highest_streak DESC LIMIT 100;";
+        PreparedStatement ps = con.prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
+        while(rs.next()) {
+            highestStreaks.add(new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+                    rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak")));
+        }
+        return highestStreaks;
     }
 
     @Nullable
