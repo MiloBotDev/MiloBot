@@ -84,21 +84,6 @@ public class MiloBot {
                         }
                 );
 
-                Map<String, Paginator> paginatorInstances = Paginator.paginatorInstances;
-                List<String> paginatorInstancesToRemove = new ArrayList<>();
-                paginatorInstances.forEach(
-                        (s, paginator) -> {
-                            long startTime = paginator.getStartTime();
-                            long elapsedTime = currentNanoTime - startTime;
-                            long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
-                            if (elapsedTimeSeconds > 900) {
-                                logger.info(String.format("Paginator instance by: %s timed out. Time elapsed %d seconds.",
-                                        s, elapsedTimeSeconds));
-                                paginatorInstancesToRemove.add(s);
-                            }
-                        }
-                );
-
                 Map<String, Lobby> lobbyInstances = Lobby.lobbyInstances;
                 List<String> lobbyInstancesToRemove = new ArrayList<>();
                 lobbyInstances.forEach(
@@ -123,15 +108,6 @@ public class MiloBot {
                     logger.info(String.format("Removed %d blackjack instances.", blackjackInstancesToRemove.size()));
                 }
 
-                if (paginatorInstancesToRemove.size() == 0) {
-                    logger.info("No paginator instances timed out.");
-                } else {
-                    for (String s : paginatorInstancesToRemove) {
-                        paginatorInstances.remove(s);
-                    }
-                    logger.info(String.format("Removed %d paginator instances.", paginatorInstancesToRemove.size()));
-                }
-
                 if (lobbyInstancesToRemove.size() == 0) {
                     logger.info("No lobby instances timed out.");
                 } else {
@@ -145,8 +121,8 @@ public class MiloBot {
                 logEmbed.setTitle("Idle Instance Cleanup");
                 logEmbed.setColor(Color.green);
                 logEmbed.setFooter(dtf.format(LocalDateTime.now()));
-                logEmbed.setDescription(String.format("Cleared `%d` blackjack instances.\nCleared `%d` paginator instances.",
-                        blackjackInstancesToRemove.size(), paginatorInstancesToRemove.size()));
+                logEmbed.setDescription(String.format("Cleared `%d` blackjack instances.",
+                        blackjackInstancesToRemove.size()));
                 logs.sendMessageEmbeds(logEmbed.build()).queue();
             }
         };

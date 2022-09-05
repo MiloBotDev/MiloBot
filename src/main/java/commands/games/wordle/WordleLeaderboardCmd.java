@@ -67,14 +67,13 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
                         Button.secondary(authorId + ":delete", "Delete")
                 ).queue();
             } else {
-                Paginator pager = new Paginator(embeds.get(0));
-                embeds.remove(0);
-                pager.addPages(embeds);
-                event.getChannel().sendMessageEmbeds(pager.currentPage().build()).setActionRows(ActionRow.of(
+                Paginator pager = new Paginator();
+                pager.addPages(embeds.stream().map(EmbedBuilder::build).toList());
+                event.getChannel().sendMessageEmbeds(pager.currentPage()).setActionRows(ActionRow.of(
                         Button.primary(authorId + ":previousPage", "Previous"),
-                        Button.secondary(authorId + ":delete", "Delete"),
+                        Button.secondary(authorId + ":deletePaginator", "Delete"),
                         Button.primary(authorId + ":nextPage", "Next")
-                )).queue(message -> pager.initialize(message.getId()));
+                )).queue(pager::initialize);
             }
         }
     }
@@ -103,15 +102,14 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
             // this should never happen
             return;
         }
-        Paginator pager = new Paginator(embeds.get(0));
-        embeds.remove(0);
-        pager.addPages(embeds);
+        Paginator pager = new Paginator();
+        pager.addPages(embeds.stream().map(EmbedBuilder::build).toList());
         String id = user.getId();
-        event.getHook().sendMessageEmbeds(pager.currentPage().build()).addActionRows(ActionRow.of(
+        event.getHook().sendMessageEmbeds(pager.currentPage()).addActionRows(ActionRow.of(
                 Button.primary(id + ":previousPage", "Previous"),
-                Button.secondary(id + ":delete", "Delete"),
+                Button.secondary(id + ":deletePaginator", "Delete"),
                 Button.primary(id + ":nextPage", "Next")
-        )).queue(message -> pager.initialize(message.getId()));
+        )).queue(pager::initialize);
     }
 
 
