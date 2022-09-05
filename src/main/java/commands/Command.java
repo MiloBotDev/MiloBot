@@ -1,7 +1,5 @@
 package commands;
 
-import database.DatabaseManager;
-import database.queries.CommandTrackerTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -15,8 +13,11 @@ import net.dv8tion.jda.api.interactions.components.Button;
 import newdb.dao.CommandTrackerDao;
 import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 
+import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -28,6 +29,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Basic implementation of a command.
  */
 public abstract class Command {
+
+    private static final Logger logger = LoggerFactory.getLogger(Command.class);
+    private final CommandTrackerDao commandTrackerDao = CommandTrackerDao.getInstance();
+    private final UserDao userDao = UserDao.getInstance();
 
     /**
      * The name of the command.
@@ -192,21 +197,19 @@ public abstract class Command {
      */
     public void updateCommandTrackerUser(String commandName, long discordId) {
         try {
-            UserDao userDao = UserDao.getInstance();
             newdb.model.User userByDiscordId = userDao.getUserByDiscordId(discordId);
             int userId = userByDiscordId.getId();
 
-            CommandTrackerDao commandTrackerDao = CommandTrackerDao.getInstance();
             boolean tracked = commandTrackerDao.checkIfUserCommandTracked(commandName, userId);
             if (tracked) {
-                int userCommandTracker = commandTrackerDao.getUserCommandTracker(commandName, userId);
+                int userCommandTracker = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);
                 userCommandTracker++;
                 commandTrackerDao.updateUserCommandTracker(commandName, userId, userCommandTracker);
             } else {
                 commandTrackerDao.addUserCommandTracker(commandName, userId);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
     }
 
@@ -214,19 +217,25 @@ public abstract class Command {
      * Generates a message with the stats of that specific command.
      */
     public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
-        DatabaseManager manager = DatabaseManager.getInstance();
-        ArrayList<String> personalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageUserAmount, DatabaseManager.QueryTypes.RETURN, commandName, event.getAuthor().getId());
-        ArrayList<String> globalAmount = manager.query(CommandTrackerTableQueries.checkCommandUsageGlobalAmount, DatabaseManager.QueryTypes.RETURN, commandName);
+        try {
+            newdb.model.User userByDiscordId = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
+            int userId = userByDiscordId.getId();
 
-        EmbedBuilder stats = new EmbedBuilder();
-        EmbedUtils.styleEmbed(stats, event.getAuthor());
-        stats.setTitle(String.format("Stats for %s", commandName));
-        stats.addField("Personal Usages", String.format("You have used this command %d times.", Integer.parseInt(personalAmount.get(0))), false);
-        stats.addField("Global Usages", String.format("This command has been used a total of %d times.", Integer.parseInt(globalAmount.get(0))), false);
+            int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);
+            int globalUsage = commandTrackerDao.getGlobalCommandUsage(commandName);
 
-        event.getChannel().sendTyping().queue();
-        event.getChannel().sendMessageEmbeds(stats.build()).setActionRow(
-                Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+            EmbedBuilder stats = new EmbedBuilder();
+            EmbedUtils.styleEmbed(stats, event.getAuthor());
+            stats.setTitle(String.format("Stats for %s", commandName));
+            stats.addField("Personal Usages", String.format("You have used this command %d times.", personalUsage), false);
+            stats.addField("Global Usages", String.format("This command has been used a total of %d times.", globalUsage), false);
+
+            event.getChannel().sendTyping().queue();
+            event.getChannel().sendMessageEmbeds(stats.build()).setActionRow(
+                    Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+        } catch (SQLException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     /**

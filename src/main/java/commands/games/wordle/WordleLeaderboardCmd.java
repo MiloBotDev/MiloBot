@@ -2,167 +2,76 @@ package commands.games.wordle;
 
 import commands.Command;
 import commands.SubCmd;
-import database.DatabaseManager;
-import database.queries.WordleTableQueries;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
+import newdb.dao.WordleDao;
+import newdb.model.Wordle;
 import org.jetbrains.annotations.NotNull;
-import utility.EmbedUtils;
-import utility.Paginator;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * View all the leaderboards for the Wordle command.
  */
 public class WordleLeaderboardCmd extends Command implements SubCmd {
 
-    private static final DatabaseManager manager = DatabaseManager.getInstance();
+    private final WordleDao wordleDao;
 
     public WordleLeaderboardCmd() {
         this.commandName = "leaderboard";
         this.commandDescription = "View the wordle leaderboards.";
         this.commandArgs = new String[]{"*leaderboard"};
+        this.wordleDao = WordleDao.getInstance();
     }
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        User author = event.getAuthor();
-        String authorId = author.getId();
-
-        EmbedBuilder embed = new EmbedBuilder();
-        EmbedUtils.styleEmbed(embed, author);
-        embed.setTitle("Leaderboards");
-        String description = "The following leaderboards are available:\n" +
-                "- **Total games played.**\n" +
-                "- **Highest streak.** \n" +
-                "- **Current streak.** \n";
-        embed.setDescription(description);
-
-        if (args.size() == 0) {
-            event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
-                    Button.secondary(authorId + ":delete", "Delete")
-            ).queue();
-        } else {
-            String leaderboard = String.join("", args).toLowerCase(Locale.ROOT);
-            ArrayList<EmbedBuilder> embeds = null;
-            if (leaderboard.contains("total")) {
-                embeds = makeLeaderboardEmbeds(event.getAuthor(), "Top Total Games Played",
-                        WordleTableQueries.wordleGetTopTotalGamesPlayed);
-            } else if (leaderboard.contains("highest")) {
-                embeds = makeLeaderboardEmbeds(event.getAuthor(), "Top Highest Streak",
-                        WordleTableQueries.wordleGetTopHighestStreak);
-            } else if (leaderboard.contains("current")) {
-                embeds = makeLeaderboardEmbeds(event.getAuthor(), "Top Current Streak",
-                        WordleTableQueries.wordleGetTopCurrentStreak);
-            }
-            if (embeds == null) {
-                event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
-                        Button.secondary(authorId + ":delete", "Delete")
-                ).queue();
-            } else {
-                Paginator pager = new Paginator();
-                pager.addPages(embeds.stream().map(EmbedBuilder::build).toList());
-                event.getChannel().sendMessageEmbeds(pager.currentPage()).setActionRows(ActionRow.of(
-                        Button.primary(authorId + ":previousPage", "Previous"),
-                        Button.secondary(authorId + ":deletePaginator", "Delete"),
-                        Button.primary(authorId + ":nextPage", "Next")
-                )).queue(pager::initialize);
-            }
+        try {
+            List<Wordle> topHighestStreak = this.wordleDao.getTopHighestStreak();
+            ArrayList<EmbedBuilder> highest_streak = buildEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
+            event.getChannel().sendMessageEmbeds(highest_streak.get(0).build()).queue();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
-        User user = event.getUser();
-        String totalGamesPlayed = event.getOption("leaderboard").getAsString();
-        ArrayList<EmbedBuilder> embeds = null;
-        switch (totalGamesPlayed) {
-            case "totalGamesPlayed":
-                embeds = makeLeaderboardEmbeds(user, "Top Total Games Played",
-                        WordleTableQueries.wordleGetTopTotalGamesPlayed);
-                break;
-            case "highestStreak":
-                embeds = makeLeaderboardEmbeds(user, "Top Highest Streak",
-                        WordleTableQueries.wordleGetTopHighestStreak);
-                break;
-            case "currentStreak":
-                embeds = makeLeaderboardEmbeds(user, "Top Current Streak",
-                        WordleTableQueries.wordleGetTopCurrentStreak);
-                break;
-        }
-        if (embeds == null) {
-            // this should never happen
-            return;
-        }
-        Paginator pager = new Paginator();
-        pager.addPages(embeds.stream().map(EmbedBuilder::build).toList());
-        String id = user.getId();
-        event.getHook().sendMessageEmbeds(pager.currentPage()).addActionRows(ActionRow.of(
-                Button.primary(id + ":previousPage", "Previous"),
-                Button.secondary(id + ":deletePaginator", "Delete"),
-                Button.primary(id + ":nextPage", "Next")
-        )).queue(pager::initialize);
+        event.getJDA();
     }
 
+    private @NotNull ArrayList<EmbedBuilder> buildEmbeds(@NotNull List<Wordle> wordles, String title, JDA jda) {
+        ArrayList<EmbedBuilder> embeds = new ArrayList<>();
 
-    private @NotNull ArrayList<EmbedBuilder> makeLeaderboardEmbeds(User author, String title, String query) {
-        ArrayList<EmbedBuilder> embedPages = new ArrayList<>();
-        ArrayList<String> result = manager.query(query, DatabaseManager.QueryTypes.RETURN);
+        final EmbedBuilder[] embed = {new EmbedBuilder()};
+        final StringBuilder[] desc = {new StringBuilder()};
+        embed[0].setTitle(title);
 
-        int rowCount = 0;
-        int rank = 1;
-        int currentPage = 1;
-        int totalPages = 1;
-
-        // calculate the amount of pages that will be generated
-        for (int i = 0; i < result.size(); i += 2) {
-            rowCount++;
-            if (rowCount == 15) {
-                rowCount = 0;
-                totalPages++;
+        final int[] counter = {1};
+        wordles.forEach((wordle) -> {
+            // TODO: use names instead of ids
+            desc[0].append(String.format("`%d.` %d - %d games", counter[0], wordle.getUserId(), wordle.getHighestStreak()));
+            counter[0]++;
+            if(counter[0] % 10 == 0) {
+                embed[0].setDescription(desc[0]);
+                embeds.add(embed[0]);
+                embed[0] = new EmbedBuilder();
+                desc[0] = new StringBuilder();
+                embed[0].setTitle(title);
             }
+        });
 
-        }
+        embed[0].setDescription(desc[0]);
+        embeds.add(embed[0]);
 
-        EmbedBuilder page = new EmbedBuilder();
-        EmbedUtils.styleEmbed(page, author);
-        page.setTitle(title);
-        page.setFooter(String.format("Page %d/%d", currentPage, totalPages));
-
-        rowCount = 0;
-        StringBuilder description = new StringBuilder();
-        for (int i = 0; i < result.size(); i += 2) {
-            description.append(String.format("`%d`: %s - %s total games.\n", rank, result.get(i), result.get(i + 1)));
-            if (i + 2 == result.size()) {
-                page.setDescription(description.toString());
-                embedPages.add(page);
-                break;
-            }
-            rowCount++;
-            if (rowCount == 15) {
-                currentPage++;
-                page.setDescription(description.toString());
-                embedPages.add(page);
-
-                rowCount = 0;
-                page = new EmbedBuilder();
-                page.setFooter(String.format("Page %d/%d", currentPage, totalPages));
-                EmbedUtils.styleEmbed(page, author);
-                page.setTitle(title);
-                description = new StringBuilder();
-            }
-            rank++;
-        }
-
-        return embedPages;
+        return embeds;
     }
 
 }

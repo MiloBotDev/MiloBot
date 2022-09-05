@@ -10,8 +10,6 @@ import java.util.List;
 /**
  * The Usage command.
  * Shows the user statistics on how much each command has been used.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class UsageCmd extends Command implements UtilityCmd {
 
