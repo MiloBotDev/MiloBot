@@ -115,15 +115,15 @@ public class OnButtonClick extends ListenerAdapter {
                 event.getHook().deleteOriginal().queue();
                 break;
             case "nextPage":
-                Paginator paginator = Paginator.paginatorInstances.get(event.getMessage().getId());
+                Paginator paginator = Paginator.getPaginatorByMessage(event.getMessage());
                 if (paginator != null) {
-                    paginator.nextPage().ifPresent(embed -> event.getHook().editOriginalEmbeds(embed.build()).queue());
+                    paginator.nextPage();
                 }
                 break;
             case "previousPage":
-                Paginator paginator2 = Paginator.paginatorInstances.get(event.getMessage().getId());
+                Paginator paginator2 = Paginator.getPaginatorByMessage(event.getMessage());
                 if (paginator2 != null) {
-                    paginator2.previousPage().ifPresent(embed -> event.getHook().editOriginalEmbeds(embed.build()).queue());
+                    paginator2.previousPage();
                 }
                 break;
             case "regenerate":
@@ -265,6 +265,12 @@ public class OnButtonClick extends ListenerAdapter {
                 AbstractLobby lobby4 = AbstractLobby.getLobbyByMessage(event.getMessage());
                 if (lobby4 != null) {
                     lobby4.remove();
+                }
+                break;
+            case "deletePaginator":
+                Paginator paginator4 = Paginator.getPaginatorByMessage(event.getMessage());
+                if (paginator4 != null) {
+                    paginator4.remove();
                 }
                 break;
         }
