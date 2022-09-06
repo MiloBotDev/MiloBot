@@ -1,4 +1,4 @@
-package models.hungergames;
+package games.hungergames.models;
 
 import org.jetbrains.annotations.NotNull;
 import org.luaj.vm2.Globals;
@@ -19,10 +19,10 @@ public class Item {
         this.name = this.chunk.get("name").toString();
         this.rarity = this.chunk.get("rarity").toint();
         this.type = this.chunk.get("type").toString();
-        if (this.chunk.get("heal").isnil()) {
+        if (this.chunk.get("heals").isnil()) {
             this.heal = 0;
         } else {
-            this.heal = this.chunk.get("heal").toint();
+            this.heal = this.chunk.get("heals").toint();
         }
         if (this.chunk.get("damage").isnil()) {
             this.damage = 0;

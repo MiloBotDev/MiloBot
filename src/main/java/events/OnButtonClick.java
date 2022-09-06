@@ -2,12 +2,9 @@ package events;
 
 import commands.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
-import commands.games.hungergames.HungerGamesStartCmd;
 import games.Blackjack;
-import games.HungerGames;
 import games.Poker;
 import models.BlackjackStates;
-import models.LobbyEntry;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -20,13 +17,11 @@ import newdb.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utility.lobby.AbstractLobby;
 import utility.Paginator;
+import utility.lobby.AbstractLobby;
+import utility.lobby.BotLobby;
 
-import java.awt.*;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -49,57 +44,25 @@ public class OnButtonClick extends ListenerAdapter {
         String type = id[1];
         // Check that the button is for the user that clicked it, otherwise just ignore the event (let interaction fail)
         User user = event.getUser();
-        if (!authorId.equals(user.getId()) && (type.equals("joinLobby") || type.equals("leaveLobby"))) {
+        if ((type.equals("joinLobby") || type.equals("leaveLobby") || type.equals("fillLobby"))) {
             event.deferEdit().queue();
             switch (type) {
                 case "joinLobby" -> {
-                    utility.Lobby lobby = utility.Lobby.lobbyInstances.get(event.getMessage().getId());
-                    if (lobby != null) {
-                        List<LobbyEntry> lobbyEntries = lobby.getPlayers();
-                        for (LobbyEntry lobbyEntry : lobbyEntries) {
-                            if (lobbyEntry.userId().equals(user.getId())) {
-                                event.getHook().sendMessage("You are already in this lobby.").queue();
-                                return;
-                            }
-                        }
-                        lobby.addPlayer(user.getId(), user.getName());
-
-                        updateLobbyEmbed(event, lobby);
-                    }
-                }
-                case "leaveLobby" -> {
-                    utility.Lobby lobby2 = utility.Lobby.lobbyInstances.get(event.getMessage().getId());
-                    LobbyEntry lobbyEntryToRemove = null;
-                    if (lobby2 != null) {
-                        List<LobbyEntry> players2 = lobby2.getPlayers();
-                        for (LobbyEntry lobbyEntry : players2) {
-                            if (lobbyEntry.userId().equals(user.getId())) {
-                                lobbyEntryToRemove = lobbyEntry;
-                                break;
-                            }
-                        }
-                    }
-                    if (lobbyEntryToRemove != null) {
-                        lobby2.removePlayer(lobbyEntryToRemove);
-
-                        updateLobbyEmbed(event, lobby2);
-                    }
-                }
-            }
-            return;
-        } else if ((type.equals("joinNewLobby") || type.equals("leaveNewLobby"))) {
-            event.deferEdit().queue();
-            switch (type) {
-                case "joinNewLobby" -> {
                     AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
                     if (lobby != null) {
                         lobby.addPlayer(user);
                     }
                 }
-                case "leaveNewLobby" -> {
+                case "leaveLobby" -> {
                     AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
                     if (lobby != null) {
                         lobby.removePlayer(user);
+                    }
+                }
+                case "fillLobby" -> {
+                    BotLobby lobby = (BotLobby) AbstractLobby.getLobbyByMessage(event.getMessage());
+                    if (lobby != null) {
+                       lobby.fill();
                     }
                 }
             }
@@ -237,31 +200,13 @@ public class OnButtonClick extends ListenerAdapter {
                 Poker pokerGame4 = Poker.getUserGame(user);
                 pokerGame4.setPlayerAction(Poker.PlayerAction.RAISE);
                 break;
-            case "fillLobby":
-                utility.Lobby filledLobby = utility.Lobby.lobbyInstances.get(event.getMessage().getId());
-                int maxPlayers = filledLobby.getMaxPlayers();
-                int size = filledLobby.getPlayers().size();
-                if (size >= maxPlayers) {
-                    event.getHook().sendMessage("This lobby is already full.").queue();
-                } else {
-                    filledLobby.fillLobby();
-                    updateLobbyEmbed(event, filledLobby);
-                }
-                break;
-            case "startHg":
-                utility.Lobby lobby3 = utility.Lobby.lobbyInstances.get(event.getMessage().getId());
-                lobby3.destroy();
-                HungerGames hungerGames = new HungerGames(lobby3.getPlayers());
-                hungerGames.startGame();
-                HungerGamesStartCmd.runGame(event, hungerGames);
-                break;
-            case "startNewLobby":
+            case "startLobby":
                 AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
                 if (lobby != null) {
                     lobby.start();
                 }
                 break;
-            case "deleteNewLobby":
+            case "deleteLobby":
                 AbstractLobby lobby4 = AbstractLobby.getLobbyByMessage(event.getMessage());
                 if (lobby4 != null) {
                     lobby4.remove();
@@ -275,18 +220,5 @@ public class OnButtonClick extends ListenerAdapter {
                 break;
         }
 
-    }
-
-    private void updateLobbyEmbed(@NotNull ButtonClickEvent event, @NotNull utility.Lobby lobby2) {
-        MessageEmbed messageEmbed = event.getMessage().getEmbeds().get(0);
-        String title = messageEmbed.getTitle();
-
-        EmbedBuilder embedBuilder2 = new EmbedBuilder();
-        embedBuilder2.setTitle(title);
-        embedBuilder2.setTimestamp(new Date().toInstant());
-        embedBuilder2.setColor(Color.BLUE);
-        embedBuilder2.setDescription(lobby2.generateDescription());
-
-        event.getHook().editOriginalEmbeds(embedBuilder2.build()).queue();
     }
 }

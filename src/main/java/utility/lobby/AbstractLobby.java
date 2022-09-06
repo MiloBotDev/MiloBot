@@ -14,6 +14,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractLobby {
+
     protected static final Map<Message, AbstractLobby> lobbyInstances = new HashMap<>();
     private static final ScheduledExecutorService idleInstanceCleanupExecutorService =
             Executors.newScheduledThreadPool(1);

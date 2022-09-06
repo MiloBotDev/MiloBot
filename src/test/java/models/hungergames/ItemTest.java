@@ -1,6 +1,8 @@
 package models.hungergames;
 
-import games.HungerGames;
+import games.hungergames.HungerGames;
+import games.hungergames.models.Item;
+import games.hungergames.models.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

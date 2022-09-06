@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import database.DatabaseManager;
-import games.HungerGames;
+import games.hungergames.HungerGames;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import newdb.dao.UserDao;
 import org.slf4j.Logger;

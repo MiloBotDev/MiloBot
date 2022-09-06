@@ -1,4 +1,4 @@
-package models.hungergames;
+package games.hungergames.models;
 
 import org.jetbrains.annotations.NotNull;
 import org.luaj.vm2.Globals;
