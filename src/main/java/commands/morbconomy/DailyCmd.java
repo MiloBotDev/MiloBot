@@ -4,9 +4,9 @@ import commands.Command;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import newdb.dao.DailyDao;
-import newdb.dao.UserDao;
-import newdb.model.Daily;
+import database.dao.DailyDao;
+import database.dao.UserDao;
+import database.model.Daily;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +100,7 @@ public class DailyCmd extends Command implements MorbconomyCmd {
         daily.setLastDailyTime(timeNow);
         dailyDao.update(daily);
 
-        newdb.model.User userDbObj = userDao.getUserByDiscordId(user.getIdLong());
+        database.model.User userDbObj = userDao.getUserByDiscordId(user.getIdLong());
         Objects.requireNonNull(userDbObj).setCurrency(userDbObj.getCurrency() + reward);
         userDao.update(userDbObj);
         return result.toString();

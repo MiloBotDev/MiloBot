@@ -4,16 +4,14 @@ import commands.Command;
 import commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import newdb.dao.WordleDao;
-import newdb.model.Wordle;
+import database.dao.WordleDao;
+import database.model.Wordle;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**

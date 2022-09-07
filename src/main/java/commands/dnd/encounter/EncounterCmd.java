@@ -14,6 +14,5 @@ public class EncounterCmd extends Command implements ParentCmd, DndCmd {
         this.commandDescription = "D&D 5e encounter generator.";
 
         this.subCommands.add(EncounterGeneratorCmd.getInstance());
-        this.subCommands.add(EncounterLoadCmd.getInstance());
     }
 }

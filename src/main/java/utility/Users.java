@@ -3,10 +3,9 @@ package utility;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import database.DatabaseManager;
+import database.dao.UserDao;
 import games.hungergames.HungerGames;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import newdb.dao.UserDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +29,10 @@ public class Users {
 
     private static Users instance;
     public final HashMap<Integer, Integer> levels;
-    private final DatabaseManager manager;
     private final UserDao userDao;
     public int maxLevel;
 
     private Users() {
-        this.manager = DatabaseManager.getInstance();
         this.userDao = UserDao.getInstance();
         Config config = Config.getInstance();
         String levelsJsonPath = config.getLevelsJsonPath();
@@ -81,7 +78,7 @@ public class Users {
      */
     public void updateExperience(long discordUserId, int experience, String asMention, MessageChannel channel) throws SQLException {
         // load in their current experience and level
-        newdb.model.User user = userDao.getUserByDiscordId(discordUserId);
+        database.model.User user = userDao.getUserByDiscordId(discordUserId);
         Objects.requireNonNull(user).addExperience(experience);
         // check if they leveled up
         if (user.getLevel() < maxLevel) {

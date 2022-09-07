@@ -3,8 +3,8 @@ package games;
 import models.BlackjackStates;
 import models.cards.CardDeck;
 import models.cards.PlayingCards;
-import newdb.dao.BlackjackDao;
-import newdb.dao.UserDao;
+import database.dao.BlackjackDao;
+import database.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -62,7 +62,7 @@ public class Blackjack {
     }
 
     public void updateWallet(@Nullable BlackjackStates state) {
-        newdb.model.User user;
+        database.model.User user;
         try {
             user = userDao.getUserByDiscordId(userDiscordId);
         } catch (SQLException e) {
@@ -178,7 +178,7 @@ public class Blackjack {
     }
 
     private void updateBlackjackDatabase(BlackjackStates state) {
-        newdb.model.Blackjack blackjack;
+        database.model.Blackjack blackjack;
         try {
             blackjack = Objects.requireNonNull(blackjackDao.getByUserDiscordId(userDiscordId));
         } catch (SQLException e) {
@@ -187,12 +187,12 @@ public class Blackjack {
         }
         updateWallet(state);
         if (state.equals(BlackjackStates.DRAW)) {
-            blackjack.addGame(newdb.model.Blackjack.BlackjackResult.DRAW, 0);
+            blackjack.addGame(database.model.Blackjack.BlackjackResult.DRAW, 0);
         } else if (state.equals(BlackjackStates.PLAYER_BLACKJACK) || state.equals(BlackjackStates.PLAYER_WIN)) {
-            blackjack.addGame(newdb.model.Blackjack.BlackjackResult.WIN, this.winnings);
+            blackjack.addGame(database.model.Blackjack.BlackjackResult.WIN, this.winnings);
         } else {
             // it's a loss;
-            blackjack.addGame(newdb.model.Blackjack.BlackjackResult.LOSS, -this.winnings);
+            blackjack.addGame(database.model.Blackjack.BlackjackResult.LOSS, -this.winnings);
         }
         try {
             blackjackDao.update(blackjack);

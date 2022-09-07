@@ -5,8 +5,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import newdb.dao.PrefixDao;
-import newdb.model.Prefix;
+import database.dao.PrefixDao;
+import database.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +23,9 @@ import java.util.Objects;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class OnGuildJoinEvent extends ListenerAdapter {
+public class OnGuildJoin extends ListenerAdapter {
 
-    final static Logger logger = LoggerFactory.getLogger(OnGuildJoinEvent.class);
+    final static Logger logger = LoggerFactory.getLogger(OnGuildJoin.class);
     private final PrefixDao prefixDao = PrefixDao.getInstance();
 
     @Override

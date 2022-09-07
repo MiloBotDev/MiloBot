@@ -2,8 +2,8 @@ package commands.morbconomy;
 
 import commands.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import newdb.dao.UserDao;
-import newdb.model.User;
+import database.dao.UserDao;
+import database.model.User;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

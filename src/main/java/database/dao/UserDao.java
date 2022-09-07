@@ -1,7 +1,7 @@
-package newdb.dao;
+package database.dao;
 
-import newdb.model.User;
-import newdb.util.DatabaseConnection;
+import database.model.User;
+import database.util.DatabaseConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

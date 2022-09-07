@@ -1,4 +1,4 @@
-package newdb.model;
+package database.model;
 
 import org.jetbrains.annotations.Nullable;
 

@@ -1,4 +1,4 @@
-package newdb.model;
+package database.model;
 
 public class Blackjack {
     private final int id;
