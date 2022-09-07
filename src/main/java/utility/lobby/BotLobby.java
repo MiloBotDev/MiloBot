@@ -149,7 +149,7 @@ public class BotLobby extends AbstractLobby {
         }
     }
 
-    static class NonPlayerCharacter {
+    public static class NonPlayerCharacter {
 
             private String name;
 

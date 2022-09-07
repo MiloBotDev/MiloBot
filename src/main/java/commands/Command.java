@@ -10,8 +10,8 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.interactions.components.Button;
-import newdb.dao.CommandTrackerDao;
-import newdb.dao.UserDao;
+import database.dao.CommandTrackerDao;
+import database.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,7 +197,7 @@ public abstract class Command {
      */
     public void updateCommandTrackerUser(String commandName, long discordId) {
         try {
-            newdb.model.User userByDiscordId = userDao.getUserByDiscordId(discordId);
+            database.model.User userByDiscordId = userDao.getUserByDiscordId(discordId);
             int userId = userByDiscordId.getId();
 
             boolean tracked = commandTrackerDao.checkIfUserCommandTracked(commandName, userId);
@@ -218,7 +218,7 @@ public abstract class Command {
      */
     public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
         try {
-            newdb.model.User userByDiscordId = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
+            database.model.User userByDiscordId = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
             int userId = userByDiscordId.getId();
 
             int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);

@@ -3,8 +3,8 @@ import commands.CommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
 import events.OnButtonClick;
 import events.OnReadyEvent;
-import events.guild.OnGuildJoinEvent;
-import events.guild.OnGuildLeaveEvent;
+import events.guild.OnGuildJoin;
+import events.guild.OnGuildLeave;
 import games.Blackjack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -41,7 +41,7 @@ public class MiloBot {
                         GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS,
                         GatewayIntent.DIRECT_MESSAGES)
                 .setActivity(Activity.watching("Morbius"))
-                .addEventListeners(new CommandHandler(), new OnGuildJoinEvent(), new OnGuildLeaveEvent(),
+                .addEventListeners(new CommandHandler(), new OnGuildJoin(), new OnGuildLeave(),
                         new OnReadyEvent(), new OnButtonClick())
                 .build().awaitReady();
 

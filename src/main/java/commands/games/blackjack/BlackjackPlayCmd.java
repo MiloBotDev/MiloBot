@@ -11,8 +11,8 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
-import newdb.dao.BlackjackDao;
-import newdb.dao.UserDao;
+import database.dao.BlackjackDao;
+import database.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,7 +133,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                     event.getChannel().sendMessage("You can't bet more than `10000` Morbcoins.").queue();
                     return;
                 } else {
-                    newdb.model.User user;
+                    database.model.User user;
                     try {
                         user = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
                     } catch (SQLException e) {
@@ -161,7 +161,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 
         try {
             if (blackjackDao.getByUserDiscordId(authorIdLong) != null) {
-                blackjackDao.add(new newdb.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
+                blackjackDao.add(new database.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
                         .getId()));
             }
         } catch (SQLException e) {
@@ -209,7 +209,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
             bet = 0;
         } else {
             bet = Math.toIntExact(Objects.requireNonNull(event.getOption("bet")).getAsLong());
-            newdb.model.User user;
+            database.model.User user;
             try {
                 user = userDao.getUserByDiscordId(event.getUser().getIdLong());
             } catch (SQLException e) {
@@ -231,7 +231,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 
         try {
             if (blackjackDao.getByUserDiscordId(authorIdLong) == null) {
-                blackjackDao.add(new newdb.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
+                blackjackDao.add(new database.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
                         .getId()));
             }
         } catch (SQLException e) {

@@ -10,9 +10,9 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.Button;
-import newdb.dao.UserDao;
-import newdb.dao.WordleDao;
-import newdb.model.Wordle;
+import database.dao.UserDao;
+import database.dao.WordleDao;
+import database.model.Wordle;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 

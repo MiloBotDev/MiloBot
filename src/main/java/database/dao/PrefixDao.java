@@ -1,7 +1,7 @@
-package newdb.dao;
+package database.dao;
 
-import newdb.model.Prefix;
-import newdb.util.DatabaseConnection;
+import database.model.Prefix;
+import database.util.DatabaseConnection;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

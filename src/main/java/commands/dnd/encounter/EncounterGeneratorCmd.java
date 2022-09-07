@@ -2,8 +2,6 @@ package commands.dnd.encounter;
 
 import commands.Command;
 import commands.SubCmd;
-import database.DatabaseManager;
-import database.queries.EncounterTableQueries;
 import models.dnd.Encounter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -27,7 +25,6 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
 
     private final static Logger logger = LoggerFactory.getLogger(EncounterGeneratorCmd.class);
     private static EncounterGeneratorCmd instance;
-    private final DatabaseManager manager;
     private final String[] difficulties;
     private final String[] environments;
     private final EncounterGenerator gen;
@@ -42,7 +39,6 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
         this.difficulties = new String[]{"easy", "medium", "difficult", "deadly"};
         this.environments = new String[]{"city", "dungeon", "forest", "nature", "other plane", "underground", "water"};
         this.gen = EncounterGenerator.getInstance();
-        this.manager = DatabaseManager.getInstance();
         this.encounterCache = new HashMap<>();
     }
 
@@ -177,19 +173,6 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
             encounterCache.put(build.getFields().get(0).getValue(), newEncounter);
             return build;
         }
-    }
-
-    /**
-     * Saves the encounter to the database.
-     */
-    public void saveEncounter(@NotNull MessageEmbed embed, @NotNull User author) {
-        String description = embed.getFields().get(0).getValue();
-        Encounter encounter = encounterCache.get(description);
-        if (encounter == null) {
-            return;
-        }
-        manager.query(EncounterTableQueries.saveEncounter, DatabaseManager.QueryTypes.UPDATE, author.getId(), String.valueOf(encounter.getPartySize()),
-                String.valueOf(encounter.getPartyLevel()), String.valueOf(encounter.getDifficulty()), description, encounter.getEnvironment());
     }
 
 }

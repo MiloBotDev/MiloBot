@@ -7,11 +7,11 @@ import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import newdb.dao.DailyDao;
-import newdb.dao.PrefixDao;
-import newdb.dao.UserDao;
-import newdb.model.Daily;
-import newdb.model.Prefix;
+import database.dao.DailyDao;
+import database.dao.PrefixDao;
+import database.dao.UserDao;
+import database.model.Daily;
+import database.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,7 +239,7 @@ public class CommandHandler extends ListenerAdapter {
     }
 
     private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
-        newdb.model.User newUser = new newdb.model.User(user.getIdLong());
+        database.model.User newUser = new database.model.User(user.getIdLong());
         userDao.add(newUser);
         Daily daily = new Daily(Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId());
         dailyDao.add(daily);

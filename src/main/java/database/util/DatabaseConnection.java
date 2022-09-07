@@ -1,4 +1,4 @@
-package newdb.util;
+package database.util;
 
 import utility.Config;
 

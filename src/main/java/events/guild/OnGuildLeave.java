@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import newdb.dao.PrefixDao;
+import database.dao.PrefixDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
@@ -23,9 +23,9 @@ import java.util.Objects;
  *
  * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class OnGuildLeaveEvent extends ListenerAdapter {
+public class OnGuildLeave extends ListenerAdapter {
 
-    final static Logger logger = LoggerFactory.getLogger(OnGuildLeaveEvent.class);
+    final static Logger logger = LoggerFactory.getLogger(OnGuildLeave.class);
     private final PrefixDao prefixDao = PrefixDao.getInstance();
 
     @Override

@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
-import newdb.dao.UserDao;
+import database.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +117,7 @@ public class ProfileCmd extends Command implements MorbconomyCmd {
      * Builds the embed for the Profile command.
      */
     private Optional<EmbedBuilder> makeEmbed(String name, net.dv8tion.jda.api.entities.User author, String id) {
-        newdb.model.User userDbObj;
+        database.model.User userDbObj;
         try {
             userDbObj = userDao.getUserByDiscordId(author.getIdLong());
         } catch (SQLException e) {

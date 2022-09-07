@@ -1,6 +1,6 @@
-package newdb.dao;
+package database.dao;
 
-import newdb.util.DatabaseConnection;
+import database.util.DatabaseConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
