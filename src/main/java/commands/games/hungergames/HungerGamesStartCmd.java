@@ -37,7 +37,7 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
                     ArrayList<LobbyEntry> participants = new ArrayList<>();
                     entries.forEach((players, npcs) -> {
                         npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
-                        players.forEach(user -> participants.add(new LobbyEntry(user.getId(), user.getName(), user.getAsMention())));
+                        players.forEach(user -> participants.add(new LobbyEntry(user.getIdLong(), user.getName(), user.getAsMention())));
                     });
                     HungerGames game = new HungerGames(participants);
                     game.startGame();

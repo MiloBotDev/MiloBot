@@ -60,9 +60,13 @@ public class OnButtonClick extends ListenerAdapter {
                     }
                 }
                 case "fillLobby" -> {
-                    BotLobby lobby = (BotLobby) AbstractLobby.getLobbyByMessage(event.getMessage());
-                    if (lobby != null) {
-                       lobby.fill();
+                    try {
+                        BotLobby lobby = (BotLobby) AbstractLobby.getLobbyByMessage(event.getMessage());
+                        if (lobby != null) {
+                            lobby.fill();
+                        }
+                    } catch (ClassCastException exc) {
+                        throw new ClassCastException("Only a bot lobby can be filled with random bots.");
                     }
                 }
             }

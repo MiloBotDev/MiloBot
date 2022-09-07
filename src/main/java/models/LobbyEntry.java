@@ -2,23 +2,23 @@ package models;
 
 public class LobbyEntry {
 
-    private final String userId;
+    private final long userId;
     private final String username;
     private final String mention;
 
-    public LobbyEntry(String userId, String username, String mention) {
+    public LobbyEntry(long userId, String username, String mention) {
         this.userId = userId;
         this.username = username;
         this.mention = mention;
     }
 
     public LobbyEntry(String username) {
-        this.userId = "#";
+        this.userId = 0;
         this.username = username;
         this.mention = username;
     }
 
-    public String getUserId() {
+    public long getUserId() {
         return userId;
     }
 

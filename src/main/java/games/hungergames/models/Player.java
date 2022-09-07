@@ -12,7 +12,7 @@ public class Player implements Cloneable {
     public static final long PLAYER_MAX_HEALTH = 200;
 
     private final String username;
-    private final String userId;
+    private final long userId;
     private List<Item> inventory;
     private long health;
     private HungerGames game;
@@ -23,7 +23,7 @@ public class Player implements Cloneable {
     private int damageTaken;
     private int healingDone;
 
-    public Player(String username, String userId) {
+    public Player(String username, long userId) {
         this.username = username;
         this.userId = userId;
         this.inventory = new ArrayList<>();
@@ -137,7 +137,7 @@ public class Player implements Cloneable {
         return username;
     }
 
-    public String getUserId() {
+    public long getUserId() {
         return userId;
     }
 

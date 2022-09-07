@@ -18,8 +18,8 @@ public class EventTest {
     void setUp() {
         this.game = new HungerGames();
 
-        this.player = new Player("Player", "1");
-        this.victim = new Player("Victim", "2");
+        this.player = new Player("Player", 0);
+        this.victim = new Player("Victim", 0);
 
         game.addPlayer(this.player);
         game.addPlayer(this.victim);
@@ -32,8 +32,8 @@ public class EventTest {
         this.victim = null;
 
         this.game = new HungerGames();
-        this.player = new Player("Player", "1");
-        this.victim = new Player("Victim", "2");
+        this.player = new Player("Player", 0);
+        this.victim = new Player("Victim", 0);
 
         game.addPlayer(this.player);
         game.addPlayer(this.victim);
