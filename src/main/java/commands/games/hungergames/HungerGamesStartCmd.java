@@ -2,21 +2,19 @@ package commands.games.hungergames;
 
 import commands.Command;
 import commands.SubCmd;
-import games.HungerGames;
-import models.hungergames.Item;
-import models.hungergames.Player;
+import games.hungergames.HungerGames;
+import models.LobbyEntry;
+import games.hungergames.models.Item;
+import games.hungergames.models.Player;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
-import utility.EmbedUtils;
-import utility.Lobby;
+import utility.lobby.BotLobby;
 
 import java.awt.*;
 import java.util.List;
@@ -31,7 +29,29 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
         this.commandDescription = "Starts the Hunger Games";
     }
 
-    public static void runGame(ButtonClickEvent event, @NotNull HungerGames game) {
+    @Override
+    public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+        User author = event.getAuthor();
+        new BotLobby("Hunger Games Lobby", author,
+                (entries, message) -> {
+                    ArrayList<LobbyEntry> participants = new ArrayList<>();
+                    entries.forEach((players, npcs) -> {
+                        npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
+                        players.forEach(user -> participants.add(new LobbyEntry(user.getIdLong(), user.getName(), user.getAsMention())));
+                    });
+                    HungerGames game = new HungerGames(participants);
+                    game.startGame();
+                    HungerGamesStartCmd.runGame(event.getChannel(), game);
+                }, 2, 10)
+                .initialize(event.getChannel());
+    }
+
+    @Override
+    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+
+    }
+
+    public static void runGame(MessageChannel channel, @NotNull HungerGames game) {
         Map<Integer, Map<List<String>, List<Player>>> roundData = game.getRoundData();
         List<RestAction<Void>> messages = new ArrayList<>();
 
@@ -63,9 +83,8 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
             });
             embed.setDescription(logs.toString());
 
-            RestAction<Void> voidRestAction = event.getChannel()
-                    .sendMessageEmbeds(embed.build())
-                    .delay(25, TimeUnit.SECONDS)
+            RestAction<Void> voidRestAction = channel.sendMessageEmbeds(embed.build())
+                    .delay(15, TimeUnit.SECONDS)
                     .flatMap(Message::delete);
             messages.add(voidRestAction);
         });
@@ -82,14 +101,14 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
                         e.printStackTrace();
                     }
                 });
-                EmbedBuilder embedBuilder = HungerGamesStartCmd.generateRecapEmbed(game, event.getUser());
-                event.getHook().sendMessageEmbeds(embedBuilder.build()).queue();
+                EmbedBuilder embedBuilder = HungerGamesStartCmd.generateRecapEmbed(game);
+                channel.sendMessageEmbeds(embedBuilder.build()).queue();
             }
         };
         timer.schedule(sendMessages, 0);
     }
 
-    private static @NotNull EmbedBuilder generateRecapEmbed(HungerGames game, User user) {
+    private static @NotNull EmbedBuilder generateRecapEmbed(@NotNull HungerGames game) {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle("Hunger Games Recap");
         embed.setColor(Color.BLUE);
@@ -116,36 +135,5 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
         return embed;
     }
 
-    @Override
-    public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
-        User author = event.getAuthor();
-        String id = author.getId();
-
-        Lobby lobby = new Lobby(id, author.getName(), 8);
-
-        EmbedBuilder embed = new EmbedBuilder();
-        embed.setTitle("Hunger Games Lobby");
-        EmbedUtils.styleEmbed(embed, author);
-        embed.setDescription(lobby.generateDescription());
-
-        event.getChannel()
-                .sendMessageEmbeds(embed.build())
-                .setActionRows(ActionRow.of(
-                        Button.primary(id + ":joinLobby", "Join"),
-                        Button.primary(id + ":leaveLobby", "Leave"),
-                        Button.primary(id + ":fillLobby", "Fill"),
-                        Button.primary(id + ":startHg", "Start"),
-                        Button.secondary(id + ":delete", "Delete")
-                ))
-                .queue(message -> {
-                    String messageId = message.getId();
-                    lobby.initialize(messageId);
-                });
-    }
-
-    @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-
-    }
 }
 

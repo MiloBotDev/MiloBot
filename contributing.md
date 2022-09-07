@@ -13,6 +13,38 @@
         + [Regular Commands](#regular-commands-1)
         + [Slash Commands](#slash-commands-1)
 
+## Configuration
+
+If this is your first time trying to run the bot on your local device make sure you create a config.yml file.
+This file holds all the configuration settings for the bot, you can copy the contents of the config.yml.example and edit 
+it based on your own settings.
+
+```yaml
+# bot
+prefix: ";"
+token:
+testGuildId:
+loggingChannelName:
+
+# github
+personalAccessToken:
+repositoryName: ""
+
+# paths
+levelsJsonPath: /levels.json
+wordleWordsPath: wordle_words.txt
+monstersCsvPath: monsters.csv
+hungerGamesPath: /hungergames
+
+# database
+connectionUrl: "jdbc:mysql://localhost/milobot"
+user: "root"
+password: ""
+```
+
+Some fields like the connection url might already have a default value that depending on your own database needs to be changed.
+The GitHub fields can be left empty but will result in a not working bug tracker command.
+
 ## Creating Commands
 
 All commands must extend the `Command` class. This abstract class provides the basic functionality for every command. 

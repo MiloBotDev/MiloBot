@@ -16,8 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
-import utility.Lobby;
-import utility.Paginator;
 
 import javax.security.auth.login.LoginException;
 import java.awt.*;
@@ -84,21 +82,6 @@ public class MiloBot {
                         }
                 );
 
-                Map<String, Lobby> lobbyInstances = Lobby.lobbyInstances;
-                List<String> lobbyInstancesToRemove = new ArrayList<>();
-                lobbyInstances.forEach(
-                        (s, lobby) -> {
-                            long startTime = lobby.getStartTime();
-                            long elapsedTime = currentNanoTime - startTime;
-                            long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
-                            if (elapsedTimeSeconds > 900) {
-                                logger.info(String.format("Lobby instance by: %s timed out. Time elapsed %d seconds.",
-                                        s, elapsedTimeSeconds));
-                                lobbyInstancesToRemove.add(s);
-                            }
-                        }
-                );
-
                 if (blackjackInstancesToRemove.size() == 0) {
                     logger.info("No blackjack instances timed out.");
                 } else {
@@ -106,15 +89,6 @@ public class MiloBot {
                         blackjackGames.remove(s);
                     }
                     logger.info(String.format("Removed %d blackjack instances.", blackjackInstancesToRemove.size()));
-                }
-
-                if (lobbyInstancesToRemove.size() == 0) {
-                    logger.info("No lobby instances timed out.");
-                } else {
-                    for (String s : lobbyInstancesToRemove) {
-                        lobbyInstances.remove(s);
-                    }
-                    logger.info(String.format("Removed %d lobby instances.", lobbyInstancesToRemove.size()));
                 }
 
                 EmbedBuilder logEmbed = new EmbedBuilder();

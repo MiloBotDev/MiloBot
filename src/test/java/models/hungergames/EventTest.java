@@ -1,6 +1,8 @@
 package models.hungergames;
 
-import games.HungerGames;
+import games.hungergames.HungerGames;
+import games.hungergames.models.Event;
+import games.hungergames.models.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,8 +18,8 @@ public class EventTest {
     void setUp() {
         this.game = new HungerGames();
 
-        this.player = new Player("Player", "1");
-        this.victim = new Player("Victim", "2");
+        this.player = new Player("Player", 0);
+        this.victim = new Player("Victim", 0);
 
         game.addPlayer(this.player);
         game.addPlayer(this.victim);
@@ -30,8 +32,8 @@ public class EventTest {
         this.victim = null;
 
         this.game = new HungerGames();
-        this.player = new Player("Player", "1");
-        this.victim = new Player("Victim", "2");
+        this.player = new Player("Player", 0);
+        this.victim = new Player("Victim", 0);
 
         game.addPlayer(this.player);
         game.addPlayer(this.victim);

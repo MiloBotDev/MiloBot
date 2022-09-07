@@ -1,6 +1,6 @@
-package models.hungergames;
+package games.hungergames.models;
 
-import games.HungerGames;
+import games.hungergames.HungerGames;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -11,8 +11,8 @@ public class Player implements Cloneable {
 
     public static final long PLAYER_MAX_HEALTH = 200;
 
-    private final String userName;
-    private final String userId;
+    private final String username;
+    private final long userId;
     private List<Item> inventory;
     private long health;
     private HungerGames game;
@@ -23,8 +23,8 @@ public class Player implements Cloneable {
     private int damageTaken;
     private int healingDone;
 
-    public Player(String userName, String userId) {
-        this.userName = userName;
+    public Player(String username, long userId) {
+        this.username = username;
         this.userId = userId;
         this.inventory = new ArrayList<>();
         this.health = PLAYER_MAX_HEALTH;
@@ -98,7 +98,7 @@ public class Player implements Cloneable {
         } else {
             Item item = this.game.getRandomItem();
             this.inventory.add(item);
-            this.game.log(String.format("%s has found a %s.", this.userName, item.getName()));
+            this.game.log(String.format("%s has found a %s.", this.username, item.getName()));
         }
     }
 
@@ -134,10 +134,10 @@ public class Player implements Cloneable {
     }
 
     public String getUserName() {
-        return userName;
+        return username;
     }
 
-    public String getUserId() {
+    public long getUserId() {
         return userId;
     }
 

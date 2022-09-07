@@ -1,16 +1,15 @@
-package games;
+package games.hungergames;
 
 import models.LobbyEntry;
-import models.hungergames.Event;
-import models.hungergames.Item;
-import models.hungergames.Player;
+import games.hungergames.models.Event;
+import games.hungergames.models.Item;
+import games.hungergames.models.Player;
 import org.jetbrains.annotations.NotNull;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import utility.Config;
-import utility.Lobby;
 
 import java.io.IOException;
 import java.net.URI;
@@ -60,7 +59,7 @@ public class HungerGames {
         this.roundData = new HashMap<>();
         this.events = new ArrayList<>();
 
-        playersFromLobby.forEach(newLobbyEntry -> addPlayer(new Player(newLobbyEntry.username(), newLobbyEntry.userId())));
+        playersFromLobby.forEach(newLobbyEntry -> addPlayer(new Player(newLobbyEntry.getUserName(), newLobbyEntry.getUserId())));
 
         Globals globals = getGlobals();
         loadAllItems(globals);
@@ -80,13 +79,6 @@ public class HungerGames {
                 }
             }
         }
-    }
-
-    public static void main(String[] args) {
-        Lobby lobby = new Lobby("RubenJ01", "1");
-        lobby.fillLobby();
-
-        new HungerGames(lobby.getPlayers()).startGame();
     }
 
     public void addPlayer(Player player) {
@@ -244,7 +236,6 @@ public class HungerGames {
     }
 
     public void log(String message) {
-        System.out.println(message);
         this.messages.add(message);
     }
 

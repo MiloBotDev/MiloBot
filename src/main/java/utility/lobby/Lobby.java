@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 public class Lobby extends AbstractLobby {
+
     private final Set<User> players = new HashSet<>();
     private final BiConsumer<List<User>, Message> startConsumer;
     private final int minPlayers;
@@ -71,14 +72,14 @@ public class Lobby extends AbstractLobby {
         } else {
             Button joinButton;
             if (players.size() == maxPlayers) {
-                joinButton = Button.danger(creator.getId() + ":" + "joinNewLobby", "Join");
+                joinButton = Button.danger(creator.getId() + ":" + "joinLobby", "Join");
             } else {
-                joinButton = Button.primary(creator.getId() + ":" + "joinNewLobby", "Join");
+                joinButton = Button.primary(creator.getId() + ":" + "joinLobby", "Join");
             }
-            Button leaveButton = Button.primary(creator.getId() + ":" + "leaveNewLobby", "Leave");
-            Button startButton = Button.primary(creator.getId() + ":" + "startNewLobby", "Start");
-            Button deleteButton = Button.secondary(creator.getId() + ":" + "deleteNewLobby", "Delete");
-            ret = ActionRow.of(joinButton, leaveButton, startButton, deleteButton);
+            Button leaveButton = Button.primary(creator.getId() + ":" + "leaveLobby", "Leave");
+            Button startButton = Button.primary(creator.getId() + ":" + "startLobby", "Start");
+            Button deleteButton = Button.secondary(creator.getId() + ":" + "deleteLobby", "Delete");
+            ret = ActionRow.of(joinButton, leaveButton, startButton ,deleteButton);
         }
         return ret;
     }
