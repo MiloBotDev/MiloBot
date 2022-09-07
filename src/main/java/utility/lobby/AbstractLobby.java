@@ -6,16 +6,12 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public abstract class AbstractLobby {
 
-    protected static final Map<Message, AbstractLobby> lobbyInstances = new HashMap<>();
+    protected static final Map<Message, AbstractLobby> lobbyInstances = new ConcurrentHashMap<>();
     private static final ScheduledExecutorService idleInstanceCleanupExecutorService =
             Executors.newScheduledThreadPool(1);
     protected volatile Message message;
