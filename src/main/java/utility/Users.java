@@ -4,8 +4,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import database.dao.UserDao;
+import database.dao.UsersCacheDao;
+import models.UserNameTag;
 import games.hungergames.HungerGames;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +34,12 @@ public class Users {
     private static Users instance;
     public final HashMap<Integer, Integer> levels;
     private final UserDao userDao;
+    private final UsersCacheDao usersCacheDao;
     public int maxLevel;
 
     private Users() {
         this.userDao = UserDao.getInstance();
+        this.usersCacheDao = UsersCacheDao.getInstance();
         Config config = Config.getInstance();
         String levelsJsonPath = config.getLevelsJsonPath();
         this.levels = new HashMap<>();
@@ -125,5 +131,20 @@ public class Users {
             logger.error(e.getMessage());
             logger.info("Unable to load levels.json.");
         }
+    }
+
+    public UserNameTag getUserNameTag(long discordId, JDA jda) {
+        try {
+            UserNameTag userNameTag = usersCacheDao.getUserNameTag(discordId);
+            if (userNameTag == null) {
+                User user = jda.retrieveUserById(discordId).complete();
+                userNameTag = new UserNameTag(user.getName(), Short.parseShort(user.getDiscriminator()));
+                usersCacheDao.add(Objects.requireNonNull(userDao.getUserByDiscordId(discordId)).getId(), userNameTag);
+            }
+            return userNameTag;
+        } catch (SQLException e) {
+            logger.error("Error getting user name tag", e);
+        }
+        return null;
     }
 }
