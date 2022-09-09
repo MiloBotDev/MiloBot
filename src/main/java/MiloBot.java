@@ -55,6 +55,7 @@ public class MiloBot {
     /**
      * Clears instances that haven't been used for over 15 minutes every hour.
      */
+    @Deprecated(since="9/8/22, Everything will have its own idle instance cleanup", forRemoval=true)
     @NotNull
     private static TimerTask clearInstances(JDA bot) {
         return new TimerTask() {
