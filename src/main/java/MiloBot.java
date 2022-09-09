@@ -55,12 +55,13 @@ public class MiloBot {
     /**
      * Clears instances that haven't been used for over 15 minutes every hour.
      */
+    @Deprecated(since="9/8/22, Everything will have its own idle instance cleanup", forRemoval=true)
     @NotNull
     private static TimerTask clearInstances(JDA bot) {
         return new TimerTask() {
             @Override
             public void run() {
-                logger.info("Attempting to clear idle instances.");
+                logger.debug("Attempting to clear idle instances.");
 
                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
                 TextChannel logs = Objects.requireNonNull(bot.getGuildById(Config.getInstance().getTestGuildId()))
@@ -75,7 +76,7 @@ public class MiloBot {
                             long elapsedTime = currentNanoTime - startTime;
                             long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
                             if (elapsedTimeSeconds > 900) {
-                                logger.info(String.format("Blackjack instance by: %s timed out. Time elapsed %d seconds.",
+                                logger.trace(String.format("Blackjack instance by: %s timed out. Time elapsed %d seconds.",
                                         s, elapsedTimeSeconds));
                                 blackjackInstancesToRemove.add(s);
                             }
@@ -83,12 +84,12 @@ public class MiloBot {
                 );
 
                 if (blackjackInstancesToRemove.size() == 0) {
-                    logger.info("No blackjack instances timed out.");
+                    logger.trace("No blackjack instances timed out.");
                 } else {
                     for (Long s : blackjackInstancesToRemove) {
                         blackjackGames.remove(s);
                     }
-                    logger.info(String.format("Removed %d blackjack instances.", blackjackInstancesToRemove.size()));
+                    logger.trace(String.format("Removed %d blackjack instances.", blackjackInstancesToRemove.size()));
                 }
 
                 EmbedBuilder logEmbed = new EmbedBuilder();

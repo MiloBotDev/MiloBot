@@ -61,7 +61,7 @@ public class OnGuildJoin extends ListenerAdapter {
         } catch (SQLException e) {
             logger.error("Error adding prefix on guild join event", e);
         }
-        logger.info(String.format("Bot has been added to: %s.", event.getGuild().getName()));
+        logger.trace(String.format("Bot has been added to: %s.", event.getGuild().getName()));
     }
 
 }

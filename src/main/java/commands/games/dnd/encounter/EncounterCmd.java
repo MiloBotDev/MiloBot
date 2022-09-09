@@ -1,8 +1,8 @@
-package commands.dnd.encounter;
+package commands.games.dnd.encounter;
 
 import commands.Command;
 import commands.ParentCmd;
-import commands.dnd.DndCmd;
+import commands.games.dnd.DndCmd;
 
 /**
  * Parent command for the encounter sub commands.

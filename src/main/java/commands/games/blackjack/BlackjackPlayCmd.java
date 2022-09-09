@@ -3,7 +3,6 @@ package commands.games.blackjack;
 import commands.Command;
 import commands.SubCmd;
 import games.Blackjack;
-import models.BlackjackStates;
 import models.cards.PlayingCards;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -37,7 +36,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
         this.commandArgs = new String[]{"bet*"};
     }
 
-    public static @NotNull EmbedBuilder generateBlackjackEmbed(@NotNull User user, BlackjackStates state) {
+    public static @NotNull EmbedBuilder generateBlackjackEmbed(@NotNull User user, Blackjack.BlackjackStates state) {
         Blackjack game = blackjackGames.get(user.getIdLong());
 
         EmbedBuilder embed = new EmbedBuilder();
@@ -64,7 +63,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 
         if (state != null) {
             if (!game.isDealerStand()) {
-                if (state.equals(BlackjackStates.DEALER_WIN)) {
+                if (state.equals(Blackjack.BlackjackStates.DEALER_WIN)) {
                     String value = "**Dealer Wins!**\n";
                     if (game.getPlayerBet() > 0) {
                         value += String.format("You lose `%d` Morbcoins!\n", game.getWinnings());
@@ -73,35 +72,35 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                     game.setFinished(true);
                 }
             } else {
-                if (state.equals(BlackjackStates.PLAYER_WIN)) {
+                if (state.equals(Blackjack.BlackjackStates.PLAYER_WIN)) {
                     String format = String.format("**%s** wins!\n", user.getName());
                     if (game.getPlayerBet() > 0) {
                         format += String.format("You win `%d` Morbcoins!", game.getWinnings());
                     }
                     embed.addField("------------", format, false);
                     game.setFinished(true);
-                } else if (state.equals(BlackjackStates.DRAW)) {
+                } else if (state.equals(Blackjack.BlackjackStates.DRAW)) {
                     String value = "Its a draw!\n";
                     if (game.getPlayerBet() > 0) {
                         value += "You lose nothing.";
                     }
                     embed.addField("------------", value, false);
                     game.setFinished(true);
-                } else if (state.equals(BlackjackStates.DEALER_WIN)) {
+                } else if (state.equals(Blackjack.BlackjackStates.DEALER_WIN)) {
                     String format = "Dealer wins!\n";
                     if (game.getPlayerBet() > 0) {
                         format += String.format("You lose `%d` Morbcoins!", game.getWinnings());
                     }
                     embed.addField("------------", format, false);
                     game.setFinished(true);
-                } else if (state.equals(BlackjackStates.DEALER_BLACKJACK)) {
+                } else if (state.equals(Blackjack.BlackjackStates.DEALER_BLACKJACK)) {
                     String format = "Dealer wins with blackjack!\n";
                     if (game.getPlayerBet() > 0) {
                         format += String.format("You lose `%d` Morbcoins!", game.getWinnings());
                     }
                     embed.addField("------------", format, false);
                     game.setFinished(true);
-                } else if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+                } else if (state.equals(Blackjack.BlackjackStates.PLAYER_BLACKJACK)) {
                     String format = String.format("**%s** wins with blackjack!\n", user.getName());
                     if (game.getPlayerBet() > 0) {
                         format += String.format("You win `%d` Morbcoins!", game.getWinnings());
@@ -179,9 +178,9 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 
         blackjackGames.put(authorIdLong, blackJack);
 
-        BlackjackStates blackjackStates = blackJack.checkWin(false);
+        Blackjack.BlackjackStates blackjackStates = blackJack.checkWin(false);
         EmbedBuilder embed;
-        if (blackjackStates.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+        if (blackjackStates.equals(Blackjack.BlackjackStates.PLAYER_BLACKJACK)) {
             blackJack.dealerHit();
             blackJack.setDealerStand(true);
             blackjackStates = blackJack.checkWin(true);
@@ -249,9 +248,9 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
 
         blackjackGames.put(authorIdLong, blackJack);
 
-        BlackjackStates blackjackStates = blackJack.checkWin(false);
+        Blackjack.BlackjackStates blackjackStates = blackJack.checkWin(false);
         EmbedBuilder embed;
-        if (blackjackStates.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+        if (blackjackStates.equals(Blackjack.BlackjackStates.PLAYER_BLACKJACK)) {
             blackJack.dealerHit();
             blackJack.setDealerStand(true);
             blackjackStates = blackJack.checkWin(true);

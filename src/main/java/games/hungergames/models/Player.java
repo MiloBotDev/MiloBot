@@ -129,7 +129,7 @@ public class Player implements Cloneable {
             clone.inventory = inventoryClone;
             return clone;
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to clone player", e);
         }
     }
 

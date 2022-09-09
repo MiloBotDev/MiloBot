@@ -60,7 +60,7 @@ public class OnGuildLeave extends ListenerAdapter {
         } catch (SQLException e) {
             logger.error("Error deleting prefix from database on guild leave event", e);
         }
-        logger.info(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
+        logger.trace(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
     }
 
 }

@@ -2,9 +2,10 @@ package commands;
 
 import commands.bot.StatusCmd;
 import commands.bot.bug.BugCmd;
+import commands.botadmin.RemoveUserCmd;
 import commands.dnd.encounter.EncounterCmd;
 import commands.games.blackjack.BlackjackCmd;
-import commands.games.hungergames.HungerGamesStartCmd;
+import commands.games.hungergames.HungerGamesCmd;
 import commands.games.poker.PokerCmd;
 import commands.games.wordle.WordleCmd;
 import commands.morbconomy.DailyCmd;
@@ -31,7 +32,7 @@ public class CommandLoader {
 
     public static Map<List<String>, Command> commandList = new HashMap<>();
 
-    public static void loadAllCommands(@NotNull JDA bot) {
+    public static void loadAllCommands(JDA bot) {
         ArrayList<Command> commands = new ArrayList<>();
         commands.add(HelpCmd.getInstance());
         commands.add(new InviteCmd());

@@ -1,8 +1,8 @@
-package commands.dnd.encounter;
+package commands.games.dnd.encounter;
 
 import commands.Command;
 import commands.SubCmd;
-import models.dnd.Encounter;
+import games.dnd.models.Encounter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
-import utility.EncounterGenerator;
+import games.dnd.EncounterGenerator;
 
 import java.util.*;
 

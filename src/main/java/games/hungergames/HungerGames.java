@@ -1,6 +1,6 @@
 package games.hungergames;
 
-import models.LobbyEntry;
+import games.hungergames.models.LobbyEntry;
 import games.hungergames.models.Event;
 import games.hungergames.models.Item;
 import games.hungergames.models.Player;
@@ -9,6 +9,8 @@ import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import org.luaj.vm2.lib.jse.JsePlatform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.Config;
 
 import java.io.IOException;
@@ -33,6 +35,7 @@ public class HungerGames {
     private List<String> messages;
     private boolean startedGame;
     private Player winner;
+    private final Logger logger = LoggerFactory.getLogger(HungerGames.class);
 
     public HungerGames() {
         this.startedGame = false;
@@ -206,7 +209,7 @@ public class HungerGames {
                             try {
                                 this.items.add(new Item(globals, new String(Files.readAllBytes(file))));
                             } catch (IOException e) {
-                                throw new RuntimeException(e);
+                                logger.error("Failed to load item from file: " + file, e);
                             }
                         });
             }
@@ -226,7 +229,7 @@ public class HungerGames {
                             try {
                                 this.events.add(new Event(globals, new String(Files.readAllBytes(file))));
                             } catch (IOException e) {
-                                throw new RuntimeException(e);
+                                logger.error("Failed to event item from file: " + file, e);
                             }
                         });
             }

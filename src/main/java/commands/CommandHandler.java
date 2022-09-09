@@ -68,7 +68,7 @@ public class CommandHandler extends ListenerAdapter {
         for (Guild guild : guilds) {
             long id = guild.getIdLong();
             if (prefixes.stream().noneMatch(prefix -> prefix.getGuildId() == id)) {
-                logger.info(String.format("Guild: %s does not have a configured prefix.", id) +
+                logger.trace(String.format("Guild: %d does not have a configured prefix.", id) +
                         " Setting default prefix for guild.");
                 Prefix prefix = new Prefix(id, Config.getInstance().getDefaultPrefix());
                 try {
@@ -177,7 +177,7 @@ public class CommandHandler extends ListenerAdapter {
                     }
                     // execute the command
                     command.executeCommand(event, receivedMessage);
-                    logger.info(String.format("Executed command: %s | Author: %s.", fullCommandName,
+                    logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
                             event.getAuthor().getName()));
                 }
             });

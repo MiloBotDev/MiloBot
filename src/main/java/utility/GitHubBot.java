@@ -30,10 +30,9 @@ public class GitHubBot {
             Config config = Config.getInstance();
             this.gitHub = new GitHubBuilder().withOAuthToken(config.getPersonalAccessToken()).build();
             setRepository(config.getRepositoryName());
-            logger.info(String.format("Created a %s instance.", this.getClass().getName()));
+            logger.trace(String.format("Created a %s instance.", this.getClass().getName()));
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.info(String.format("Failed to create a %s instance.", this.getClass().getName()));
+            logger.error(String.format("Failed to create a %s instance.", this.getClass().getName()), e);
         }
     }
 
@@ -55,10 +54,9 @@ public class GitHubBot {
     public void setRepository(String repoName) {
         try {
             this.repository = gitHub.getRepository(repoName);
-            logger.info(String.format("Loaded repository: %s", repoName));
+            logger.trace(String.format("Loaded repository: %s", repoName));
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.info(String.format("Failed to load repository: %s.", repoName));
+            logger.error(String.format("Failed to load repository: %s.", repoName), e);
         }
     }
 
@@ -83,7 +81,7 @@ public class GitHubBot {
 
             issue.label("bug");
             issue.create();
-            logger.info(String.format("Issue created with title: %s", title));
+            logger.trace(String.format("Issue created with title: %s", title));
 
             List<GHIssue> issues = this.repository.getIssues(GHIssueState.ALL);
             for (GHIssue _issue : issues) {
@@ -92,8 +90,7 @@ public class GitHubBot {
                 }
             }
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.info("Failed to create issue.");
+            logger.error("Failed to create issue.", e);
         }
         return "";
     }
@@ -117,8 +114,7 @@ public class GitHubBot {
                 }
             }
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.info("Failed to load issues.");
+            logger.error("Failed to load issues.", e);
         }
         return Optional.empty();
     }
@@ -142,8 +138,7 @@ public class GitHubBot {
                 }
             }
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.info("Failed to load issues.");
+            logger.error("Failed to load issues.", e);
         }
         return bugs;
     }

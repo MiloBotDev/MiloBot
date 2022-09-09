@@ -3,7 +3,7 @@ package commands.games.hungergames;
 import commands.Command;
 import commands.SubCmd;
 import games.hungergames.HungerGames;
-import models.LobbyEntry;
+import games.hungergames.models.LobbyEntry;
 import games.hungergames.models.Item;
 import games.hungergames.models.Player;
 import net.dv8tion.jda.api.EmbedBuilder;

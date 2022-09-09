@@ -1,6 +1,5 @@
 package games;
 
-import models.BlackjackStates;
 import models.cards.CardDeck;
 import models.cards.PlayingCards;
 import database.dao.BlackjackDao;
@@ -243,5 +242,13 @@ public class Blackjack {
 
     public long getStartTime() {
         return startTime;
+    }
+
+    public enum BlackjackStates {
+        PLAYER_WIN,
+        PLAYER_BLACKJACK,
+        DEALER_WIN,
+        DEALER_BLACKJACK,
+        DRAW
     }
 }
