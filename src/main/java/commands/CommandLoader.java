@@ -48,13 +48,6 @@ public class CommandLoader {
         commands.add(new HungerGamesCmd());
         commands.add(new PokerCmd());
 
-        StringBuilder commandDescriptions = new StringBuilder();
-        commands.forEach(command -> {
-            commandDescriptions.append(command.generateMarkdown(command.commandName, command.commandDescription,
-                    command.commandArgs, command.cooldown, command.permissions, command.subCommands));
-        });
-        System.out.println(commandDescriptions);
-
         commands.stream().flatMap(command -> command.listeners.stream()).forEach(bot::addEventListener);
         commands.stream().flatMap(command -> command.subCommands.stream())
                 .flatMap(subCommand -> subCommand.listeners.stream()).forEach(bot::addEventListener);
