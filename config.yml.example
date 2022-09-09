@@ -1,5 +1,6 @@
 # bot
 prefix: ";"
+privateChannelPrefix: "!"
 token:
 testGuildId:
 loggingChannelName:
