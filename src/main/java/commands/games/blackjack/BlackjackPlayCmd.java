@@ -159,7 +159,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
         }
 
         try {
-            if (blackjackDao.getByUserDiscordId(authorIdLong) != null) {
+            if (blackjackDao.getByUserDiscordId(authorIdLong) == null) {
                 blackjackDao.add(new database.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
                         .getId()));
             }
