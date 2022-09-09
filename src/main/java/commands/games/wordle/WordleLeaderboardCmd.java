@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import database.dao.WordleDao;
 import database.model.Wordle;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import java.util.List;
 public class WordleLeaderboardCmd extends Command implements SubCmd {
 
     private final WordleDao wordleDao;
+    private final Logger logger = LoggerFactory.getLogger(WordleLeaderboardCmd.class);
 
     public WordleLeaderboardCmd() {
         this.commandName = "leaderboard";
@@ -35,7 +38,7 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
             ArrayList<EmbedBuilder> highest_streak = buildEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
             event.getChannel().sendMessageEmbeds(highest_streak.get(0).build()).queue();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            logger.error("Failed to get wordle leaderboard", e);
         }
     }
 
