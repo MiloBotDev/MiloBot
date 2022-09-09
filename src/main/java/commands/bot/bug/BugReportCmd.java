@@ -2,20 +2,17 @@ package commands.bot.bug;
 
 import commands.Command;
 import commands.SubCmd;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import utility.Config;
 import utility.GitHubBot;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Report a bug you have found. The bug will be added to the issue tracker on the repository.
@@ -24,6 +21,28 @@ public class BugReportCmd extends Command implements SubCmd {
 
     private final ArrayList<String> questions;
     private final GitHubBot gitHubBot;
+    private final ScheduledExecutorService idleInstanceCleanupExecutorService = Executors.newScheduledThreadPool(1);
+    private class UserBugReportInstance {
+        private UserBugReportInstance(User user) {
+            this.user = user;
+        }
+        private int nextQuestion = 0;
+        private final User user;
+        private final String[] responses = new String[questions.size()];
+        private ScheduledFuture<?> idleInstanceCleanupFuture;
+        private boolean cancelIdleInstanceCleanup() {
+            return idleInstanceCleanupFuture.cancel(false);
+        }
+
+        private void setIdleInstanceCleanup() {
+            idleInstanceCleanupFuture = idleInstanceCleanupExecutorService.schedule(() -> {
+                bugReportInstances.remove(user.getIdLong());
+                user.openPrivateChannel().queue(privateChannel -> privateChannel
+                        .sendMessage("You have been idle for too long. Your bug report has been cancelled.").queue());
+            }, 15, TimeUnit.MINUTES);
+        }
+    }
+    private final Map<Long, UserBugReportInstance> bugReportInstances = new ConcurrentHashMap<>();
 
     public BugReportCmd() {
         this.commandName = "report";
@@ -37,73 +56,68 @@ public class BugReportCmd extends Command implements SubCmd {
                 "Do you have any additional information about this bug?",
         }));
         this.gitHubBot = GitHubBot.getInstance();
+
+        this.listeners.add(new ListenerAdapter() {
+            @Override
+            public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+                onMessage(event);
+            }
+        });
     }
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        ArrayList<String> results = new ArrayList<>();
-        askQuestion(event.getJDA(), event.getChannel(), event.getAuthor(), this.questions, results, null);
+        if (bugReportInstances.containsKey(event.getAuthor().getIdLong())) {
+            event.getChannel().sendMessage("You already have an active bug report instance.").queue();
+            return;
+        }
+        UserBugReportInstance instance = new UserBugReportInstance(event.getAuthor());
+        event.getAuthor().openPrivateChannel().queue(ch ->
+                ch.sendMessage(this.questions.get(instance.nextQuestion)).queue());
+        instance.setIdleInstanceCleanup();
+        bugReportInstances.put(event.getAuthor().getIdLong(), instance);
+        event.getChannel().sendMessage("Please continue the bug report in the DM with Milobot.").queue();
     }
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-        event.deferReply().queue();
-        ArrayList<String> results = new ArrayList<>();
-        askQuestion(event.getJDA(), event.getChannel(), event.getUser(), this.questions, results, event);
+        if (bugReportInstances.containsKey(event.getUser().getIdLong())) {
+            event.reply("You already have an active bug report instance.").queue();
+            return;
+        }
+        UserBugReportInstance instance = new UserBugReportInstance(event.getUser());
+        event.getUser().openPrivateChannel().queue(ch ->
+                ch.sendMessage(this.questions.get(instance.nextQuestion)).queue());
+        instance.setIdleInstanceCleanup();
+        bugReportInstances.put(event.getUser().getIdLong(), instance);
+        event.reply("Please continue the bug report in the DM with Milobot.").queue();
     }
 
-    /**
-     * Asks the next question for the bug report. Calls itself recursively till all questions have been asked.
-     */
-    private void askQuestion(JDA jda, MessageChannel channel, User author, ArrayList<String> questions,
-                             @NotNull ArrayList<String> results, SlashCommandEvent slashEvent) {
-        if (results.size() == 4) {
-            String bugIssue = gitHubBot.createBugIssue(results.get(0), results.get(1), results.get(2), results.get(3),
-                    author.getName(), author.getId());
-            String format = String.format("Your bug report has been submitted. " +
-                    "You can view your submitted bug here: %s", bugIssue);
-            if (slashEvent != null) {
-                slashEvent.getHook().sendMessage(format).queue();
-            } else {
-                channel.sendMessage(format).queue();
-            }
+    private void onMessage(MessageReceivedEvent event) {
+        if (event.getMessage().getContentRaw().startsWith(Config.getInstance().getPrivateChannelPrefix()) ||
+                event.getChannelType() != ChannelType.PRIVATE || event.getAuthor().isBot()) {
+            return;
+        }
+        UserBugReportInstance instance = bugReportInstances.get(event.getAuthor().getIdLong());
+        if (instance == null || !instance.cancelIdleInstanceCleanup()) {
+            return;
+        }
+        if (event.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
+            event.getChannel().sendMessage("Cancelled bug report.").queue();
+            bugReportInstances.remove(event.getAuthor().getIdLong());
+            return;
+        }
+        instance.responses[instance.nextQuestion] = event.getMessage().getContentRaw();
+        instance.nextQuestion++;
+        if (instance.nextQuestion >= this.questions.size()) {
+            bugReportInstances.remove(event.getAuthor().getIdLong());
+            event.getChannel().sendMessage("Thank you for your bug report!").queue();
+            this.gitHubBot.createBugIssue(instance.responses[0], instance.responses[1], instance.responses[2],
+                    instance.responses[3], event.getAuthor().getName() + "#" +
+                            event.getAuthor().getDiscriminator(), event.getAuthor().getId());
         } else {
-            channel.sendMessage(questions.get(results.size())).queue(message -> {
-                ListenerAdapter listener = new ListenerAdapter() {
-                    @Override
-                    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-                        if (event.getChannelType() != ChannelType.TEXT) {
-                            return;
-                        }
-
-                        if (event.getAuthor().getId().equals(author.getId())) {
-                            event.getJDA().removeEventListener(this);
-                            if (event.getMessage().getContentRaw().toLowerCase(Locale.ROOT).equals("cancel")) {
-                                if (slashEvent != null) {
-                                    slashEvent.getHook().sendMessage("Bug report canceled.").queue();
-                                } else {
-                                    channel.sendMessage("Bug report canceled.").queue();
-                                }
-                            } else {
-                                results.add(event.getMessage().getContentRaw());
-                                askQuestion(jda, channel, author, questions, results, slashEvent);
-                            }
-                        }
-                    }
-                };
-
-                message.getJDA().getRateLimitPool().schedule(() -> {
-                    if (jda.getRegisteredListeners().contains(listener)) {
-                        jda.removeEventListener(listener);
-                        if (slashEvent != null) {
-                            slashEvent.getHook().sendMessage("Timed out!").queue();
-                        } else {
-                            channel.sendMessage("Timed out!").queue();
-                        }
-                    }
-                }, 2, TimeUnit.MINUTES);
-                message.getJDA().addEventListener(listener);
-            });
+            event.getChannel().sendMessage(this.questions.get(instance.nextQuestion)).queue();
+            instance.setIdleInstanceCleanup();
         }
     }
 }
