@@ -16,7 +16,7 @@ a pull request.
 | **Morbconomy**               |                          |                    |                |
 | [!wallet](#wallet)           | [!profile](#profile)     | [!daily](#daily)   |                |
 | **Games**                    |                          |                    |                |
-| [!hungergames](#hungergames) | [!blackjack](#blackjack) | [!wordleGame](#wordleGame) |                |
+| [!hungergames](#hungergames) | [!blackjack](#blackjack) | [!wordle](#wordle) |                |
 | **Bot**                      |                          |                    |                |
 | [!bug](#bug)                 | [!status](#status)       |                    |                |
 | **Dungeons & Dragons**       |                          |                    |                |
@@ -24,7 +24,9 @@ a pull request.
 
 ---
 
-<h3 id="help">!help</h3>
+<h3 id="help">help</h3>
+
+Shows the user a list of available commands.
 
 #### Usage
 
@@ -33,7 +35,9 @@ a pull request.
 
 ---
 
-<h3 id="invite">!invite</h3>
+<h3 id="invite">invite</h3>
+
+Sends an invite link to add the bot to another server.
 
 #### Usage
 
@@ -41,7 +45,9 @@ a pull request.
 
 ---
 
-<h3 id="status">!status</h3>
+<h3 id="status">status</h3>
+
+The status of the bot.
 
 #### Usage
 
@@ -53,7 +59,9 @@ a pull request.
 
 ---
 
-<h3 id="prefix">!prefix</h3>
+<h3 id="prefix">prefix</h3>
+
+Change the prefix of the guild you're in.
 
 #### Usage
 
@@ -70,7 +78,9 @@ a pull request.
 
 ---
 
-<h3 id="usage">!usage</h3>
+<h3 id="usage">usage</h3>
+
+See the amount of times each or a specific command has been used.
 
 #### Usage
 
@@ -83,7 +93,9 @@ a pull request.
 
 ---
 
-<h3 id="user">!user</h3>
+<h3 id="user">user</h3>
+
+Shows information about a user.
 
 #### Usage
 
@@ -92,7 +104,9 @@ a pull request.
 
 ---
 
-<h3 id="profile">!profile</h3>
+<h3 id="profile">profile</h3>
+
+View your own or someone else's profile.
 
 #### Usage
 
@@ -101,39 +115,89 @@ a pull request.
 
 ---
 
-<h3 id="wordle">!wordle</h3>
+<h3 id="wordle">wordle</h3>
+
+Wordle brought to discord.
 
 #### Usage
 
 `!wordle`
 
+#### Sub Commands
+
+`!wordle play`
+Play a game of wordle.
+
+
+`!wordle leaderboard {*leaderboard}`
+View the wordle leaderboards.
+
+
+`!wordle stats`
+View your own wordle statistics
+
 ---
 
-<h3 id="bug">!bug</h3>
+<h3 id="bug">bug</h3>
+
+Add bugs to the bots issue tracker, or view them.
 
 #### Usage
 
 `!bug`
 
+#### Sub Commands
+
+`!bug report`
+Report a bug you found.
+
+
+`!bug view {id}`
+Lookup a specific bug on the issue tracker.
+
+
+`!bug list`
+Shows a list of all reported bugs.
+
 ---
 
-<h3 id="encounter">!encounter</h3>
+<h3 id="encounter">encounter</h3>
+
+D&D 5e encounter generator.
 
 #### Usage
 
 `!encounter`
 
+#### Sub Commands
+
+`!encounter generate {party size, party level, difficulty, *environment}`
+Generate a random encounter for a given average party level, party size, difficulty and an optional environment.
+
 ---
 
-<h3 id="blackjack">!blackjack</h3>
+<h3 id="blackjack">blackjack</h3>
+
+Blackjack brought to discord.
 
 #### Usage
 
 `!blackjack`
 
+#### Sub Commands
+
+`!blackjack play {bet*}`
+Play a game of blackjack on discord.
+
+
+`!blackjack stats`
+View your own blackjack statistics.
+
 ---
 
-<h3 id="wallet">!wallet</h3>
+<h3 id="wallet">wallet</h3>
+
+Check your wallet.
 
 #### Usage
 
@@ -141,7 +205,9 @@ a pull request.
 
 ---
 
-<h3 id="daily">!daily</h3>
+<h3 id="daily">daily</h3>
+
+Collect your daily reward.
 
 #### Usage
 
@@ -149,25 +215,30 @@ a pull request.
 
 ---
 
-<h3 id="remove">!remove</h3>
+<h3 id="hungergames">hungergames</h3>
+
+Hunger Games
 
 #### Usage
 
-`!remove`
+`!hungergames`
+
+#### Sub Commands
+
+`!hungergames start`
+Starts the Hunger Games
 
 ---
 
-<h3 id="start">!start</h3>
+<h3 id="poker">poker</h3>
 
-#### Usage
-
-`!start`
-
----
-
-<h3 id="poker">!poker</h3>
+5-card Poker brought to discord.
 
 #### Usage
 
 `!poker`
 
+#### Sub Commands
+
+`!poker play`
+Play a game of poker on discord.

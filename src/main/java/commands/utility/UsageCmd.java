@@ -30,7 +30,7 @@ public class UsageCmd extends Command implements UtilityCmd {
 
     public UsageCmd() {
         this.commandName = "usage";
-        this.commandDescription = "See the amount of times each command has been used.";
+        this.commandDescription = "See the amount of times each or a specific command has been used.";
         this.cooldown = 60;
         this.commandArgs = new String[]{"*command"};
     }
@@ -46,7 +46,11 @@ public class UsageCmd extends Command implements UtilityCmd {
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-        event.getHook().sendMessageEmbeds(createUsageEmbed(event.getUser(), null).build()).queue();
+        if(event.getOption("command") == null) {
+            event.replyEmbeds(createUsageEmbed(event.getUser(), null).build()).queue();
+        } else {
+            event.replyEmbeds(createUsageEmbed(event.getUser(), Objects.requireNonNull(event.getOption("command")).getAsString()).build()).queue();
+        }
     }
 
     private @NotNull EmbedBuilder createUsageEmbed(@NotNull User user, @Nullable String optionalCommand) {
@@ -54,47 +58,42 @@ public class UsageCmd extends Command implements UtilityCmd {
         EmbedUtils.styleEmbed(usageEmbed, user);
         AtomicReference<StringBuilder> sb = new AtomicReference<>(new StringBuilder());
         AtomicBoolean commandFound = new AtomicBoolean(false);
-        try {
-            int id = userDao.getUserByDiscordId(user.getIdLong()).getId();
-            CommandLoader.commandList.forEach((commandNames, command) -> commandNames.forEach(commandName -> {
-                try {
-                    if (Arrays.stream(command.aliases).noneMatch(s -> Objects.equals(s, commandName))) {
-                        if(commandName.equals(optionalCommand)) {
-                            sb.set(new StringBuilder().append(String.format("**%s:** %d times.\n", commandName,
-                                    commandTrackerDao.getGlobalCommandUsage(commandName))));
-                            commandFound.set(true);
-                        }
-                        if (!commandFound.get()) {
-                            sb.get().append(String.format("**%s:** %d times.\n", commandName,
-                                    commandTrackerDao.getGlobalCommandUsage(commandName)));
-                        }
-                        if (command.subCommands.size() > 0) {
-                            command.subCommands.forEach(command1 -> {
-                                try {
-                                    String subCommandName = String.format("%s %s", commandName, command1.commandName);
-                                    if(subCommandName.equals(optionalCommand)) {
-                                        sb.set(new StringBuilder().append(String.format("**%s:** %d times.\n", subCommandName,
-                                                commandTrackerDao.getGlobalCommandUsage(subCommandName))));
-                                        commandFound.set(true);
-                                        return;
-                                    }
-                                    if (!commandFound.get()) {
-                                        sb.get().append(String.format("- **%s:** %d times.\n", subCommandName,
-                                                commandTrackerDao.getGlobalCommandUsage(subCommandName)));
-                                    }
-                                } catch (SQLException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            });
-                        }
+        CommandLoader.commandList.forEach((commandNames, command) -> commandNames.forEach(commandName -> {
+            try {
+                if (Arrays.stream(command.aliases).noneMatch(s -> Objects.equals(s, commandName))) {
+                    if(commandName.equals(optionalCommand)) {
+                        sb.set(new StringBuilder().append(String.format("**%s:** %d times.\n", commandName,
+                                commandTrackerDao.getGlobalCommandUsage(commandName))));
+                        commandFound.set(true);
                     }
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                    if (!commandFound.get()) {
+                        sb.get().append(String.format("**%s:** %d times.\n", commandName,
+                                commandTrackerDao.getGlobalCommandUsage(commandName)));
+                    }
+                    if (command.subCommands.size() > 0) {
+                        command.subCommands.forEach(command1 -> {
+                            try {
+                                String subCommandName = String.format("%s %s", commandName, command1.commandName);
+                                if(subCommandName.equals(optionalCommand)) {
+                                    sb.set(new StringBuilder().append(String.format("**%s:** %d times.\n", subCommandName,
+                                            commandTrackerDao.getGlobalCommandUsage(subCommandName))));
+                                    commandFound.set(true);
+                                    return;
+                                }
+                                if (!commandFound.get()) {
+                                    sb.get().append(String.format("- **%s:** %d times.\n", subCommandName,
+                                            commandTrackerDao.getGlobalCommandUsage(subCommandName)));
+                                }
+                            } catch (SQLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                    }
                 }
-            }));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }));
         if(!commandFound.get() && optionalCommand != null) {
             return usageEmbed
                     .setTitle("Command not found.")

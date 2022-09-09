@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Basic implementation of a command.
@@ -471,7 +472,7 @@ public abstract class Command {
                                    HashMap<String, Permission> permissions, ArrayList<Command> subCommands) {
         StringBuilder markdown = new StringBuilder();
         markdown.append("---\n\n");
-        markdown.append(String.format("<h3 id=\"%s\">!%s</h3>\n\n", commandName, commandName));
+        markdown.append(String.format("<h3 id=\"%s\">%s</h3>\n\n", commandName, commandName));
         markdown.append(commandDescription).append("\n\n");
         markdown.append("#### Usage\n\n");
         String argumentsText = getArgumentsText(commandName, commandArgs, "!")
@@ -487,7 +488,18 @@ public abstract class Command {
             permissions.forEach((permissionName, permission) -> markdown.append(String.format("`%s`", permissionName)));
             markdown.append("\n\n");
         }
+        if(!subCommands.isEmpty()) {
+            markdown.append("#### Sub Commands\n");
+            for (Command subCommand : subCommands) {
+                markdown.append("\n`").append("!").append(String.format("%s ", commandName)).append(subCommand.commandName);
+                if (!(subCommand.commandArgs.length == 0)) {
+                    for (int y = 0; y < subCommand.commandArgs.length; y++) {
+                        markdown.append(String.format(" {%s}", subCommand.commandArgs[y]));
+                    }
+                }
+                markdown.append("`\n").append(subCommand.commandDescription).append("\n\n");
+            }
+        }
         return markdown.toString();
     }
-
 }
