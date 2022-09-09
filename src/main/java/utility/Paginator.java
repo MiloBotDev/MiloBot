@@ -2,6 +2,9 @@ package utility;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Button;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -19,11 +22,13 @@ public class Paginator {
     protected volatile Message message;
     private ScheduledFuture<?> idleInstanceCleanupFuture;
     private volatile boolean initialized = false;
+    private final User creator;
 
 
-    public Paginator() {
+    public Paginator(User creator) {
         pages = new ArrayList<>();
         this.currentPage = 0;
+        this.creator = creator;
     }
 
     public void initialize(Message message) {
@@ -61,7 +66,7 @@ public class Paginator {
         }
         if (currentPage + 1 < pages.size()) {
             currentPage++;
-            message.editMessageEmbeds(pages.get(currentPage)).queue();
+            message.editMessageEmbeds(pages.get(currentPage)).setActionRows(getActionRows()).queue();
         }
         setIdleInstanceCleanup();
     }
@@ -73,7 +78,7 @@ public class Paginator {
         }
         if (currentPage - 1 >= 0) {
             currentPage--;
-            message.editMessageEmbeds(pages.get(currentPage)).queue();
+            message.editMessageEmbeds(pages.get(currentPage)).setActionRows(getActionRows()).queue();
         }
         setIdleInstanceCleanup();
     }
@@ -86,6 +91,21 @@ public class Paginator {
         if (cancelIdleInstanceCleanup()) {
             paginatorInstances.remove(message);
             message.delete().queue();
+        }
+    }
+
+    public ActionRow getActionRows() {
+        Button previous = Button.primary(creator.getId() + ":previousPage", "Previous");
+        Button next = Button.primary(creator.getId() + ":nextPage", "Next");
+        Button delete = Button.secondary(creator.getId() + ":deletePaginator", "Delete");
+        if (pages.size() == 1) {
+            return ActionRow.of(delete);
+        } if (currentPage == 0) {
+            return ActionRow.of(next, delete);
+        } else if (currentPage == pages.size() - 1) {
+            return ActionRow.of(previous, delete);
+        } else {
+            return ActionRow.of(previous, next, delete);
         }
     }
 

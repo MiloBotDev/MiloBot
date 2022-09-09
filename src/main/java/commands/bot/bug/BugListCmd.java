@@ -7,8 +7,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
 import utility.EmbedUtils;
@@ -35,30 +33,28 @@ public class BugListCmd extends Command implements SubCmd {
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         ArrayList<MessageEmbed> pages = createPages(event.getAuthor());
-        MessageEmbed startingEmbed = pages.get(0);
-        Paginator paginator = new Paginator();
-        paginator.addPages(pages);
-        String id = event.getAuthor().getId();
-        event.getChannel().sendMessageEmbeds(startingEmbed).setActionRows(ActionRow.of(
-                Button.primary(id + ":previousPage", "Previous"),
-                Button.secondary(id + ":deletePaginator", "Delete"),
-                Button.primary(id + ":nextPage", "Next")
-        )).queue(paginator::initialize);
+        if (pages.size() == 0) {
+            event.getChannel().sendMessage("There are no reported bugs.").queue();
+        } else {
+            Paginator paginator = new Paginator(event.getAuthor());
+            paginator.addPages(pages);
+            event.getChannel().sendMessageEmbeds(paginator.currentPage()).setActionRows(paginator.getActionRows())
+                    .queue(paginator::initialize);
+        }
     }
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
         ArrayList<MessageEmbed> pages = createPages(event.getUser());
-        MessageEmbed startingEmbed = pages.get(0);
-        Paginator paginator = new Paginator();
-        paginator.addPages(pages);
-        String id = event.getUser().getId();
-        event.getHook().sendMessageEmbeds(startingEmbed).addActionRows(ActionRow.of(
-                Button.primary(id + ":previousPage", "Previous"),
-                Button.secondary(id + ":deletePaginator", "Delete"),
-                Button.primary(id + ":nextPage", "Next")
-        )).queue(paginator::initialize);
+        if (pages.size() == 0) {
+            event.getChannel().sendMessage("There are no reported bugs.").queue();
+        } else {
+            Paginator paginator = new Paginator(event.getUser());
+            paginator.addPages(pages);
+            event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
+                    .queue(paginator::initialize);
+        }
     }
 
     /**
