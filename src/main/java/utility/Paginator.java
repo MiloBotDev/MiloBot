@@ -25,17 +25,19 @@ public class Paginator {
     private final User creator;
 
 
-    public Paginator(User creator) {
-        pages = new ArrayList<>();
+    public Paginator(User creator, List<MessageEmbed> pages) {
+        this.pages = pages;
         this.currentPage = 0;
         this.creator = creator;
     }
 
     public void initialize(Message message) {
-        this.message = message;
-        setIdleInstanceCleanup();
-        initialized = true;
-        paginatorInstances.put(message, this);
+        if (pages.size() > 1) {
+            this.message = message;
+            setIdleInstanceCleanup();
+            initialized = true;
+            paginatorInstances.put(message, this);
+        }
     }
 
     private boolean cancelIdleInstanceCleanup() {
@@ -53,10 +55,6 @@ public class Paginator {
         if (!initialized) {
             throw new IllegalStateException("Lobby not initialized");
         }
-    }
-
-    public void addPages(List<MessageEmbed> embeds) {
-        pages.addAll(embeds);
     }
 
     public void nextPage() {

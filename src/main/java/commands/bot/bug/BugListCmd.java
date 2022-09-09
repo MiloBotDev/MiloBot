@@ -36,8 +36,7 @@ public class BugListCmd extends Command implements SubCmd {
         if (pages.size() == 0) {
             event.getChannel().sendMessage("There are no reported bugs.").queue();
         } else {
-            Paginator paginator = new Paginator(event.getAuthor());
-            paginator.addPages(pages);
+            Paginator paginator = new Paginator(event.getAuthor(), pages);
             event.getChannel().sendMessageEmbeds(paginator.currentPage()).setActionRows(paginator.getActionRows())
                     .queue(paginator::initialize);
         }
@@ -50,8 +49,7 @@ public class BugListCmd extends Command implements SubCmd {
         if (pages.size() == 0) {
             event.getChannel().sendMessage("There are no reported bugs.").queue();
         } else {
-            Paginator paginator = new Paginator(event.getUser());
-            paginator.addPages(pages);
+            Paginator paginator = new Paginator(event.getUser(), pages);
             event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
                     .queue(paginator::initialize);
         }
