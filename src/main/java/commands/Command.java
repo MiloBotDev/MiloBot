@@ -2,6 +2,7 @@ package commands;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -19,10 +20,7 @@ import utility.EmbedUtils;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -98,6 +96,11 @@ public abstract class Command {
      * A list of all listeners this command has.
      */
     public ArrayList<EventListener> listeners = new ArrayList<>();
+
+    /**
+     * Types of channels in which this command can be used.
+     */
+    public Set<ChannelType> allowedChannelTypes = new HashSet<>();
 
     /**
      * The default constructor for a command.
