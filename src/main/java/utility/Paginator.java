@@ -1,11 +1,7 @@
 package utility;
 
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
-import utility.lobby.AbstractLobby;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -37,18 +33,18 @@ public class Paginator {
         paginatorInstances.put(message, this);
     }
 
-    protected final boolean cancelIdleInstanceCleanup() {
+    private boolean cancelIdleInstanceCleanup() {
         return idleInstanceCleanupFuture.cancel(false);
     }
 
-    protected final void setIdleInstanceCleanup() {
+    private void setIdleInstanceCleanup() {
         idleInstanceCleanupFuture = idleInstanceCleanupExecutorService.schedule(() -> {
             paginatorInstances.remove(message);
             message.delete().queue();
         }, 15, TimeUnit.MINUTES);
     }
 
-    protected final void checkInitialized() {
+    private void checkInitialized() {
         if (!initialized) {
             throw new IllegalStateException("Lobby not initialized");
         }
