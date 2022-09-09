@@ -12,6 +12,7 @@ public class BlackjackCmd extends Command implements ParentCmd, GamesCmd {
         this.aliases = new String[]{"bj"};
         this.subCommands.add(new BlackjackPlayCmd());
         this.subCommands.add(new BlackjackStatsCmd());
+        this.subCommands.add(new BlackjackInfoCmd());
     }
 
 }
