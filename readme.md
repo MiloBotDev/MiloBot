@@ -24,27 +24,28 @@ a pull request.
 
 ---
 
-<h3 id="prefix">!prefix</h3>
-
-Change the prefix of the guild you're in.
+<h3 id="help">!help</h3>
 
 #### Usage
 
-`;prefix {prefix}` 
+`!help {*command}`
 
-##### Permissions
-
-`ADMINISTRATOR`
 
 ---
 
-<h3 id="usage">!usage</h3>
-
-See the amount of times each command has been used.
+<h3 id="invite">!invite</h3>
 
 #### Usage
 
-`!usage {*command}`
+`!invite`
+
+---
+
+<h3 id="status">!status</h3>
+
+#### Usage
+
+`!status`
 
 #### Cooldown
 
@@ -52,32 +53,121 @@ See the amount of times each command has been used.
 
 ---
 
-<h3 id="help">!help</h3>
-
-Shows the user a list of available commands.
+<h3 id="prefix">!prefix</h3>
 
 #### Usage
 
-`!help {*command}`
+`!prefix {prefix}`
+
+
+#### Cooldown
+
+60 seconds.
+
+#### Permissions
+
+`Administrator`
+
+---
+
+<h3 id="usage">!usage</h3>
+
+#### Usage
+
+`!usage {*command}`
+
+
+#### Cooldown
+
+60 seconds.
 
 ---
 
 <h3 id="user">!user</h3>
 
-Shows information about a user.
-
 #### Usage
 
 `!user {*user}`
 
----
-
-<h3 id="invite">!invite</h3>
-
-Sends an invite link to add the bot to another server.
-
-#### Invite
-`!invite`
 
 ---
+
+<h3 id="profile">!profile</h3>
+
+#### Usage
+
+`!profile {*user}`
+
+
+---
+
+<h3 id="wordle">!wordle</h3>
+
+#### Usage
+
+`!wordle`
+
+---
+
+<h3 id="bug">!bug</h3>
+
+#### Usage
+
+`!bug`
+
+---
+
+<h3 id="encounter">!encounter</h3>
+
+#### Usage
+
+`!encounter`
+
+---
+
+<h3 id="blackjack">!blackjack</h3>
+
+#### Usage
+
+`!blackjack`
+
+---
+
+<h3 id="wallet">!wallet</h3>
+
+#### Usage
+
+`!wallet`
+
+---
+
+<h3 id="daily">!daily</h3>
+
+#### Usage
+
+`!daily`
+
+---
+
+<h3 id="remove">!remove</h3>
+
+#### Usage
+
+`!remove`
+
+---
+
+<h3 id="start">!start</h3>
+
+#### Usage
+
+`!start`
+
+---
+
+<h3 id="poker">!poker</h3>
+
+#### Usage
+
+`!poker`
 

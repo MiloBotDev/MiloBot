@@ -82,6 +82,18 @@ public class CommandTrackerDao {
         }
     }
 
+    public int getUserTotalCommandUsage(int userId) throws SQLException {
+        String query = "SELECT SUM(amount) AS total FROM command_tracker WHERE user_id = ?;";
+        PreparedStatement ps = con.prepareStatement(query);
+        ps.setInt(1, userId);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt("total");
+        } else {
+            return 0;
+        }
+    }
+
     public int getGlobalCommandUsage(String commandName) throws SQLException {
         String query = "SELECT sum(amount) from command_tracker WHERE command_name = ?;";
         PreparedStatement ps = con.prepareStatement(query);

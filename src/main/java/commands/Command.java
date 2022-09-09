@@ -24,6 +24,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 
 /**
  * Basic implementation of a command.
@@ -464,6 +465,29 @@ public abstract class Command {
             ((SlashCommandEvent) event).replyEmbeds(embed.build()).addActionRow(
                     Button.secondary(((SlashCommandEvent) event).getUser().getId() + ":delete", "Delete")).queue();
         }
+    }
+
+    public String generateMarkdown(String commandName, String commandDescription, String[] commandArgs, int cooldown,
+                                   HashMap<String, Permission> permissions, ArrayList<Command> subCommands) {
+        StringBuilder markdown = new StringBuilder();
+        markdown.append("---\n\n");
+        markdown.append(String.format("<h3 id=\"%s\">!%s</h3>\n\n", commandName, commandName));
+        markdown.append(commandDescription).append("\n\n");
+        markdown.append("#### Usage\n\n");
+        String argumentsText = getArgumentsText(commandName, commandArgs, "!")
+                .toString()
+                .replace("Arguments marked with * are optional, arguments marked with ** accept multiple inputs.", "");
+        markdown.append(argumentsText).append("\n\n");
+        if(cooldown > 0) {
+            markdown.append("#### Cooldown\n\n");
+            markdown.append(String.format("%d seconds.\n\n", cooldown));
+        }
+        if(!permissions.isEmpty()) {
+            markdown.append("#### Permissions\n\n");
+            permissions.forEach((permissionName, permission) -> markdown.append(String.format("`%s`", permissionName)));
+            markdown.append("\n\n");
+        }
+        return markdown.toString();
     }
 
 }

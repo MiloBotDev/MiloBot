@@ -2,10 +2,9 @@ package commands;
 
 import commands.bot.StatusCmd;
 import commands.bot.bug.BugCmd;
-import commands.botadmin.RemoveUserCmd;
 import commands.dnd.encounter.EncounterCmd;
 import commands.games.blackjack.BlackjackCmd;
-import commands.games.hungergames.HungerGamesCmd;
+import commands.games.hungergames.HungerGamesStartCmd;
 import commands.games.poker.PokerCmd;
 import commands.games.wordle.WordleCmd;
 import commands.morbconomy.DailyCmd;
@@ -18,6 +17,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ public class CommandLoader {
 
     public static Map<List<String>, Command> commandList = new HashMap<>();
 
-    public static void loadAllCommands(JDA bot) {
+    public static void loadAllCommands(@NotNull JDA bot) {
         ArrayList<Command> commands = new ArrayList<>();
         commands.add(HelpCmd.getInstance());
         commands.add(new InviteCmd());
@@ -46,9 +46,15 @@ public class CommandLoader {
         commands.add(new BlackjackCmd());
         commands.add(new WalletCmd());
         commands.add(new DailyCmd());
-        commands.add(new RemoveUserCmd());
-        commands.add(new HungerGamesCmd());
+        commands.add(new HungerGamesStartCmd());
         commands.add(new PokerCmd());
+
+        StringBuilder commandDescriptions = new StringBuilder();
+        commands.forEach(command -> {
+            commandDescriptions.append(command.generateMarkdown(command.commandName, command.commandDescription,
+                    command.commandArgs, command.cooldown, command.permissions, command.subCommands));
+        });
+        System.out.println(commandDescriptions);
 
         commands.stream().flatMap(command -> command.listeners.stream()).forEach(bot::addEventListener);
         commands.stream().flatMap(command -> command.subCommands.stream())
