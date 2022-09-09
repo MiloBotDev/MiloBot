@@ -1,10 +1,11 @@
-package utility;
+package games.dnd;
 
-import models.dnd.Encounter;
-import models.dnd.Monster;
+import games.dnd.models.Encounter;
+import games.dnd.models.Monster;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utility.Config;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,10 +52,9 @@ public class EncounterGenerator {
                 String[] split = line.split(",");
                 monsters.add(split);
             }
-            logger.info("monsters.csv loaded in.");
+            logger.debug("monsters.csv loaded in.");
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.info("monsters.csv file not found.");
+            logger.error("monsters.csv file not found.", e);
         }
     }
 

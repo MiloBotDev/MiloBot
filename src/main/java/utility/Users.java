@@ -94,7 +94,7 @@ public class Users {
                 // user leveled up so update their level and experience
                 user.incrementLevel();
                 userDao.update(user);
-                logger.info(String.format("%s leveled up to level %d!", discordUserId, nextLevel));
+                logger.trace(String.format("%s leveled up to level %d!", discordUserId, nextLevel));
                 // send a message to the channel the user leveled up in
                 channel.sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
             } else {
@@ -126,10 +126,9 @@ public class Users {
                     maxLevel = level;
                 }
             }
-            logger.info("Levels.json loaded in.");
+            logger.debug("Levels.json loaded in.");
         } catch (IOException | URISyntaxException e) {
-            logger.error(e.getMessage());
-            logger.info("Unable to load levels.json.");
+            logger.error("Unable to load levels.json.", e);
         }
     }
 

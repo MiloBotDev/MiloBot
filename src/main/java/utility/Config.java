@@ -73,12 +73,11 @@ public class Config {
         try {
             if (instance == null) {
                 instance = new Config();
-                logger.info("config.yml file loaded in.");
+                logger.debug("config.yml file loaded in.");
             }
             return instance;
         } catch (FileNotFoundException e) {
-            logger.info("config.yml file not found.");
-            logger.error(e.getMessage());
+            logger.error("config.yml file not found.", e);
             throw new IllegalStateException("config.yml file not found.");
         }
     }

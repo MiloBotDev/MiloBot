@@ -209,7 +209,7 @@ public abstract class Command {
                 commandTrackerDao.addUserCommandTracker(commandName, userId);
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed to update command tracker.", e);
         }
     }
 
@@ -234,7 +234,7 @@ public abstract class Command {
             event.getChannel().sendMessageEmbeds(stats.build()).setActionRow(
                     Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
         } catch (SQLException e) {
-            logger.error(e.getMessage());
+            logger.error("Failed to generate stats", e);
         }
     }
 

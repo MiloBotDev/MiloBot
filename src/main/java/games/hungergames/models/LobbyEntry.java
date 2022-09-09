@@ -1,4 +1,4 @@
-package models;
+package games.hungergames.models;
 
 public class LobbyEntry {
 
