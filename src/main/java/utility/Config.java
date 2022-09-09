@@ -20,6 +20,7 @@ public class Config {
 
     // bot
     private final String defaultPrefix;
+    private final String privateChannelPrefix;
     private final String botToken;
     private final String testGuildId;
     private final String loggingChannelName;
@@ -59,6 +60,7 @@ public class Config {
 
         this.wordleWordsPath = (String) data.get("wordleWordsPath");
         this.defaultPrefix = (String) data.get("prefix");
+        this.privateChannelPrefix = (String) data.get("privateChannelPrefix");
         this.personalAccessToken = (String) data.get("personalAccessToken");
         this.repositoryName = (String) data.get("repositoryName");
         this.monstersCsvPath = (String) data.get("monstersCsvPath");
@@ -120,6 +122,10 @@ public class Config {
 
     public String getDefaultPrefix() {
         return defaultPrefix;
+    }
+
+    public String getPrivateChannelPrefix() {
+        return privateChannelPrefix;
     }
 
     public String getPersonalAccessToken() {
