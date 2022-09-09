@@ -3,7 +3,7 @@ package commands;
 import commands.bot.StatusCmd;
 import commands.bot.bug.BugCmd;
 import commands.botadmin.RemoveUserCmd;
-import commands.dnd.encounter.EncounterCmd;
+import commands.games.dnd.encounter.EncounterCmd;
 import commands.games.blackjack.BlackjackCmd;
 import commands.games.hungergames.HungerGamesCmd;
 import commands.games.poker.PokerCmd;

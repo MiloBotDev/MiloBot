@@ -1,4 +1,4 @@
-package models.dnd;
+package games.dnd.models;
 
 import org.jetbrains.annotations.NotNull;
 

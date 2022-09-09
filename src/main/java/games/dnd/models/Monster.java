@@ -1,4 +1,4 @@
-package models.dnd;
+package games.dnd.models;
 
 public class Monster {
 

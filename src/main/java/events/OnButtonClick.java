@@ -1,10 +1,9 @@
 package events;
 
-import commands.dnd.encounter.EncounterGeneratorCmd;
+import commands.games.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
 import games.Blackjack;
 import games.Poker;
-import models.BlackjackStates;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -106,9 +105,9 @@ public class OnButtonClick extends ListenerAdapter {
                     break;
                 }
                 game.playerHit();
-                BlackjackStates blackjackStates = game.checkWin(false);
+                Blackjack.BlackjackStates blackjackStates = game.checkWin(false);
                 EmbedBuilder newEmbed;
-                if (blackjackStates.equals(BlackjackStates.DEALER_WIN)) {
+                if (blackjackStates.equals(Blackjack.BlackjackStates.DEALER_WIN)) {
                     game.checkWin(true);
                     newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
                     event.getHook().editOriginalEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
@@ -162,9 +161,9 @@ public class OnButtonClick extends ListenerAdapter {
                 }
                 value.initializeGame();
                 BlackjackPlayCmd.blackjackGames.put(user.getIdLong(), value);
-                BlackjackStates state = value.checkWin(false);
+                Blackjack.BlackjackStates state = value.checkWin(false);
                 EmbedBuilder embed;
-                if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+                if (state.equals(Blackjack.BlackjackStates.PLAYER_BLACKJACK)) {
                     value.dealerHit();
                     value.setDealerStand(true);
                     blackjackStates = value.checkWin(true);

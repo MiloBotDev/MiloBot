@@ -1,6 +1,6 @@
 package games.hungergames;
 
-import models.LobbyEntry;
+import games.hungergames.models.LobbyEntry;
 import games.hungergames.models.Event;
 import games.hungergames.models.Item;
 import games.hungergames.models.Player;

@@ -4,7 +4,7 @@ import commands.Command;
 import commands.CommandHandler;
 import commands.CommandLoader;
 import commands.bot.BotCmd;
-import commands.dnd.DndCmd;
+import commands.games.dnd.DndCmd;
 import commands.games.GamesCmd;
 import commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
