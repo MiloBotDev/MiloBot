@@ -51,10 +51,9 @@ public class EncounterGenerator {
                 String[] split = line.split(",");
                 monsters.add(split);
             }
-            logger.info("monsters.csv loaded in.");
+            logger.debug("monsters.csv loaded in.");
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.info("monsters.csv file not found.");
+            logger.error("monsters.csv file not found.", e);
         }
     }
 
