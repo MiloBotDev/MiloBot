@@ -4,7 +4,7 @@ import models.CustomEmoji;
 
 import static models.CustomEmoji.*;
 
-public enum PlayingCards {
+public enum PlayingCard {
 
     ACE_OF_CLUBS(String.format("%s\n%s", CustomEmoji.BLACK_ACE.getEmoji(), CustomEmoji.CLUBS.getEmoji()), Suit.CLUBS, Rank.ACE),
     TWO_OF_CLUBS(String.format("%s\n%s", CustomEmoji.BLACK_TWO.getEmoji(), CustomEmoji.CLUBS.getEmoji()), Suit.CLUBS, Rank.TWO),
@@ -59,12 +59,11 @@ public enum PlayingCards {
     QUEEN_OF_SPADES(String.format("%s\n%s", CustomEmoji.BLACK_QUEEN.getEmoji(), CustomEmoji.SPADES.getEmoji()), Suit.SPADES, Rank.QUEEN),
     KING_OF_SPADES(String.format("%s\n%s", CustomEmoji.BLACK_KING.getEmoji(), CustomEmoji.SPADES.getEmoji()), Suit.SPADES, Rank.KING);
 
-
     private final String label;
     private final Suit suit;
     private final Rank rank;
 
-    PlayingCards(String label, Suit suit, Rank rank) {
+    PlayingCard(String label, Suit suit, Rank rank) {
         this.label = label;
         this.suit = suit;
         this.rank = rank;

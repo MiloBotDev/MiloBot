@@ -3,7 +3,7 @@ package commands.games.blackjack;
 import commands.Command;
 import commands.SubCmd;
 import games.Blackjack;
-import models.cards.PlayingCards;
+import models.cards.PlayingCard;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -48,14 +48,14 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
         }
 
         embed.addField("------------", "**Dealer Hand**", false);
-        List<PlayingCards> dealerHand = game.getDealerHand();
+        List<PlayingCard> dealerHand = game.getDealerHand();
         for (int i = 0; i < dealerHand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), dealerHand.get(i).getLabel(), true);
         }
         embed.addField("Total", String.format("%d", game.calculateHandValue(dealerHand)), false);
 
         embed.addField("------------", "**Player Hand**", false);
-        List<PlayingCards> playerHand = game.getPlayerHand();
+        List<PlayingCard> playerHand = game.getPlayerHand();
         for (int i = 0; i < playerHand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), playerHand.get(i).getLabel(), true);
         }

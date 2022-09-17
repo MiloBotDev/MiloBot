@@ -1,7 +1,7 @@
 package games;
 
 import models.cards.CardDeck;
-import models.cards.PlayingCards;
+import models.cards.PlayingCard;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
@@ -20,7 +20,7 @@ public class Poker {
     private static final ArrayList<Poker> games = new ArrayList<>();
     private final List<User> players;
     private final Map<User, PlayerData> playerData = new HashMap<>();
-    private final CardDeck mainDeck = new CardDeck();
+    private final CardDeck<PlayingCard> mainDeck = new CardDeck<>(List.of(PlayingCard.values()));
     private PokerState state;
     private int nextPlayerIndex;
     private int playerRaise;
@@ -49,7 +49,7 @@ public class Poker {
 
     private static class PlayerData {
         private volatile Message embed;
-        private List<PlayingCards> hand;
+        private List<PlayingCard> hand;
         private int moneyInPot = 0;
         private boolean inGame = true;
         private boolean replacedCards = false;
@@ -67,7 +67,7 @@ public class Poker {
         } else {
             players.forEach(player -> {
                 playerData.put(player, new PlayerData());
-                List<PlayingCards> hand = new ArrayList<>();
+                List<PlayingCard> hand = new ArrayList<>();
                 for (int i = 0; i < 5; i++) {
                     hand.add(mainDeck.drawCard());
                 }
@@ -293,7 +293,7 @@ public class Poker {
                         event.getChannel().sendMessage("Please enter 1-3 card numbers.").queue();
                         return;
                     }
-                    List<PlayingCards> hand = playerData.get(event.getAuthor()).hand;
+                    List<PlayingCard> hand = playerData.get(event.getAuthor()).hand;
                     for (Integer cardNumber : cardsToReplace) {
                         hand.set(cardNumber - 1, mainDeck.drawCard());
                     }
@@ -313,7 +313,7 @@ public class Poker {
         EmbedUtils.styleEmbed(embed, user);
         embed.setTitle("Poker");
         embed.addField("------------", "**Your hand**", false);
-        List<PlayingCards> hand = playerData.get(user).hand;
+        List<PlayingCard> hand = playerData.get(user).hand;
         for(int i = 0; i < hand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), hand.get(i).getLabel(), true);
         }
@@ -348,29 +348,29 @@ public class Poker {
         }
     }
 
-    private void sortHand(List<PlayingCards> hand) {
-        Comparator<PlayingCards> c1 = Comparator.comparingInt(o -> o.getRank().toInt());
-        Comparator<PlayingCards> c2 = c1.thenComparing(PlayingCards::getSuit);
+    private void sortHand(List<PlayingCard> hand) {
+        Comparator<PlayingCard> c1 = Comparator.comparingInt(o -> o.getRank().toInt());
+        Comparator<PlayingCard> c2 = c1.thenComparing(PlayingCard::getSuit);
         hand.sort(c2);
     }
 
     public static class Hands {
-        public static int getHandValue(List<PlayingCards> hand) {
+        public static int getHandValue(List<PlayingCard> hand) {
             int[] vals = {isRoyalFlush(hand), isStraightFlush(hand), isFourOfAKind(hand), isFullHouse(hand),
                     isFlush(hand), isStraight(hand), isThreeOfAKind(hand), isTwoPair(hand), isPair(hand)};
             return Arrays.stream(vals).filter(val -> val != 0).findFirst().orElse(
                     hand.stream().mapToInt(c -> c.getRank().toInt()).max().orElse(0));
         }
 
-        private static int isRoyalFlush(List<PlayingCards> hand) {
+        private static int isRoyalFlush(List<PlayingCard> hand) {
             int straightFlush = isStraightFlush(hand);
-            if (straightFlush != 0 && hand.get(0).getRank() == PlayingCards.Rank.TEN) {
+            if (straightFlush != 0 && hand.get(0).getRank() == PlayingCard.Rank.TEN) {
                 return 0x8000;
             }
             return 0;
         }
 
-        private static int isStraightFlush(List<PlayingCards> hand) {
+        private static int isStraightFlush(List<PlayingCard> hand) {
             int flush = isFlush(hand);
             int straight = isStraight(hand);
             if (flush != 0 && straight != 0) {
@@ -379,7 +379,7 @@ public class Poker {
             return 0;
         }
 
-        private static int isFourOfAKind(List<PlayingCards> hand) {
+        private static int isFourOfAKind(List<PlayingCard> hand) {
             for (int i = 0; i < hand.size() - 3; i++) {
                 if (hand.get(i).getRank() == hand.get(i + 1).getRank() &&
                         hand.get(i).getRank() == hand.get(i + 2).getRank() &&
@@ -390,7 +390,7 @@ public class Poker {
             return 0;
         }
 
-        private static int isFullHouse(List<PlayingCards> hand) {
+        private static int isFullHouse(List<PlayingCard> hand) {
             int threeOfAKind = isThreeOfAKind(hand);
             int pair = isPair(hand);
             if (threeOfAKind != 0 && pair != 0) {
@@ -400,8 +400,8 @@ public class Poker {
             }
         }
 
-        private static int isFlush(List<PlayingCards> hand) {
-            PlayingCards.Suit nextSuitReq = hand.get(0).getSuit();
+        private static int isFlush(List<PlayingCard> hand) {
+            PlayingCard.Suit nextSuitReq = hand.get(0).getSuit();
             for (int i = 1; i < hand.size(); i++) {
                 if (hand.get(i).getSuit() != nextSuitReq) {
                     return 0;
@@ -410,7 +410,7 @@ public class Poker {
             return hand.get(hand.size() - 1).getRank().toInt() | 0x800;
         }
 
-        private static int isStraight(List<PlayingCards> hand) {
+        private static int isStraight(List<PlayingCard> hand) {
             int nextRankReq = hand.get(0).getRank().toInt();
             for (int i = 1; i < hand.size(); i++) {
                 nextRankReq++;
@@ -421,7 +421,7 @@ public class Poker {
             return nextRankReq | 0x400;
         }
 
-        private static int isThreeOfAKind(List<PlayingCards> hand) {
+        private static int isThreeOfAKind(List<PlayingCard> hand) {
             for (int i = 0; i < hand.size() - 2; i++) {
                 if (hand.get(i).getRank() == hand.get(i + 1).getRank() &&
                         hand.get(i).getRank() == hand.get(i + 2).getRank()) {
@@ -431,9 +431,9 @@ public class Poker {
             return 0;
         }
 
-        private static int isTwoPair(List<PlayingCards> hand) {
+        private static int isTwoPair(List<PlayingCard> hand) {
             int matches = 0;
-            List<PlayingCards.Rank> alreadyMatched = new ArrayList<>();
+            List<PlayingCard.Rank> alreadyMatched = new ArrayList<>();
             for (int i = 0; i < hand.size() - 1; i++) {
                 if (hand.get(i).getRank() == hand.get(i + 1).getRank() &&
                         !alreadyMatched.contains(hand.get(i).getRank())) {
@@ -443,7 +443,7 @@ public class Poker {
             }
             if (matches == 2) {
                 int maxVal = 0;
-                for (PlayingCards.Rank rank : alreadyMatched) {
+                for (PlayingCard.Rank rank : alreadyMatched) {
                     if (rank.toInt() > maxVal) {
                         maxVal = rank.toInt();
                     }
@@ -454,7 +454,7 @@ public class Poker {
             }
         }
 
-        private static int isPair(List<PlayingCards> hand) {
+        private static int isPair(List<PlayingCard> hand) {
             for (int i = 0; i < hand.size() - 1; i++) {
                 if (hand.get(i).getRank() == hand.get(i + 1).getRank() && (i == 3 ||
                         hand.get(i).getRank() != hand.get(i + 2).getRank()) && (i == 0 ||

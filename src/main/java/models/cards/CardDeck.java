@@ -1,34 +1,35 @@
 package models.cards;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class CardDeck {
+public class CardDeck<T> {
 
-    private final List<PlayingCards> cards;
+    private final List<T> cards;
+    private final List<T> deck;
 
-    public CardDeck() {
-        this.cards = new ArrayList<>();
+    public CardDeck(List<T> cards) {
+        this.cards = cards;
+        this.deck = new ArrayList<>();
         resetDeck();
     }
 
-    public PlayingCards drawCard() {
-        return cards.remove(0);
+    public T drawCard() {
+        return deck.remove(0);
     }
 
     public void fillDeck() {
-        this.cards.addAll(Arrays.asList(PlayingCards.values()));
+        this.deck.addAll(cards);
     }
 
     public void resetDeck() {
-        this.cards.clear();
+        this.deck.clear();
         fillDeck();
         shuffleDeck();
     }
 
     public void shuffleDeck() {
-        Collections.shuffle(this.cards);
+        Collections.shuffle(this.deck);
     }
 }

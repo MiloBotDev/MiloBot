@@ -1,7 +1,7 @@
 package poker;
 
 import games.Poker;
-import models.cards.PlayingCards;
+import models.cards.PlayingCard;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -19,340 +19,340 @@ public class HandTest {
     private static final int TWO_PAIR = 0b100000000;
     private static final int PAIR = 0b10000000;
 
-    List<List<List<PlayingCards>>> hands = List.of(
+    List<List<List<PlayingCard>>> hands = List.of(
             // royal flush
             List.of(
                     List.of(
-                            PlayingCards.TEN_OF_DIAMONDS,
-                            PlayingCards.JACK_OF_DIAMONDS,
-                            PlayingCards.QUEEN_OF_DIAMONDS,
-                            PlayingCards.KING_OF_DIAMONDS,
-                            PlayingCards.ACE_OF_DIAMONDS
+                            PlayingCard.TEN_OF_DIAMONDS,
+                            PlayingCard.JACK_OF_DIAMONDS,
+                            PlayingCard.QUEEN_OF_DIAMONDS,
+                            PlayingCard.KING_OF_DIAMONDS,
+                            PlayingCard.ACE_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.TEN_OF_CLUBS,
-                            PlayingCards.JACK_OF_CLUBS,
-                            PlayingCards.QUEEN_OF_CLUBS,
-                            PlayingCards.KING_OF_CLUBS,
-                            PlayingCards.ACE_OF_CLUBS
+                            PlayingCard.TEN_OF_CLUBS,
+                            PlayingCard.JACK_OF_CLUBS,
+                            PlayingCard.QUEEN_OF_CLUBS,
+                            PlayingCard.KING_OF_CLUBS,
+                            PlayingCard.ACE_OF_CLUBS
                     ),
                     List.of(
-                            PlayingCards.TEN_OF_HEARTS,
-                            PlayingCards.JACK_OF_HEARTS,
-                            PlayingCards.QUEEN_OF_HEARTS,
-                            PlayingCards.KING_OF_HEARTS,
-                            PlayingCards.ACE_OF_HEARTS
+                            PlayingCard.TEN_OF_HEARTS,
+                            PlayingCard.JACK_OF_HEARTS,
+                            PlayingCard.QUEEN_OF_HEARTS,
+                            PlayingCard.KING_OF_HEARTS,
+                            PlayingCard.ACE_OF_HEARTS
                     ),
                     List.of(
-                            PlayingCards.TEN_OF_SPADES,
-                            PlayingCards.JACK_OF_SPADES,
-                            PlayingCards.QUEEN_OF_SPADES,
-                            PlayingCards.KING_OF_SPADES,
-                            PlayingCards.ACE_OF_SPADES
+                            PlayingCard.TEN_OF_SPADES,
+                            PlayingCard.JACK_OF_SPADES,
+                            PlayingCard.QUEEN_OF_SPADES,
+                            PlayingCard.KING_OF_SPADES,
+                            PlayingCard.ACE_OF_SPADES
                     )
             ),
             // straight flush
             List.of(
                     List.of(
-                            PlayingCards.THREE_OF_CLUBS,
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FIVE_OF_CLUBS,
-                            PlayingCards.SIX_OF_CLUBS,
-                            PlayingCards.SEVEN_OF_CLUBS
+                            PlayingCard.THREE_OF_CLUBS,
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FIVE_OF_CLUBS,
+                            PlayingCard.SIX_OF_CLUBS,
+                            PlayingCard.SEVEN_OF_CLUBS
                     ),
                     List.of(
-                            PlayingCards.THREE_OF_DIAMONDS,
-                            PlayingCards.FOUR_OF_DIAMONDS,
-                            PlayingCards.FIVE_OF_DIAMONDS,
-                            PlayingCards.SIX_OF_DIAMONDS,
-                            PlayingCards.SEVEN_OF_DIAMONDS
+                            PlayingCard.THREE_OF_DIAMONDS,
+                            PlayingCard.FOUR_OF_DIAMONDS,
+                            PlayingCard.FIVE_OF_DIAMONDS,
+                            PlayingCard.SIX_OF_DIAMONDS,
+                            PlayingCard.SEVEN_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.SIX_OF_HEARTS,
-                            PlayingCards.SEVEN_OF_HEARTS,
-                            PlayingCards.EIGHT_OF_HEARTS,
-                            PlayingCards.NINE_OF_HEARTS,
-                            PlayingCards.TEN_OF_HEARTS
+                            PlayingCard.SIX_OF_HEARTS,
+                            PlayingCard.SEVEN_OF_HEARTS,
+                            PlayingCard.EIGHT_OF_HEARTS,
+                            PlayingCard.NINE_OF_HEARTS,
+                            PlayingCard.TEN_OF_HEARTS
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_HEARTS,
-                            PlayingCards.THREE_OF_HEARTS,
-                            PlayingCards.FOUR_OF_HEARTS,
-                            PlayingCards.FIVE_OF_HEARTS,
-                            PlayingCards.SIX_OF_HEARTS
+                            PlayingCard.TWO_OF_HEARTS,
+                            PlayingCard.THREE_OF_HEARTS,
+                            PlayingCard.FOUR_OF_HEARTS,
+                            PlayingCard.FIVE_OF_HEARTS,
+                            PlayingCard.SIX_OF_HEARTS
                     ),
                     List.of(
-                            PlayingCards.SEVEN_OF_CLUBS,
-                            PlayingCards.EIGHT_OF_CLUBS,
-                            PlayingCards.NINE_OF_CLUBS,
-                            PlayingCards.TEN_OF_CLUBS,
-                            PlayingCards.JACK_OF_CLUBS
+                            PlayingCard.SEVEN_OF_CLUBS,
+                            PlayingCard.EIGHT_OF_CLUBS,
+                            PlayingCard.NINE_OF_CLUBS,
+                            PlayingCard.TEN_OF_CLUBS,
+                            PlayingCard.JACK_OF_CLUBS
                     )
             ),
             // four of a kind
             List.of(
                     List.of(
-                            PlayingCards.THREE_OF_CLUBS,
-                            PlayingCards.THREE_OF_DIAMONDS,
-                            PlayingCards.THREE_OF_HEARTS,
-                            PlayingCards.THREE_OF_SPADES,
-                            PlayingCards.FIVE_OF_CLUBS
+                            PlayingCard.THREE_OF_CLUBS,
+                            PlayingCard.THREE_OF_DIAMONDS,
+                            PlayingCard.THREE_OF_HEARTS,
+                            PlayingCard.THREE_OF_SPADES,
+                            PlayingCard.FIVE_OF_CLUBS
                     ),
                     List.of(
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FOUR_OF_DIAMONDS,
-                            PlayingCards.FOUR_OF_HEARTS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.FIVE_OF_DIAMONDS
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FOUR_OF_DIAMONDS,
+                            PlayingCard.FOUR_OF_HEARTS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.FIVE_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.KING_OF_SPADES,
-                            PlayingCards.ACE_OF_CLUBS,
-                            PlayingCards.ACE_OF_DIAMONDS,
-                            PlayingCards.ACE_OF_HEARTS,
-                            PlayingCards.ACE_OF_SPADES
+                            PlayingCard.KING_OF_SPADES,
+                            PlayingCard.ACE_OF_CLUBS,
+                            PlayingCard.ACE_OF_DIAMONDS,
+                            PlayingCard.ACE_OF_HEARTS,
+                            PlayingCard.ACE_OF_SPADES
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_CLUBS,
-                            PlayingCards.TWO_OF_DIAMONDS,
-                            PlayingCards.TWO_OF_HEARTS,
-                            PlayingCards.TWO_OF_SPADES,
-                            PlayingCards.SIX_OF_HEARTS
+                            PlayingCard.TWO_OF_CLUBS,
+                            PlayingCard.TWO_OF_DIAMONDS,
+                            PlayingCard.TWO_OF_HEARTS,
+                            PlayingCard.TWO_OF_SPADES,
+                            PlayingCard.SIX_OF_HEARTS
                     ),
                     List.of(
-                            PlayingCards.FIVE_OF_CLUBS,
-                            PlayingCards.JACK_OF_CLUBS,
-                            PlayingCards.JACK_OF_DIAMONDS,
-                            PlayingCards.JACK_OF_HEARTS,
-                            PlayingCards.JACK_OF_SPADES
+                            PlayingCard.FIVE_OF_CLUBS,
+                            PlayingCard.JACK_OF_CLUBS,
+                            PlayingCard.JACK_OF_DIAMONDS,
+                            PlayingCard.JACK_OF_HEARTS,
+                            PlayingCard.JACK_OF_SPADES
                     )
             ),
             // full house
             List.of(
                     List.of(
-                            PlayingCards.THREE_OF_CLUBS,
-                            PlayingCards.THREE_OF_HEARTS,
-                            PlayingCards.THREE_OF_SPADES,
-                            PlayingCards.SEVEN_OF_CLUBS,
-                            PlayingCards.SEVEN_OF_DIAMONDS
+                            PlayingCard.THREE_OF_CLUBS,
+                            PlayingCard.THREE_OF_HEARTS,
+                            PlayingCard.THREE_OF_SPADES,
+                            PlayingCard.SEVEN_OF_CLUBS,
+                            PlayingCard.SEVEN_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FOUR_OF_HEARTS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.SIX_OF_CLUBS,
-                            PlayingCards.SIX_OF_DIAMONDS
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FOUR_OF_HEARTS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.SIX_OF_CLUBS,
+                            PlayingCard.SIX_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.THREE_OF_DIAMONDS,
-                            PlayingCards.THREE_OF_SPADES,
-                            PlayingCards.ACE_OF_DIAMONDS,
-                            PlayingCards.ACE_OF_HEARTS,
-                            PlayingCards.ACE_OF_SPADES
+                            PlayingCard.THREE_OF_DIAMONDS,
+                            PlayingCard.THREE_OF_SPADES,
+                            PlayingCard.ACE_OF_DIAMONDS,
+                            PlayingCard.ACE_OF_HEARTS,
+                            PlayingCard.ACE_OF_SPADES
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_CLUBS,
-                            PlayingCards.TWO_OF_DIAMONDS,
-                            PlayingCards.TWO_OF_HEARTS,
-                            PlayingCards.SIX_OF_CLUBS,
-                            PlayingCards.SIX_OF_SPADES
+                            PlayingCard.TWO_OF_CLUBS,
+                            PlayingCard.TWO_OF_DIAMONDS,
+                            PlayingCard.TWO_OF_HEARTS,
+                            PlayingCard.SIX_OF_CLUBS,
+                            PlayingCard.SIX_OF_SPADES
                     )
             ),
             // flush
             List.of(
                     List.of(
-                            PlayingCards.THREE_OF_CLUBS,
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FIVE_OF_CLUBS,
-                            PlayingCards.SIX_OF_CLUBS,
-                            PlayingCards.EIGHT_OF_CLUBS
+                            PlayingCard.THREE_OF_CLUBS,
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FIVE_OF_CLUBS,
+                            PlayingCard.SIX_OF_CLUBS,
+                            PlayingCard.EIGHT_OF_CLUBS
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_HEARTS,
-                            PlayingCards.SIX_OF_HEARTS,
-                            PlayingCards.SEVEN_OF_HEARTS,
-                            PlayingCards.JACK_OF_HEARTS,
-                            PlayingCards.ACE_OF_HEARTS
+                            PlayingCard.TWO_OF_HEARTS,
+                            PlayingCard.SIX_OF_HEARTS,
+                            PlayingCard.SEVEN_OF_HEARTS,
+                            PlayingCard.JACK_OF_HEARTS,
+                            PlayingCard.ACE_OF_HEARTS
                     ),
                     List.of(
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.SIX_OF_SPADES,
-                            PlayingCards.NINE_OF_SPADES,
-                            PlayingCards.KING_OF_SPADES,
-                            PlayingCards.ACE_OF_SPADES
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.SIX_OF_SPADES,
+                            PlayingCard.NINE_OF_SPADES,
+                            PlayingCard.KING_OF_SPADES,
+                            PlayingCard.ACE_OF_SPADES
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_DIAMONDS,
-                            PlayingCards.SEVEN_OF_DIAMONDS,
-                            PlayingCards.EIGHT_OF_DIAMONDS,
-                            PlayingCards.NINE_OF_DIAMONDS,
-                            PlayingCards.TEN_OF_DIAMONDS
+                            PlayingCard.TWO_OF_DIAMONDS,
+                            PlayingCard.SEVEN_OF_DIAMONDS,
+                            PlayingCard.EIGHT_OF_DIAMONDS,
+                            PlayingCard.NINE_OF_DIAMONDS,
+                            PlayingCard.TEN_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_DIAMONDS,
-                            PlayingCards.SIX_OF_DIAMONDS,
-                            PlayingCards.EIGHT_OF_DIAMONDS,
-                            PlayingCards.TEN_OF_DIAMONDS,
-                            PlayingCards.KING_OF_DIAMONDS
+                            PlayingCard.TWO_OF_DIAMONDS,
+                            PlayingCard.SIX_OF_DIAMONDS,
+                            PlayingCard.EIGHT_OF_DIAMONDS,
+                            PlayingCard.TEN_OF_DIAMONDS,
+                            PlayingCard.KING_OF_DIAMONDS
                     )
             ),
             // straight
             List.of(
                     List.of(
-                            PlayingCards.THREE_OF_CLUBS,
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FIVE_OF_CLUBS,
-                            PlayingCards.SIX_OF_CLUBS,
-                            PlayingCards.SEVEN_OF_HEARTS
+                            PlayingCard.THREE_OF_CLUBS,
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FIVE_OF_CLUBS,
+                            PlayingCard.SIX_OF_CLUBS,
+                            PlayingCard.SEVEN_OF_HEARTS
                     ),
                     List.of(
-                            PlayingCards.SIX_OF_HEARTS,
-                            PlayingCards.SEVEN_OF_HEARTS,
-                            PlayingCards.EIGHT_OF_DIAMONDS,
-                            PlayingCards.NINE_OF_HEARTS,
-                            PlayingCards.TEN_OF_SPADES
+                            PlayingCard.SIX_OF_HEARTS,
+                            PlayingCard.SEVEN_OF_HEARTS,
+                            PlayingCard.EIGHT_OF_DIAMONDS,
+                            PlayingCard.NINE_OF_HEARTS,
+                            PlayingCard.TEN_OF_SPADES
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_SPADES,
-                            PlayingCards.THREE_OF_DIAMONDS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.FIVE_OF_HEARTS,
-                            PlayingCards.SIX_OF_CLUBS
+                            PlayingCard.TWO_OF_SPADES,
+                            PlayingCard.THREE_OF_DIAMONDS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.FIVE_OF_HEARTS,
+                            PlayingCard.SIX_OF_CLUBS
                     ),
                     List.of(
-                            PlayingCards.TEN_OF_SPADES,
-                            PlayingCards.JACK_OF_SPADES,
-                            PlayingCards.QUEEN_OF_SPADES,
-                            PlayingCards.KING_OF_SPADES,
-                            PlayingCards.ACE_OF_DIAMONDS
+                            PlayingCard.TEN_OF_SPADES,
+                            PlayingCard.JACK_OF_SPADES,
+                            PlayingCard.QUEEN_OF_SPADES,
+                            PlayingCard.KING_OF_SPADES,
+                            PlayingCard.ACE_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.TEN_OF_DIAMONDS,
-                            PlayingCards.JACK_OF_HEARTS,
-                            PlayingCards.QUEEN_OF_DIAMONDS,
-                            PlayingCards.KING_OF_DIAMONDS,
-                            PlayingCards.ACE_OF_DIAMONDS
+                            PlayingCard.TEN_OF_DIAMONDS,
+                            PlayingCard.JACK_OF_HEARTS,
+                            PlayingCard.QUEEN_OF_DIAMONDS,
+                            PlayingCard.KING_OF_DIAMONDS,
+                            PlayingCard.ACE_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.NINE_OF_CLUBS,
-                            PlayingCards.TEN_OF_DIAMONDS,
-                            PlayingCards.JACK_OF_HEARTS,
-                            PlayingCards.QUEEN_OF_CLUBS,
-                            PlayingCards.KING_OF_DIAMONDS
+                            PlayingCard.NINE_OF_CLUBS,
+                            PlayingCard.TEN_OF_DIAMONDS,
+                            PlayingCard.JACK_OF_HEARTS,
+                            PlayingCard.QUEEN_OF_CLUBS,
+                            PlayingCard.KING_OF_DIAMONDS
                     )
             ),
             // three of a kind
             List.of(
                     List.of(
-                            PlayingCards.THREE_OF_CLUBS,
-                            PlayingCards.THREE_OF_HEARTS,
-                            PlayingCards.THREE_OF_SPADES,
-                            PlayingCards.SEVEN_OF_CLUBS,
-                            PlayingCards.NINE_OF_DIAMONDS
+                            PlayingCard.THREE_OF_CLUBS,
+                            PlayingCard.THREE_OF_HEARTS,
+                            PlayingCard.THREE_OF_SPADES,
+                            PlayingCard.SEVEN_OF_CLUBS,
+                            PlayingCard.NINE_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_DIAMONDS,
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FOUR_OF_HEARTS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.SIX_OF_DIAMONDS
+                            PlayingCard.TWO_OF_DIAMONDS,
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FOUR_OF_HEARTS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.SIX_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FOUR_OF_HEARTS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.FIVE_OF_DIAMONDS,
-                            PlayingCards.SIX_OF_DIAMONDS
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FOUR_OF_HEARTS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.FIVE_OF_DIAMONDS,
+                            PlayingCard.SIX_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.THREE_OF_DIAMONDS,
-                            PlayingCards.JACK_OF_SPADES,
-                            PlayingCards.ACE_OF_DIAMONDS,
-                            PlayingCards.ACE_OF_HEARTS,
-                            PlayingCards.ACE_OF_SPADES
+                            PlayingCard.THREE_OF_DIAMONDS,
+                            PlayingCard.JACK_OF_SPADES,
+                            PlayingCard.ACE_OF_DIAMONDS,
+                            PlayingCard.ACE_OF_HEARTS,
+                            PlayingCard.ACE_OF_SPADES
                     ),
                     List.of(
-                            PlayingCards.THREE_OF_DIAMONDS,
-                            PlayingCards.QUEEN_OF_DIAMONDS,
-                            PlayingCards.QUEEN_OF_HEARTS,
-                            PlayingCards.QUEEN_OF_SPADES,
-                            PlayingCards.ACE_OF_DIAMONDS
+                            PlayingCard.THREE_OF_DIAMONDS,
+                            PlayingCard.QUEEN_OF_DIAMONDS,
+                            PlayingCard.QUEEN_OF_HEARTS,
+                            PlayingCard.QUEEN_OF_SPADES,
+                            PlayingCard.ACE_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_CLUBS,
-                            PlayingCards.TWO_OF_DIAMONDS,
-                            PlayingCards.TWO_OF_HEARTS,
-                            PlayingCards.EIGHT_OF_CLUBS,
-                            PlayingCards.ACE_OF_SPADES
+                            PlayingCard.TWO_OF_CLUBS,
+                            PlayingCard.TWO_OF_DIAMONDS,
+                            PlayingCard.TWO_OF_HEARTS,
+                            PlayingCard.EIGHT_OF_CLUBS,
+                            PlayingCard.ACE_OF_SPADES
                     )
             ),
             // two pair
             List.of(
                     List.of(
-                            PlayingCards.THREE_OF_HEARTS,
-                            PlayingCards.THREE_OF_SPADES,
-                            PlayingCards.SIX_OF_SPADES,
-                            PlayingCards.JACK_OF_DIAMONDS,
-                            PlayingCards.JACK_OF_HEARTS
+                            PlayingCard.THREE_OF_HEARTS,
+                            PlayingCard.THREE_OF_SPADES,
+                            PlayingCard.SIX_OF_SPADES,
+                            PlayingCard.JACK_OF_DIAMONDS,
+                            PlayingCard.JACK_OF_HEARTS
                     ),
                     List.of(
-                            PlayingCards.TEN_OF_SPADES,
-                            PlayingCards.QUEEN_OF_HEARTS,
-                            PlayingCards.QUEEN_OF_SPADES,
-                            PlayingCards.ACE_OF_CLUBS,
-                            PlayingCards.ACE_OF_DIAMONDS
+                            PlayingCard.TEN_OF_SPADES,
+                            PlayingCard.QUEEN_OF_HEARTS,
+                            PlayingCard.QUEEN_OF_SPADES,
+                            PlayingCard.ACE_OF_CLUBS,
+                            PlayingCard.ACE_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.FOUR_OF_DIAMONDS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.FIVE_OF_CLUBS,
-                            PlayingCards.FIVE_OF_DIAMONDS,
-                            PlayingCards.SIX_OF_SPADES
+                            PlayingCard.FOUR_OF_DIAMONDS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.FIVE_OF_CLUBS,
+                            PlayingCard.FIVE_OF_DIAMONDS,
+                            PlayingCard.SIX_OF_SPADES
                     ),
                     List.of(
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.SEVEN_OF_CLUBS,
-                            PlayingCards.SEVEN_OF_HEARTS,
-                            PlayingCards.ACE_OF_SPADES
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.SEVEN_OF_CLUBS,
+                            PlayingCard.SEVEN_OF_HEARTS,
+                            PlayingCard.ACE_OF_SPADES
                     )
             ),
             // pair
             List.of(
                     List.of(
-                            PlayingCards.THREE_OF_CLUBS,
-                            PlayingCards.THREE_OF_SPADES,
-                            PlayingCards.SIX_OF_SPADES,
-                            PlayingCards.JACK_OF_SPADES,
-                            PlayingCards.KING_OF_HEARTS
+                            PlayingCard.THREE_OF_CLUBS,
+                            PlayingCard.THREE_OF_SPADES,
+                            PlayingCard.SIX_OF_SPADES,
+                            PlayingCard.JACK_OF_SPADES,
+                            PlayingCard.KING_OF_HEARTS
                     ),
                     List.of(
-                            PlayingCards.TEN_OF_SPADES,
-                            PlayingCards.QUEEN_OF_HEARTS,
-                            PlayingCards.KING_OF_SPADES,
-                            PlayingCards.ACE_OF_CLUBS,
-                            PlayingCards.ACE_OF_DIAMONDS
+                            PlayingCard.TEN_OF_SPADES,
+                            PlayingCard.QUEEN_OF_HEARTS,
+                            PlayingCard.KING_OF_SPADES,
+                            PlayingCard.ACE_OF_CLUBS,
+                            PlayingCard.ACE_OF_DIAMONDS
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_DIAMONDS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.FIVE_OF_CLUBS,
-                            PlayingCards.FIVE_OF_SPADES,
-                            PlayingCards.EIGHT_OF_SPADES
+                            PlayingCard.TWO_OF_DIAMONDS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.FIVE_OF_CLUBS,
+                            PlayingCard.FIVE_OF_SPADES,
+                            PlayingCard.EIGHT_OF_SPADES
                     ),
                     List.of(
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FOUR_OF_SPADES,
-                            PlayingCards.SEVEN_OF_CLUBS,
-                            PlayingCards.EIGHT_OF_HEARTS,
-                            PlayingCards.ACE_OF_SPADES
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FOUR_OF_SPADES,
+                            PlayingCard.SEVEN_OF_CLUBS,
+                            PlayingCard.EIGHT_OF_HEARTS,
+                            PlayingCard.ACE_OF_SPADES
                     ),
                     List.of(
-                            PlayingCards.TWO_OF_CLUBS,
-                            PlayingCards.THREE_OF_CLUBS,
-                            PlayingCards.FOUR_OF_CLUBS,
-                            PlayingCards.FIVE_OF_CLUBS,
-                            PlayingCards.FIVE_OF_SPADES
+                            PlayingCard.TWO_OF_CLUBS,
+                            PlayingCard.THREE_OF_CLUBS,
+                            PlayingCard.FOUR_OF_CLUBS,
+                            PlayingCard.FIVE_OF_CLUBS,
+                            PlayingCard.FIVE_OF_SPADES
                     )
             )
     );
@@ -373,7 +373,7 @@ public class HandTest {
     void testRoyalFlush() {
         int index = 0;
         for (int i = 0; i < hands.size(); i++) {
-            for (List<PlayingCards> hand : hands.get(i)) {
+            for (List<PlayingCard> hand : hands.get(i)) {
                 if (i == index) {
                     assertEquals(ROYAL_FLUSH, Poker.Hands.getHandValue(hand), "Royal flush: " + hand);
                 } else {
@@ -389,7 +389,7 @@ public class HandTest {
         int index = 1;
         for (int i = 0; i < hands.size(); i++) {
             for (int j = 0; j < hands.get(i).size(); j++) {
-                List<PlayingCards> hand = hands.get(i).get(j);
+                List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(STRAIGHT_FLUSH | highCards.get(i).get(j),
                             Poker.Hands.getHandValue(hand), "Straight flush: " + hand);
@@ -406,7 +406,7 @@ public class HandTest {
         int index = 2;
         for (int i = 0; i < hands.size(); i++) {
             for (int j = 0; j < hands.get(i).size(); j++) {
-                List<PlayingCards> hand = hands.get(i).get(j);
+                List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FOUR_OF_A_KIND | highCards.get(i).get(j),
                             Poker.Hands.getHandValue(hand), "Four of a kind: " + hand);
@@ -423,7 +423,7 @@ public class HandTest {
         int index = 3;
         for (int i = 0; i < hands.size(); i++) {
             for (int j = 0; j < hands.get(i).size(); j++) {
-                List<PlayingCards> hand = hands.get(i).get(j);
+                List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FULL_HOUSE | highCards.get(i).get(j),
                             Poker.Hands.getHandValue(hand), "Full house: " + hand);
@@ -440,7 +440,7 @@ public class HandTest {
         int index = 4;
         for (int i = 0; i < hands.size(); i++) {
             for (int j = 0; j < hands.get(i).size(); j++) {
-                List<PlayingCards> hand = hands.get(i).get(j);
+                List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FLUSH | highCards.get(i).get(j),
                             Poker.Hands.getHandValue(hand), "Flush: " + hand);
@@ -457,7 +457,7 @@ public class HandTest {
         int index = 5;
         for (int i = 0; i < hands.size(); i++) {
             for (int j = 0; j < hands.get(i).size(); j++) {
-                List<PlayingCards> hand = hands.get(i).get(j);
+                List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(STRAIGHT | highCards.get(i).get(j),
                             Poker.Hands.getHandValue(hand), "Straight: " + hand);
@@ -474,7 +474,7 @@ public class HandTest {
         int index = 6;
         for (int i = 0; i < hands.size(); i++) {
             for (int j = 0; j < hands.get(i).size(); j++) {
-                List<PlayingCards> hand = hands.get(i).get(j);
+                List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(THREE_OF_A_KIND | highCards.get(i).get(j),
                             Poker.Hands.getHandValue(hand), "Three of a kind: " + hand);
@@ -491,7 +491,7 @@ public class HandTest {
         int index = 7;
         for (int i = 0; i < hands.size(); i++) {
             for (int j = 0; j < hands.get(i).size(); j++) {
-                List<PlayingCards> hand = hands.get(i).get(j);
+                List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(TWO_PAIR | highCards.get(i).get(j),
                             Poker.Hands.getHandValue(hand), "Two pair: " + hand);
@@ -508,7 +508,7 @@ public class HandTest {
         int index = 8;
         for (int i = 0; i < hands.size(); i++) {
             for (int j = 0; j < hands.get(i).size(); j++) {
-                List<PlayingCards> hand = hands.get(i).get(j);
+                List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(PAIR | highCards.get(i).get(j),
                             Poker.Hands.getHandValue(hand), "Pair: " + hand);
