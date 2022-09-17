@@ -119,8 +119,9 @@ public class CommandLoader {
                         new SubcommandData("info", "A simple tutorial on the rules of blackjack.")))
 
                 .addCommands(new CommandData("daily", "Collect your daily reward.").addSubcommands(
-                        new SubcommandData("streak", "View your current streak.")
-                ))
+                        new SubcommandData("streak", "View your current streak."),
+                        new SubcommandData("claim", "Claim your daily reward."))
+                )
 
                 .addCommands(new CommandData("usage", "See the amount of times each or a specific command has been used.").addOption(
                         OptionType.STRING, "command", "The command you want to check the usage of", false
