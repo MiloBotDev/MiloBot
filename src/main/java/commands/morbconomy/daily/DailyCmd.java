@@ -1,6 +1,8 @@
-package commands.morbconomy;
+package commands.morbconomy.daily;
 
 import commands.Command;
+import commands.ParentCmd;
+import commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -19,17 +21,17 @@ import java.util.Random;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 
-public class DailyCmd extends Command implements MorbconomyCmd {
+public class DailyCmd extends Command implements MorbconomyCmd, ParentCmd {
 
     private static final Logger logger = LoggerFactory.getLogger(DailyCmd.class);
-    private final Random random;
+    private final Random random = new Random();
     private final UserDao userDao = UserDao.getInstance();
     private final DailyDao dailyDao = DailyDao.getInstance();
 
     public DailyCmd() {
         this.commandName = "daily";
         this.commandDescription = "Collect your daily reward.";
-        this.random = new Random();
+        this.subCommands.add(new DailyStreakCmd());
     }
 
     @Override

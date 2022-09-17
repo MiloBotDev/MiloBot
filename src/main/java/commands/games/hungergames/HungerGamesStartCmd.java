@@ -42,7 +42,7 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
                     HungerGames game = new HungerGames(participants);
                     game.startGame();
                     HungerGamesStartCmd.runGame(event.getChannel(), game);
-                }, 2, 10)
+                }, 2, 8)
                 .initialize(event.getChannel());
     }
 

@@ -15,7 +15,7 @@ public class BlackjackInfoCmd extends Command implements SubCmd {
 
     public BlackjackInfoCmd() {
         this.commandName = "info";
-        this.commandDescription = "A simple tutorial on the rules of blackjack";
+        this.commandDescription = "A simple tutorial on the rules of blackjack.";
     }
 
     @Override
