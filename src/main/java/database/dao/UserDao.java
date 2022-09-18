@@ -86,6 +86,22 @@ public class UserDao {
         }
     }
 
+    @Nullable
+    public User getUserById(int id) throws SQLException {
+        String query = "SELECT * FROM users WHERE id = ?";
+        PreparedStatement ps;
+        ps = con.prepareStatement(query);
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            return new User(rs.getInt("id"), rs.getLong("discord_id"), rs.getInt("currency"),
+                    rs.getInt("level"), rs.getInt("experience"));
+        } else {
+            return null;
+        }
+    }
+
     public int getUserRank(int userId) throws SQLException {
         String query =
                 """

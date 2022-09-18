@@ -15,6 +15,7 @@ import utility.EmbedUtils;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 public class WordleStatsCmd extends Command implements SubCmd {
 
@@ -48,7 +49,7 @@ public class WordleStatsCmd extends Command implements SubCmd {
             EmbedUtils.styleEmbed(embed, user);
             embed.setTitle(String.format("Wordle Statistics for %s", user.getName()));
 
-            int id = userDao.getUserByDiscordId(user.getIdLong()).getId();
+            int id = Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId();
             Wordle userWordle = wordleDao.getByUserId(id);
             if (userWordle == null) {
                 embed.setDescription("No wordle statistics on record.");

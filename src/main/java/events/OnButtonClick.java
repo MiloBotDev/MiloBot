@@ -44,7 +44,6 @@ public class OnButtonClick extends ListenerAdapter {
         String[] id = event.getComponentId().split(":");
         String authorId = id[0];
         String type = id[1];
-        // Check that the button is for the user that clicked it, otherwise just ignore the event (let interaction fail)
         User user = event.getUser();
         // Check if the user is in the database
         if (!userUtil.checkIfUserExists(user.getIdLong())) {

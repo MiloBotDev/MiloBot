@@ -86,12 +86,7 @@ public class CommandLoader {
 
                 .addCommands(new CommandData("wordle", "Wordle brought to discord.")
                         .addSubcommands(
-                                new SubcommandData("leaderboard", "View the wordle leaderboards.")
-                                        .addOptions(new OptionData(OptionType.STRING, "leaderboard", "The leaderboard you want to view.", true).addChoices(
-                                                new Choice("total games played", "totalGamesPlayed"),
-                                                new Choice("highest streak", "highestStreak"),
-                                                new Choice("current streak", "currentStreak")
-                                        )),
+                                new SubcommandData("leaderboard", "View the wordle leaderboards."),
                                 new SubcommandData("play", "Play a game of wordle."),
                                 new SubcommandData("stats", "View your own blackjack statistics.")))
 

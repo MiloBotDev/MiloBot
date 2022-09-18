@@ -3,6 +3,7 @@ import commands.CommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
 import events.OnButtonClick;
 import events.OnReadyEvent;
+import events.OnSelectionMenu;
 import events.guild.OnGuildJoin;
 import events.guild.OnGuildLeave;
 import games.Blackjack;
@@ -42,7 +43,7 @@ public class MiloBot {
                         GatewayIntent.DIRECT_MESSAGES)
                 .setActivity(Activity.watching("Morbius"))
                 .addEventListeners(new CommandHandler(), new OnGuildJoin(), new OnGuildLeave(),
-                        new OnReadyEvent(), new OnButtonClick())
+                        new OnReadyEvent(), new OnButtonClick(), new OnSelectionMenu())
                 .build().awaitReady();
 
         CommandLoader.loadAllCommands(bot);

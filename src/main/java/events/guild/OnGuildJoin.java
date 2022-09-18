@@ -20,8 +20,6 @@ import java.util.Objects;
 
 /**
  * An event triggered when the bot joins a new guild.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class OnGuildJoin extends ListenerAdapter {
 

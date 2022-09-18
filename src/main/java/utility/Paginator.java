@@ -24,7 +24,6 @@ public class Paginator {
     private volatile boolean initialized = false;
     private final User creator;
 
-
     public Paginator(User creator, List<MessageEmbed> pages) {
         this.pages = pages;
         this.currentPage = 0;
