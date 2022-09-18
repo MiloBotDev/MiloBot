@@ -2,9 +2,8 @@ package commands;
 
 import commands.bot.StatusCmd;
 import commands.bot.bug.BugCmd;
-import commands.botadmin.RemoveUserCmd;
-import commands.games.dnd.encounter.EncounterCmd;
 import commands.games.blackjack.BlackjackCmd;
+import commands.games.dnd.encounter.EncounterCmd;
 import commands.games.hungergames.HungerGamesCmd;
 import commands.games.poker.PokerCmd;
 import commands.games.wordle.WordleCmd;
@@ -46,7 +45,6 @@ public class CommandLoader {
         commands.add(new BlackjackCmd());
         commands.add(new WalletCmd());
         commands.add(new DailyCmd());
-        commands.add(new RemoveUserCmd());
         commands.add(new HungerGamesCmd());
         commands.add(new PokerCmd());
 
@@ -119,6 +117,10 @@ public class CommandLoader {
                         new SubcommandData("stats", "View your own blackjack statistics.")))
 
                 .addCommands(new CommandData("daily", "Collect your daily reward."))
+
+                .addCommands(new CommandData("usage", "See the amount of times each or a specific command has been used.").addOption(
+                        OptionType.STRING, "command", "The command you want to check the usage of", false
+                ))
 
                 .queue();
     }
