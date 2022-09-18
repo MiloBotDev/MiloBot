@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import database.dao.CommandTrackerDao;
 import database.dao.UserDao;
@@ -22,6 +24,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Basic implementation of a command.
@@ -101,6 +104,16 @@ public abstract class Command {
      * Types of channels in which this command can be used.
      */
     public Set<ChannelType> allowedChannelTypes = new HashSet<>();
+
+    /**
+     * Slash command data for parents command.
+     */
+    public CommandData slashCommandData;
+
+    /**
+     * Slash command data for subcommands.
+     */
+    public SubcommandData slashSubcommandData;
 
     /**
      * The default constructor for a command.
@@ -469,4 +482,38 @@ public abstract class Command {
         }
     }
 
+    /**
+     * Checks if the command can be run in a channel type.
+     *
+     * @param channelType the channel type to check
+     * @param allowedChannels the allowed channel types
+     * @return true if the command can be run in the channel type, false otherwise
+     */
+    public boolean checkChannelAllowed(ChannelType channelType, @NotNull Set<ChannelType> allowedChannels) {
+        return allowedChannels.contains(channelType);
+    }
+
+    public boolean sendInvalidChannel(@NotNull Event event, String commandName, @NotNull Set<ChannelType> allowedChannels) {
+        if (event instanceof MessageReceivedEvent) {
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.setTitle(String.format("Invalid channel type for: %s", commandName));
+            // allowed channels esparate by spaces
+            embed.setDescription("This command can only be run in the following channel types: " +
+                    allowedChannels.stream().map(Enum::toString).collect(Collectors.joining(", ")));
+            EmbedUtils.styleEmbed(embed, ((MessageReceivedEvent) event).getAuthor());
+            ((MessageReceivedEvent) event).getChannel().sendMessageEmbeds(embed.build()).setActionRow(
+                    Button.secondary(((MessageReceivedEvent) event).getAuthor().getId() + ":delete", "Delete")).queue();
+            return false;
+        } else if (event instanceof SlashCommandEvent) {
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.setTitle(String.format("Invalid channel type for: %s", commandName));
+            embed.setDescription("This command can only be run in the following channel types: " +
+                    allowedChannels.stream().map(Enum::toString).collect(Collectors.joining(", ")));
+            EmbedUtils.styleEmbed(embed, ((SlashCommandEvent) event).getUser());
+            ((SlashCommandEvent) event).replyEmbeds(embed.build()).addActionRow(
+                    Button.secondary(((SlashCommandEvent) event).getUser().getId() + ":delete", "Delete")).queue();
+            return false;
+        }
+        return true;
+    }
 }
