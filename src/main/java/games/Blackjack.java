@@ -1,7 +1,7 @@
 package games;
 
 import models.cards.CardDeck;
-import models.cards.PlayingCards;
+import models.cards.PlayingCard;
 import database.dao.BlackjackDao;
 import database.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
@@ -17,9 +17,9 @@ import java.util.Objects;
 public class Blackjack {
 
     private static final Logger logger = LoggerFactory.getLogger(Blackjack.class);
-    private final List<PlayingCards> playerHand;
-    private final List<PlayingCards> dealerHand;
-    private final CardDeck deck;
+    private final List<PlayingCard> playerHand;
+    private final List<PlayingCard> dealerHand;
+    private final CardDeck<PlayingCard> deck;
     private final int playerBet;
     private final long userDiscordId;
     private final long startTime;
@@ -33,7 +33,7 @@ public class Blackjack {
     public Blackjack(long userDiscordId) {
         this.playerHand = new ArrayList<>();
         this.dealerHand = new ArrayList<>();
-        this.deck = new CardDeck();
+        this.deck = new CardDeck<>(List.of(PlayingCard.values()));
         this.userDiscordId = userDiscordId;
         this.playerBet = 0;
         this.winnings = 0;
@@ -43,7 +43,7 @@ public class Blackjack {
     public Blackjack(long userDiscordId, int bet) {
         this.playerHand = new ArrayList<>();
         this.dealerHand = new ArrayList<>();
-        this.deck = new CardDeck();
+        this.deck = new CardDeck<>(List.of(PlayingCard.values()));
         this.userDiscordId = userDiscordId;
         this.playerBet = bet;
         this.winnings = 0;
@@ -111,18 +111,18 @@ public class Blackjack {
         }
     }
 
-    public int calculateHandValue(@NotNull List<PlayingCards> hand) {
+    public int calculateHandValue(@NotNull List<PlayingCard> hand) {
         int total = 0;
-        ArrayList<PlayingCards> aces = new ArrayList<>();
-        for (PlayingCards card : hand) {
+        ArrayList<PlayingCard> aces = new ArrayList<>();
+        for (PlayingCard card : hand) {
             total += getCardValue(card);
-            if (card.equals(PlayingCards.ACE_OF_SPADES) || card.equals(PlayingCards.ACE_OF_HEARTS) ||
-                    card.equals(PlayingCards.ACE_OF_DIAMONDS) || card.equals(PlayingCards.ACE_OF_CLUBS)) {
+            if (card.equals(PlayingCard.ACE_OF_SPADES) || card.equals(PlayingCard.ACE_OF_HEARTS) ||
+                    card.equals(PlayingCard.ACE_OF_DIAMONDS) || card.equals(PlayingCard.ACE_OF_CLUBS)) {
                 aces.add(card);
             }
         }
         // TODO: replace with a simple int since were not accessing the list
-        for (PlayingCards ace : aces) {
+        for (PlayingCard ace : aces) {
             if (total > 21) {
                 total -= 10;
             }
@@ -130,12 +130,12 @@ public class Blackjack {
         return total;
     }
 
-    private int getCardValue(PlayingCards card) {
-        PlayingCards.Rank rank = card.getRank();
+    private int getCardValue(PlayingCard card) {
+        PlayingCard.Rank rank = card.getRank();
         if (rank.toInt() <= 10) {
             // card with number on its face
             return rank.toInt();
-        } else if (rank == PlayingCards.Rank.ACE) {
+        } else if (rank == PlayingCard.Rank.ACE) {
             return 11;
         } else {
             // king, queen, or jack
@@ -200,11 +200,11 @@ public class Blackjack {
         }
     }
 
-    public List<PlayingCards> getPlayerHand() {
+    public List<PlayingCard> getPlayerHand() {
         return playerHand;
     }
 
-    public List<PlayingCards> getDealerHand() {
+    public List<PlayingCard> getDealerHand() {
         return dealerHand;
     }
 

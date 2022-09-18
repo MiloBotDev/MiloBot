@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Paginator;
+import utility.Users;
 import utility.lobby.AbstractLobby;
 import utility.lobby.BotLobby;
 
@@ -31,8 +32,10 @@ public class OnButtonClick extends ListenerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(OnButtonClick.class);
     private final EncounterGeneratorCmd encCmd;
     private final UserDao userDao = UserDao.getInstance();
+    private final Users userUtil;
 
     public OnButtonClick() {
+        this.userUtil = Users.getInstance();
         this.encCmd = EncounterGeneratorCmd.getInstance();
     }
 
@@ -41,8 +44,16 @@ public class OnButtonClick extends ListenerAdapter {
         String[] id = event.getComponentId().split(":");
         String authorId = id[0];
         String type = id[1];
-        // Check that the button is for the user that clicked it, otherwise just ignore the event (let interaction fail)
         User user = event.getUser();
+        // Check if the user is in the database
+        if (!userUtil.checkIfUserExists(user.getIdLong())) {
+            try {
+                userUtil.addUserToDatabase(event.getUser());
+            } catch (SQLException e) {
+                logger.error("Couldn't add user to database", e);
+                return;
+            }
+        }
         if ((type.equals("joinLobby") || type.equals("leaveLobby") || type.equals("fillLobby"))) {
             event.deferEdit().queue();
             switch (type) {

@@ -9,53 +9,70 @@ a pull request.
 
 ## Commands
 
-| **Utility**                  |                          |                    |                |
-|------------------------------|--------------------------|--------------------|----------------|
-| [!prefix](#prefix)           | [!usage](#usage)         | [!help](#help)     | [!user](#user) |
-| [!invite](#invite)           |                          |                    |                |
-| **Morbconomy**               |                          |                    |                |
-| [!wallet](#wallet)           | [!profile](#profile)     | [!daily](#daily)   |                |
-| **Games**                    |                          |                    |                |
-| [!hungergames](#hungergames) | [!blackjack](#blackjack) | [!wordle](#wordle) |                |
-| **Bot**                      |                          |                    |                |
-| [!bug](#bug)                 | [!status](#status)       |                    |                |
-| **Dungeons & Dragons**       |                          |                    |                |
-| [!encounter](#encounter)     |                          |                    |                |
+| **Utility**                  |                          |                    |                  |
+|------------------------------|--------------------------|--------------------|------------------|
+| [!prefix](#prefix)           | [!usage](#usage)         | [!help](#help)     | [!user](#user)   |
+| [!invite](#invite)           |                          |                    |                  |
+| **Morbconomy**               |                          |                    |                  |
+| [!wallet](#wallet)           | [!profile](#profile)     | [!daily](#daily)   |                  |
+| **Games**                    |                          |                    |                  |
+| [!hungergames](#hungergames) | [!blackjack](#blackjack) | [!wordle](#wordle) | [!poker](#poker) |
+| **Bot**                      |                          |                    |                  |
+| [!bug](#bug)                 | [!status](#status)       |                    |                  |
+| **Dungeons & Dragons**       |                          |                    |                  |
+| [!encounter](#encounter)     |                          |                    |                  |
 
 ---
 
-<h3 id="help">help</h3>
+<h3 id="wallet">wallet</h3>
 
-Shows the user a list of available commands.
+Check your wallet.
 
 #### Usage
 
-`!help {*command}`
-
+`!wallet`
 
 ---
 
-<h3 id="invite">invite</h3>
+<h3 id="hungergames">hungergames</h3>
 
-Sends an invite link to add the bot to another server.
+Hunger Games
 
 #### Usage
 
-`!invite`
+`!hungergames`
+
+#### Sub Commands
+
+`!hungergames start {*maxPlayers}`
+Starts the Hunger Games
+
+
+`!hungergames stats`
+View your own hungergames statistics.
 
 ---
 
-<h3 id="status">status</h3>
+<h3 id="blackjack">blackjack</h3>
 
-The status of the bot.
+Blackjack brought to discord.
 
 #### Usage
 
-`!status`
+`!blackjack`
 
-#### Cooldown
+#### Sub Commands
 
-60 seconds.
+`!blackjack play {bet*}`
+Play a game of blackjack on discord.
+
+
+`!blackjack stats`
+View your own blackjack statistics.
+
+
+`!blackjack info`
+A simple tutorial on the rules of blackjack.
 
 ---
 
@@ -93,17 +110,6 @@ See the amount of times each or a specific command has been used.
 
 ---
 
-<h3 id="user">user</h3>
-
-Shows information about a user.
-
-#### Usage
-
-`!user {*user}`
-
-
----
-
 <h3 id="profile">profile</h3>
 
 View your own or someone else's profile.
@@ -111,6 +117,47 @@ View your own or someone else's profile.
 #### Usage
 
 `!profile {*user}`
+
+
+---
+
+<h3 id="poker">poker</h3>
+
+5-card Poker brought to discord.
+
+#### Usage
+
+`!poker`
+
+#### Sub Commands
+
+`!poker play`
+Play a game of poker on discord.
+
+---
+
+<h3 id="encounter">encounter</h3>
+
+D&D 5e encounter generator.
+
+#### Usage
+
+`!encounter`
+
+#### Sub Commands
+
+`!encounter generate {party size, party level, difficulty, *environment}`
+Generate a random encounter for a given average party level, party size, difficulty and an optional environment.
+
+---
+
+<h3 id="help">help</h3>
+
+Shows the user a list of available commands.
+
+#### Usage
+
+`!help {*command}`
 
 
 ---
@@ -129,7 +176,7 @@ Wordle brought to discord.
 Play a game of wordle.
 
 
-`!wordle leaderboard {*leaderboard}`
+`!wordle leaderboard`
 View the wordle leaderboards.
 
 
@@ -161,50 +208,6 @@ Shows a list of all reported bugs.
 
 ---
 
-<h3 id="encounter">encounter</h3>
-
-D&D 5e encounter generator.
-
-#### Usage
-
-`!encounter`
-
-#### Sub Commands
-
-`!encounter generate {party size, party level, difficulty, *environment}`
-Generate a random encounter for a given average party level, party size, difficulty and an optional environment.
-
----
-
-<h3 id="blackjack">blackjack</h3>
-
-Blackjack brought to discord.
-
-#### Usage
-
-`!blackjack`
-
-#### Sub Commands
-
-`!blackjack play {bet*}`
-Play a game of blackjack on discord.
-
-
-`!blackjack stats`
-View your own blackjack statistics.
-
----
-
-<h3 id="wallet">wallet</h3>
-
-Check your wallet.
-
-#### Usage
-
-`!wallet`
-
----
-
 <h3 id="daily">daily</h3>
 
 Collect your daily reward.
@@ -213,32 +216,45 @@ Collect your daily reward.
 
 `!daily`
 
----
-
-<h3 id="hungergames">hungergames</h3>
-
-Hunger Games
-
-#### Usage
-
-`!hungergames`
-
 #### Sub Commands
 
-`!hungergames start`
-Starts the Hunger Games
+`!daily streak`
+View your current streak.
+
+
+`!daily claim`
+Claim your daily reward.
 
 ---
 
-<h3 id="poker">poker</h3>
+<h3 id="invite">invite</h3>
 
-5-card Poker brought to discord.
+Sends an invite link to add the bot to another server.
 
 #### Usage
 
-`!poker`
+`!invite`
 
-#### Sub Commands
+---
 
-`!poker play`
-Play a game of poker on discord.
+<h3 id="status">status</h3>
+
+The status of the bot.
+
+#### Usage
+
+`!status`
+
+#### Cooldown
+
+60 seconds.
+
+---
+
+<h3 id="user">user</h3>
+
+Shows information about a user.
+
+#### Usage
+
+`!user {*user}`

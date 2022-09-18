@@ -1,7 +1,7 @@
 return {
-    name = "sword",
-    rarity = 20,
-    damage = 20,
+    name = "paper",
+    rarity = 5,
+    damage = 6,
     type = "usable",
     onUse = function(self, lobbyEntry)
         victim = game:getRandomPlayer(lobbyEntry)
@@ -13,8 +13,8 @@ return {
             lobbyEntry:addKill()
             victim:onDeath()
         else
-            game:log(string.format("%s is swinging their sword at %s. It deals %d damage, their hp is now %d.",
-                    lobbyEntry:getUserName(), victim:getUserName(), self.damage, victim:getHealth()))
+            game:log(string.format("%s uses their %s to give %s a paper cut. It deals %d damage, their hp is now %d.",
+                    lobbyEntry:getUserName(), self.name ,victim:getUserName(), self.damage, victim:getHealth()))
             lobbyEntry:addDamageDone(self.damage)
         end
     end,

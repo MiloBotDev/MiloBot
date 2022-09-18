@@ -2,75 +2,105 @@ package commands.games.wordle;
 
 import commands.Command;
 import commands.SubCmd;
+import database.dao.UserDao;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import database.dao.WordleDao;
 import database.model.Wordle;
+import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utility.Users;
 
+import java.awt.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * View all the leaderboards for the Wordle command.
  */
 public class WordleLeaderboardCmd extends Command implements SubCmd {
 
-    private final WordleDao wordleDao;
-    private final Logger logger = LoggerFactory.getLogger(WordleLeaderboardCmd.class);
+    private static final UserDao userDao = UserDao.getInstance();
+    private static final Users userUtil = Users.getInstance();
 
     public WordleLeaderboardCmd() {
         this.commandName = "leaderboard";
         this.commandDescription = "View the wordle leaderboards.";
-        this.commandArgs = new String[]{"*leaderboard"};
-        this.wordleDao = WordleDao.getInstance();
+        this.commandArgs = new String[]{};
     }
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        try {
-            List<Wordle> topHighestStreak = this.wordleDao.getTopHighestStreak();
-            ArrayList<EmbedBuilder> highest_streak = buildEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
-            event.getChannel().sendMessageEmbeds(highest_streak.get(0).build()).queue();
-        } catch (SQLException e) {
-            logger.error("Failed to get wordle leaderboard", e);
-        }
+        SelectionMenu menu = SelectionMenu.create(event.getAuthor().getId() + ":wordleLeaderboard")
+                .setPlaceholder("Select a leaderboard")
+                .addOption("Highest Streak", "highestStreak")
+                .addOption("Fastest Time", "fastestTime")
+                .addOption("Total Wins", "totalWins")
+                .addOption("Total Games", "totalGames")
+                .addOption("Current Streak", "currentStreak")
+                .build();
+        event.getChannel().sendMessage("Wordle Leaderboard Selection").setActionRow(menu).queue();
     }
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-        event.deferReply().queue();
-        event.getJDA();
+        SelectionMenu menu = SelectionMenu.create(event.getUser().getId() + ":wordleLeaderboard")
+                .setPlaceholder("Select a leaderboard")
+                .addOption("Highest Streak", "highestStreak")
+                .addOption("Fastest Time", "fastestTime")
+                .addOption("Total Wins", "totalWins")
+                .addOption("Total Games", "totalGames")
+                .addOption("Current Streak", "currentStreak")
+                .addOption("Highest Streak", "highestStreak")
+                .build();
+        event.reply("Wordle Leaderboard Selection").addActionRow(menu).queue();
     }
 
-    private @NotNull ArrayList<EmbedBuilder> buildEmbeds(@NotNull List<Wordle> wordles, String title, JDA jda) {
-        ArrayList<EmbedBuilder> embeds = new ArrayList<>();
+    public static @NotNull ArrayList<MessageEmbed> buildEmbeds(@NotNull List<Wordle> wordles, String title, JDA jda) {
+        ArrayList<MessageEmbed> embeds = new ArrayList<>();
 
         final EmbedBuilder[] embed = {new EmbedBuilder()};
         final StringBuilder[] desc = {new StringBuilder()};
         embed[0].setTitle(title);
+        embed[0].setColor(Color.BLUE);
 
         final int[] counter = {1};
         wordles.forEach((wordle) -> {
-            // TODO: use names instead of ids
-            desc[0].append(String.format("`%d.` %d - %d games", counter[0], wordle.getUserId(), wordle.getHighestStreak()));
-            counter[0]++;
-            if(counter[0] % 10 == 0) {
-                embed[0].setDescription(desc[0]);
-                embeds.add(embed[0]);
-                embed[0] = new EmbedBuilder();
-                desc[0] = new StringBuilder();
-                embed[0].setTitle(title);
+            try {
+                long discordId = Objects.requireNonNull(userDao.getUserById(wordle.getUserId())).getDiscordId();
+                String name = userUtil.getUserNameTag(discordId, jda).userName();
+                switch (title) {
+                    case "Highest Streak" -> desc[0].append(String.format("`%d.` %s - %d games.\n", counter[0], name, wordle.getHighestStreak()));
+                    case "Fastest Time" -> desc[0].append(String.format("`%d.` %s - %d seconds.\n", counter[0], name, wordle.getFastestTime()));
+                    case "Total Wins" -> desc[0].append(String.format("`%d.` %s - %d wins.\n", counter[0], name, wordle.getWins()));
+                    case "Total Games" -> desc[0].append(String.format("`%d.` %s - %d games.\n", counter[0], name, wordle.getGamesPlayed()));
+                    case "Current Streak" -> desc[0].append(String.format("`%d.` %s - %d games.\n", counter[0], name, wordle.getCurrentStreak()));
+                }
+                counter[0]++;
+                if(counter[0] % 10 == 0) {
+                    embed[0].setDescription(desc[0]);
+                    embeds.add(embed[0].build());
+                    embed[0] = new EmbedBuilder();
+                    desc[0] = new StringBuilder();
+                    embed[0].setTitle(title);
+                    embed[0].setColor(Color.BLUE);
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
+
         });
 
         embed[0].setDescription(desc[0]);
-        embeds.add(embed[0]);
+        embeds.add(embed[0].build());
 
         return embeds;
     }

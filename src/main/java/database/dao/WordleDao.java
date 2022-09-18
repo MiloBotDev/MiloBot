@@ -77,13 +77,41 @@ public class WordleDao {
     public List<Wordle> getTopHighestStreak() throws SQLException {
         ArrayList<Wordle> highestStreaks = new ArrayList<>();
         String query = "SELECT * FROM wordle ORDER BY wordle.highest_streak DESC LIMIT 100;";
+        return getWordles(highestStreaks, query);
+    }
+
+    public List<Wordle> getTopFastestTime() throws SQLException {
+        ArrayList<Wordle> fastestTimes = new ArrayList<>();
+        String query = "SELECT * FROM wordle ORDER BY wordle.fastest_time ASC LIMIT 100;";
+        return getWordles(fastestTimes, query);
+    }
+
+    public List<Wordle> getTopTotalWins() throws SQLException {
+        ArrayList<Wordle> totalWins = new ArrayList<>();
+        String query = "SELECT * FROM wordle ORDER BY wordle.wins DESC LIMIT 100;";
+        return getWordles(totalWins, query);
+    }
+
+    public List<Wordle> getTopTotalGames() throws SQLException {
+        ArrayList<Wordle> totalGames = new ArrayList<>();
+        String query = "SELECT * FROM wordle ORDER BY wordle.games_played DESC LIMIT 100;";
+        return getWordles(totalGames, query);
+    }
+
+    public List<Wordle> getTopCurrentStreak() throws SQLException {
+        ArrayList<Wordle> currentStreaks = new ArrayList<>();
+        String query = "SELECT * FROM wordle ORDER BY wordle.current_streak DESC LIMIT 100;";
+        return getWordles(currentStreaks, query);
+    }
+
+    private List<Wordle> getWordles(ArrayList<Wordle> currentStreaks, String query) throws SQLException {
         PreparedStatement ps = con.prepareStatement(query);
         ResultSet rs = ps.executeQuery();
         while(rs.next()) {
-            highestStreaks.add(new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+            currentStreaks.add(new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
                     rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak")));
         }
-        return highestStreaks;
+        return currentStreaks;
     }
 
     @Nullable

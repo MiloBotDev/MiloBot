@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 
 public class BlackjackDao {
+
     private static final Connection con = DatabaseConnection.getConnection();
     private static final Logger logger = LoggerFactory.getLogger(BlackjackDao.class);
     private static BlackjackDao instance = null;

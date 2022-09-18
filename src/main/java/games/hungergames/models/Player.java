@@ -17,11 +17,14 @@ public class Player implements Cloneable {
     private long health;
     private HungerGames game;
 
+    private boolean winner;
     private int kills;
     private int itemsCollected;
     private int damageDone;
     private int damageTaken;
     private int healingDone;
+
+    private boolean isBot = false;
 
     public Player(String username, long userId) {
         this.username = username;
@@ -30,6 +33,23 @@ public class Player implements Cloneable {
         this.health = PLAYER_MAX_HEALTH;
         this.game = null;
 
+        this.winner = false;
+        this.kills = 0;
+        this.itemsCollected = 0;
+        this.damageDone = 0;
+        this.damageTaken = 0;
+        this.healingDone = 0;
+    }
+
+    public Player(String username, long userId, boolean isBot) {
+        this.username = username;
+        this.userId = userId;
+        this.isBot = isBot;
+        this.inventory = new ArrayList<>();
+        this.health = PLAYER_MAX_HEALTH;
+        this.game = null;
+
+        this.winner = false;
         this.kills = 0;
         this.itemsCollected = 0;
         this.damageDone = 0;
@@ -97,7 +117,7 @@ public class Player implements Cloneable {
             // 30% chance to find an item
         } else {
             Item item = this.game.getRandomItem();
-            this.inventory.add(item);
+            this.addItem(item);
             this.game.log(String.format("%s has found a %s.", this.username, item.getName()));
         }
     }
@@ -183,5 +203,17 @@ public class Player implements Cloneable {
 
     public void addDamageDone(int damage) {
         this.damageDone += damage;
+    }
+
+    public boolean isBot() {
+        return isBot;
+    }
+
+    public boolean isWinner() {
+        return winner;
+    }
+
+    public void setWinner(boolean winner) {
+        this.winner = winner;
     }
 }

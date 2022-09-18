@@ -282,5 +282,12 @@ public class ItemTest {
         Assertions.assertEquals(7, player.getHealingDone());
     }
 
+    @Test
+    public void testPaper() {
+        Item paper = game.getItemByName("paper").orElseThrow(() -> new RuntimeException("paper not found"));
+
+        this.player.useItem(paper);
+    }
+
 
 }

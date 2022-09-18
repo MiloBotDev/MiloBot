@@ -160,7 +160,7 @@ public class CommandHandler extends ListenerAdapter {
                     // check if this user exists in the database otherwise add it
                     if (!user.checkIfUserExists(event.getAuthor().getIdLong())) {
                         try {
-                            addUserToDatabase(event.getAuthor());
+                            user.addUserToDatabase(event.getAuthor());
                         } catch (SQLException e) {
                             logger.error("Couldn't add user to database", e);
                             return;
@@ -219,7 +219,7 @@ public class CommandHandler extends ListenerAdapter {
                 }
                 if (!user.checkIfUserExists(event.getUser().getIdLong())) {
                     try {
-                        addUserToDatabase(event.getUser());
+                        user.addUserToDatabase(event.getUser());
                     } catch (SQLException e) {
                         logger.error("Couldn't add user to database", e);
                         return;
@@ -238,11 +238,6 @@ public class CommandHandler extends ListenerAdapter {
 
     }
 
-    private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
-        database.model.User newUser = new database.model.User(user.getIdLong());
-        userDao.add(newUser);
-        Daily daily = new Daily(Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId());
-        dailyDao.add(daily);
-    }
+
 
 }

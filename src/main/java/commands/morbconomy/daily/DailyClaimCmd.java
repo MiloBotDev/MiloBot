@@ -1,12 +1,13 @@
-package commands.morbconomy;
+package commands.morbconomy.daily;
 
 import commands.Command;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import commands.SubCmd;
 import database.dao.DailyDao;
 import database.dao.UserDao;
 import database.model.Daily;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,17 +20,16 @@ import java.util.Random;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 
-public class DailyCmd extends Command implements MorbconomyCmd {
+public class DailyClaimCmd extends Command implements SubCmd {
 
     private static final Logger logger = LoggerFactory.getLogger(DailyCmd.class);
-    private final Random random;
+    private final Random random = new Random();
     private final UserDao userDao = UserDao.getInstance();
     private final DailyDao dailyDao = DailyDao.getInstance();
 
-    public DailyCmd() {
-        this.commandName = "daily";
-        this.commandDescription = "Collect your daily reward.";
-        this.random = new Random();
+    public DailyClaimCmd() {
+        this.commandName = "claim";
+        this.commandDescription = "Claim your daily reward.";
     }
 
     @Override
@@ -105,5 +105,4 @@ public class DailyCmd extends Command implements MorbconomyCmd {
         userDao.update(userDbObj);
         return result.toString();
     }
-
 }

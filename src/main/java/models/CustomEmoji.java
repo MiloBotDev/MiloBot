@@ -2,7 +2,7 @@ package models;
 
 import net.dv8tion.jda.api.entities.Emoji;
 
-public enum CustomEmojis {
+public enum CustomEmoji {
 
     // playing card emojis
     BLACK_ACE(Emoji.fromEmote("bA", 623575870375985162L, false)),
@@ -85,12 +85,25 @@ public enum CustomEmojis {
 
     UNO_YELLOW_ZERO(Emoji.fromEmote("Y0", 999688027372785724L, false)),
     UNO_YELLOW_ONE(Emoji.fromEmote("Y1", 999688028761104547L, false)),
-    UNO_YELLOW_TWO(Emoji.fromEmote("Y2", 999688029952299140L, false));
+    UNO_YELLOW_TWO(Emoji.fromEmote("Y2", 999688029952299140L, false)),
+    UNO_YELLOW_THREE(Emoji.fromEmote("Y3", 999688032225599709L, false)),
+    UNO_YELLOW_FOUR(Emoji.fromEmote("Y4", 999688033878163566L, false)),
+    UNO_YELLOW_FIVE(Emoji.fromEmote("Y5", 999688035698495489L, false)),
+    UNO_YELLOW_SIX(Emoji.fromEmote("Y6", 999688037292318720L, false)),
+    UNO_YELLOW_SEVEN(Emoji.fromEmote("Y7", 999688038953259048L, false)),
+    UNO_YELLOW_EIGHT(Emoji.fromEmote("Y8", 1020642248989347890L, false)),
+    UNO_YELLOW_NINE(Emoji.fromEmote("Y9", 1020642250201518100L, false)),
+    UNO_YELLOW_SKIP(Emoji.fromEmote("YS", 1020642253976375387L, false)),
+    UNO_YELLOW_REVERSE(Emoji.fromEmote("YR", 1020642252781006888L, false)),
+    UNO_YELLOW_DRAW_TWO(Emoji.fromEmote("YA2", 1020642251254267905L, false)),
+
+    UNO_WILD_DRAW_FOUR(Emoji.fromEmote("W4", 999688024583585802L, false)),
+    UNO_WILD(Emoji.fromEmote("W", 999688025544081521L, false));
 
 
     private final Emoji emoji;
 
-    CustomEmojis(Emoji emoji) {
+    CustomEmoji(Emoji emoji) {
         this.emoji = emoji;
     }
 

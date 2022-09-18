@@ -7,7 +7,7 @@ import commands.games.dnd.encounter.EncounterCmd;
 import commands.games.hungergames.HungerGamesCmd;
 import commands.games.poker.PokerCmd;
 import commands.games.wordle.WordleCmd;
-import commands.morbconomy.DailyCmd;
+import commands.morbconomy.daily.DailyCmd;
 import commands.morbconomy.ProfileCmd;
 import commands.morbconomy.WalletCmd;
 import commands.utility.*;
@@ -17,11 +17,13 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * Loads in every command.
@@ -30,7 +32,7 @@ public class CommandLoader {
 
     public static Map<List<String>, Command> commandList = new HashMap<>();
 
-    public static void loadAllCommands(JDA bot) {
+    public static void loadAllCommands(@NotNull JDA bot) {
         ArrayList<Command> commands = new ArrayList<>();
         commands.add(HelpCmd.getInstance());
         commands.add(new InviteCmd());
@@ -85,12 +87,7 @@ public class CommandLoader {
 
                 .addCommands(new CommandData("wordle", "Wordle brought to discord.")
                         .addSubcommands(
-                                new SubcommandData("leaderboard", "View the wordle leaderboards.")
-                                        .addOptions(new OptionData(OptionType.STRING, "leaderboard", "The leaderboard you want to view.", true).addChoices(
-                                                new Choice("total games played", "totalGamesPlayed"),
-                                                new Choice("highest streak", "highestStreak"),
-                                                new Choice("current streak", "currentStreak")
-                                        )),
+                                new SubcommandData("leaderboard", "View the wordle leaderboards."),
                                 new SubcommandData("play", "Play a game of wordle."),
                                 new SubcommandData("stats", "View your own blackjack statistics.")))
 
@@ -114,14 +111,29 @@ public class CommandLoader {
                         new SubcommandData("play", "Play a game of blackjack on discord.")
                                 .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
                                         .setRequiredRange(1, 10000)),
-                        new SubcommandData("stats", "View your own blackjack statistics.")))
+                        new SubcommandData("stats", "View your own blackjack statistics."),
+                        new SubcommandData("info", "A simple tutorial on the rules of blackjack.")))
 
-                .addCommands(new CommandData("daily", "Collect your daily reward."))
+                .addCommands(new CommandData("daily", "Collect your daily reward.").addSubcommands(
+                        new SubcommandData("streak", "View your current streak."),
+                        new SubcommandData("claim", "Claim your daily reward."))
+                )
 
                 .addCommands(new CommandData("usage", "See the amount of times each or a specific command has been used.").addOption(
                         OptionType.STRING, "command", "The command you want to check the usage of", false
                 ))
 
                 .queue();
+    }
+
+    public static void generateCommandDocumentation() {
+        StringBuilder commandDocumentation = new StringBuilder();
+        commandList.forEach((strings, command) -> {
+            if(command != null && !(command instanceof SubCmd)) {
+                commandDocumentation.append(command.generateMarkdown(command.commandName, command.commandDescription,
+                        command.commandArgs, command.cooldown, command.permissions, command.subCommands));
+            }
+        });
+        System.out.println(commandDocumentation);
     }
 }

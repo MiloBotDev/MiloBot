@@ -31,7 +31,6 @@ public class HungerGames {
     private final Map<Integer, Map<List<String>, List<Player>>> roundData;
     private final List<Item> items;
     private final List<Event> events;
-    private final long startTime;
     private List<String> messages;
     private boolean startedGame;
     private Player winner;
@@ -39,7 +38,6 @@ public class HungerGames {
 
     public HungerGames() {
         this.startedGame = false;
-        this.startTime = System.nanoTime();
         this.players = new ArrayList<>();
         this.alivePlayers = new ArrayList<>();
         this.messages = new ArrayList<>();
@@ -52,9 +50,8 @@ public class HungerGames {
         loadAllEvents(globals);
     }
 
-    public HungerGames(List<LobbyEntry> playersFromLobby) {
+    public HungerGames(@NotNull List<LobbyEntry> playersFromLobby) {
         this.startedGame = false;
-        this.startTime = System.nanoTime();
         this.players = new ArrayList<>();
         this.alivePlayers = new ArrayList<>();
         this.messages = new ArrayList<>();
@@ -62,7 +59,8 @@ public class HungerGames {
         this.roundData = new HashMap<>();
         this.events = new ArrayList<>();
 
-        playersFromLobby.forEach(newLobbyEntry -> addPlayer(new Player(newLobbyEntry.getUserName(), newLobbyEntry.getUserId())));
+        playersFromLobby.forEach(newLobbyEntry -> addPlayer(
+                new Player(newLobbyEntry.getUserName(), newLobbyEntry.getUserId(), newLobbyEntry.isBot())));
 
         Globals globals = getGlobals();
         loadAllItems(globals);
@@ -169,6 +167,7 @@ public class HungerGames {
                 Player player = this.alivePlayers.get(0);
                 log(String.format("%s has won the game!", player.getUserName()));
                 this.winner = player;
+                player.setWinner(true);
             }
 
             playersAliveInRound = new ArrayList<>();
