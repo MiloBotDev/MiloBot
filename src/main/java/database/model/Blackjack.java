@@ -1,6 +1,7 @@
 package database.model;
 
 public class Blackjack {
+
     private final int id;
     private final int userId;
     private boolean wonLastGame = false;

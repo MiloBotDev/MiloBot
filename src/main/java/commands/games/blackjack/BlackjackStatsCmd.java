@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class BlackjackStatsCmd extends Command implements SubCmd {
+
     private final BlackjackDao blackjackDao = BlackjackDao.getInstance();
     private final Logger logger = LoggerFactory.getLogger(BlackjackStatsCmd.class);
 

@@ -2,9 +2,11 @@ package commands.games.hungergames;
 
 import commands.Command;
 import commands.SubCmd;
+import database.dao.HungerGamesDao;
+import database.dao.UserDao;
 import games.hungergames.HungerGames;
-import games.hungergames.models.LobbyEntry;
 import games.hungergames.models.Item;
+import games.hungergames.models.LobbyEntry;
 import games.hungergames.models.Player;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -14,6 +16,8 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.lobby.BotLobby;
 
 import java.awt.*;
@@ -23,9 +27,14 @@ import java.util.concurrent.TimeUnit;
 
 public class HungerGamesStartCmd extends Command implements SubCmd {
 
+    private static final Logger logger = LoggerFactory.getLogger(HungerGamesStartCmd.class);
+    private static final HungerGamesDao hungerGamesDao = HungerGamesDao.getInstance();
+    private static final UserDao userDao = UserDao.getInstance();
+
     public HungerGamesStartCmd() {
         this.commandName = "start";
         this.aliases = new String[]{"s", "host"};
+        this.commandArgs = new String[]{"*maxPlayers"};
         this.commandDescription = "Starts the Hunger Games";
     }
 
@@ -117,6 +126,22 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
 
         List<Player> players = game.getPlayers();
         for (Player player : players) {
+            if(!player.isBot()) {
+                try {
+                    database.model.HungerGames hungerGamesDaoByUserDiscordId = hungerGamesDao.getByUserDiscordId(player.getUserId());
+                    if (hungerGamesDaoByUserDiscordId == null) {
+                        database.model.HungerGames hungerGames = new database.model.HungerGames(Objects.requireNonNull(userDao.getUserByDiscordId(player.getUserId())).getId());
+                        hungerGamesDao.add(hungerGames);
+                        updateHungerGamesDb(player, hungerGames);
+                        hungerGamesDaoByUserDiscordId = hungerGames;
+                    } else {
+                        updateHungerGamesDb(player, hungerGamesDaoByUserDiscordId);
+                    }
+                    hungerGamesDao.update(hungerGamesDaoByUserDiscordId);
+                } catch (Exception e) {
+                    logger.error("Error creating hungergames entry for user in database when user wanted to play hungergames.", e);
+                }
+            }
             int damageDone = player.getDamageDone();
             int kills = player.getKills();
             int healingDone = player.getHealingDone();
@@ -133,6 +158,16 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
         }
 
         return embed;
+    }
+
+    private static void updateHungerGamesDb(@NotNull Player player, database.model.HungerGames hungerGames) {
+        if(player.isWinner()) {
+            hungerGames.addGame(database.model.HungerGames.HungerGamesResult.WIN,
+                    player.getKills(), player.getDamageDone(), player.getDamageTaken(), player.getHealingDone(), player.getItemsCollected());
+        } else {
+            hungerGames.addGame(database.model.HungerGames.HungerGamesResult.LOSS,
+                    player.getKills(), player.getDamageDone(), player.getDamageTaken(), player.getHealingDone(), player.getItemsCollected());
+        }
     }
 
 }

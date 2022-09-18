@@ -3,8 +3,10 @@ package utility;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import database.dao.DailyDao;
 import database.dao.UserDao;
 import database.dao.UsersCacheDao;
+import database.model.Daily;
 import models.UserNameTag;
 import games.hungergames.HungerGames;
 import net.dv8tion.jda.api.JDA;
@@ -34,11 +36,13 @@ public class Users {
     private static Users instance;
     public final HashMap<Integer, Integer> levels;
     private final UserDao userDao;
+    private final DailyDao dailyDao;
     private final UsersCacheDao usersCacheDao;
     public int maxLevel;
 
     private Users() {
         this.userDao = UserDao.getInstance();
+        this.dailyDao = DailyDao.getInstance();
         this.usersCacheDao = UsersCacheDao.getInstance();
         Config config = Config.getInstance();
         String levelsJsonPath = config.getLevelsJsonPath();
@@ -145,5 +149,12 @@ public class Users {
             logger.error("Error getting user name tag", e);
         }
         return null;
+    }
+
+    public void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
+        database.model.User newUser = new database.model.User(user.getIdLong());
+        userDao.add(newUser);
+        Daily daily = new Daily(Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId());
+        dailyDao.add(daily);
     }
 }

@@ -11,5 +11,6 @@ public class HungerGamesCmd extends Command implements ParentCmd, GamesCmd {
         this.aliases = new String[]{"hg"};
         this.commandDescription = "Hunger Games";
         this.subCommands.add(new HungerGamesStartCmd());
+        this.subCommands.add(new HungerGamesStatsCmd());
     }
 }
