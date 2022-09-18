@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * Loads in every command.
@@ -123,5 +124,16 @@ public class CommandLoader {
                 ))
 
                 .queue();
+    }
+
+    public static void generateCommandDocumentation() {
+        StringBuilder commandDocumentation = new StringBuilder();
+        commandList.forEach((strings, command) -> {
+            if(command != null && !(command instanceof SubCmd)) {
+                commandDocumentation.append(command.generateMarkdown(command.commandName, command.commandDescription,
+                        command.commandArgs, command.cooldown, command.permissions, command.subCommands));
+            }
+        });
+        System.out.println(commandDocumentation);
     }
 }

@@ -47,6 +47,8 @@ public class MiloBot {
                 .build().awaitReady();
 
         CommandLoader.loadAllCommands(bot);
+        // uncomment the below to generate updated documentation
+//        CommandLoader.generateCommandDocumentation();
 
         Timer timer = new Timer();
         TimerTask clearBlackjackInstances = clearInstances(bot);
