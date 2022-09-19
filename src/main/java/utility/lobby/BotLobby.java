@@ -7,7 +7,9 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 public class BotLobby extends AbstractLobby {
@@ -57,6 +59,8 @@ public class BotLobby extends AbstractLobby {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle(title);
         eb.setDescription(generateDescription());
+        eb.setColor(Color.BLUE);
+        eb.setTimestamp(new Date().toInstant());
         return eb.build();
     }
 
