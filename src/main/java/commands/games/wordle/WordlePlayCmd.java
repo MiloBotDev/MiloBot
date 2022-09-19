@@ -117,7 +117,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
                                 editDescription.append(String.format("You guessed the word in %d seconds. ", timeTaken));
 
                                 event.getJDA().removeEventListener(this);
-                                int fastestTime;
+                                int fastestTime = timeTaken;
                                 Wordle userWordle = wordleDao.getByUserDiscordId(event.getAuthor().getIdLong());
                                 if (userWordle == null) {
                                     int user_id = userDao.getUserByDiscordId(event.getAuthor().getIdLong()).getId();
@@ -125,6 +125,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
                                 } else {
                                     if (userWordle.getFastestTime() != 0) {
                                         int currentFastestTime = Math.min(userWordle.getFastestTime(), timeTaken);
+                                        fastestTime = currentFastestTime;
                                         if (currentFastestTime < userWordle.getFastestTime()) {
                                             editDescription.append(String.format("That's a new personal best with an improvement of %d seconds!",
                                                     userWordle.getFastestTime() - currentFastestTime));
@@ -132,7 +133,7 @@ public class WordlePlayCmd extends Command implements SubCmd {
                                             editDescription.append("You tied your personal best.");
                                         }
                                     }
-                                    userWordle.addGame(true, timeTaken);
+                                    userWordle.addGame(true, fastestTime);
                                     wordleDao.update(userWordle);
                                     editDescription.append(String.format("\n**Personal Best:** %s seconds.\n", userWordle.getFastestTime()));
                                     editDescription.append(String.format("**Current Streak:** %d games.\n", userWordle.getCurrentStreak()));

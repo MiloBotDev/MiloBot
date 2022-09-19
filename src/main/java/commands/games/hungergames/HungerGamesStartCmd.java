@@ -39,9 +39,10 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         User author = event.getAuthor();
-        new BotLobby("Hunger Games Lobby", author,
+        int maxPlayers = 8;
+        BotLobby hungerGamesLobby = new BotLobby("Hunger Games Lobby", author,
                 (entries, message) -> {
                     ArrayList<LobbyEntry> participants = new ArrayList<>();
                     entries.forEach((players, npcs) -> {
@@ -51,8 +52,23 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
                     HungerGames game = new HungerGames(participants);
                     game.startGame();
                     HungerGamesStartCmd.runGame(event.getChannel(), game);
-                }, 2, 8)
-                .initialize(event.getChannel());
+                }, 2, maxPlayers);
+        if(args.size() > 0) {
+            try {
+                maxPlayers = Integer.parseInt(args.get(0));
+                if(maxPlayers < 2 || maxPlayers > 8) {
+                    event.getChannel().sendMessage("maxPlayers must be a number between 2 and 8.").queue();
+                }  else {
+                    hungerGamesLobby.setMaxPlayers(maxPlayers);
+                    hungerGamesLobby.initialize(event.getChannel());
+                }
+            } catch (NumberFormatException e) {
+                logger.error("Failed formatting argument to number when setting the max players for hg lobby ", e);
+                event.getChannel().sendMessage("maxPlayers must be a number between 2 and 8.").queue();
+            }
+        } else {
+            hungerGamesLobby.initialize(event.getChannel());
+        }
     }
 
     @Override

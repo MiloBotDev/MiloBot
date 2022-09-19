@@ -3,7 +3,7 @@ package database.model;
 public class HungerGames {
 
     private final int id;
-    private final long userId;
+    private final int userId;
     private int totalKills = 0;
     private int totalDamageDone = 0;
     private int totalDamageTaken = 0;
@@ -25,7 +25,7 @@ public class HungerGames {
         this.totalWins = totalWins;
     }
 
-    public HungerGames(long userId) {
+    public HungerGames(int userId) {
         this.id = -1;
         this.userId = userId;
     }
@@ -34,7 +34,7 @@ public class HungerGames {
         return id;
     }
 
-    public long getUserId() {
+    public int getUserId() {
         return userId;
     }
 

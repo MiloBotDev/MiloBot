@@ -6,10 +6,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HungerGamesDao {
 
@@ -81,6 +80,60 @@ public class HungerGamesDao {
         ps.setInt(7, hungerGames.getTotalWins());
         ps.setLong(8, hungerGames.getUserId());
         ps.execute();
+    }
+
+    public List<HungerGames> getTopTotalKills() throws SQLException {
+        ArrayList<HungerGames> highestKills = new ArrayList<>();
+        String query = "SELECT * FROM hungergames ORDER BY hungergames.total_kills DESC LIMIT 100;";
+        return getHungerGames(highestKills, query);
+    }
+
+    public List<HungerGames> getTopTotalDamageDone() throws SQLException {
+        ArrayList<HungerGames> highestDamageDone = new ArrayList<>();
+        String query = "SELECT * FROM hungergames ORDER BY hungergames.total_damage_done DESC LIMIT 100;";
+        return getHungerGames(highestDamageDone, query);
+    }
+
+    public List<HungerGames> getTopTotalDamageTaken() throws SQLException {
+        ArrayList<HungerGames> highestDamageTaken = new ArrayList<>();
+        String query = "SELECT * FROM hungergames ORDER BY hungergames.total_damage_taken DESC LIMIT 100;";
+        return getHungerGames(highestDamageTaken, query);
+    }
+
+    public List<HungerGames> getTopTotalHealingDone() throws SQLException {
+        ArrayList<HungerGames> highestHealingDone = new ArrayList<>();
+        String query = "SELECT * FROM hungergames ORDER BY hungergames.total_healing_done DESC LIMIT 100;";
+        return getHungerGames(highestHealingDone, query);
+    }
+
+    public List<HungerGames> getTopTotalItemsCollected() throws SQLException {
+        ArrayList<HungerGames> highestItemsCollected = new ArrayList<>();
+        String query = "SELECT * FROM hungergames ORDER BY hungergames.total_items_collected DESC LIMIT 100;";
+        return getHungerGames(highestItemsCollected, query);
+    }
+
+    public List<HungerGames> getTopTotalGamesPlayed() throws SQLException {
+        ArrayList<HungerGames> highestGamesPlayed = new ArrayList<>();
+        String query = "SELECT * FROM hungergames ORDER BY hungergames.total_games_played DESC LIMIT 100;";
+        return getHungerGames(highestGamesPlayed, query);
+    }
+
+    public List<HungerGames> getTopTotalWins() throws SQLException {
+        ArrayList<HungerGames> highestWins = new ArrayList<>();
+        String query = "SELECT * FROM hungergames ORDER BY hungergames.total_wins DESC LIMIT 100;";
+        return getHungerGames(highestWins, query);
+    }
+
+    private List<HungerGames> getHungerGames(ArrayList<HungerGames> highestDamageDone, String query) throws SQLException {
+        Statement st = con.prepareStatement(query);
+        ResultSet rs = st.executeQuery(query);
+        while (rs.next()) {
+            HungerGames hungerGames = new HungerGames(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("total_kills"),
+                    rs.getInt("total_damage_done"), rs.getInt("total_damage_taken"), rs.getInt("total_healing_done"),
+                    rs.getInt("total_items_collected"), rs.getInt("total_games_played"), rs.getInt("total_wins"));
+            highestDamageDone.add(hungerGames);
+        }
+        return highestDamageDone;
     }
 
     @Nullable

@@ -16,7 +16,7 @@ public class BotLobby extends AbstractLobby {
     private final Set<NonPlayerCharacter> bots = new HashSet<>();
     private final BiConsumer<Map<List<User>, List<NonPlayerCharacter>>, Message> startConsumer;
     private final int minPlayers;
-    private final int maxPlayers;
+    private int maxPlayers;
     private final String title;
     private final User creator;
     private boolean started = false;
@@ -147,6 +147,10 @@ public class BotLobby extends AbstractLobby {
             message.reply("Not enough players to start the lobby.").queue();
             setIdleInstanceCleanup();
         }
+    }
+
+    public void setMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
     }
 
     public static class NonPlayerCharacter {
