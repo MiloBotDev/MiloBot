@@ -211,7 +211,7 @@ public abstract class Command {
     public void updateCommandTrackerUser(long discordId) {
         try {
             database.model.User userByDiscordId = userDao.getUserByDiscordId(discordId);
-            int userId = userByDiscordId.getId();
+            int userId = Objects.requireNonNull(userByDiscordId).getId();
 
             boolean tracked = commandTrackerDao.checkIfUserCommandTracked(commandName, userId);
             if (tracked) {
@@ -232,7 +232,7 @@ public abstract class Command {
     public void generateStats(@NotNull MessageReceivedEvent event) {
         try {
             database.model.User userByDiscordId = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
-            int userId = userByDiscordId.getId();
+            int userId = Objects.requireNonNull(userByDiscordId).getId();
 
             int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);
             int globalUsage = commandTrackerDao.getGlobalCommandUsage(commandName);
@@ -416,9 +416,7 @@ public abstract class Command {
             hasPermission.set(true);
         } else {
             Member finalMember = member;
-            permissions.forEach((s, p) -> {
-                hasPermission.set(finalMember.getPermissions().contains(p));
-            });
+            permissions.forEach((s, p) -> hasPermission.set(finalMember.getPermissions().contains(p)));
         }
         return hasPermission.get();
     }
