@@ -123,36 +123,35 @@ public class CommandHandler extends ListenerAdapter {
                     }
                     // check for flags if one or multiple arguments are present
                     if (receivedMessage.size() > 0) {
-                        if (command.checkForFlags(event, receivedMessage, fullCommandName, command.commandDescription,
-                                command.commandArgs, command.aliases, command.flags, command.cooldown, command.subCommands)) {
+                        if (command.checkForFlags(event, receivedMessage)) {
                             return;
                         }
                     }
                     // check if the author has the required permissions
-                    if (!command.checkRequiredPermissions(event, command.permissions)) {
-                        command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
+                    if (!command.checkRequiredPermissions(event)) {
+                        command.sendMissingPermissions(event, prefix);
                         return;
                     }
                     // check if the command is a parent command
                     if (command instanceof ParentCmd) {
-                        command.sendCommandExplanation(event, command.commandName, command.subCommands, prefix);
+                        command.sendCommandExplanation(event, prefix);
                         return;
                     }
                     // check if all required args are present
-                    if (command.calculateRequiredArgs(command.commandArgs) > receivedMessage.size()) {
-                        command.sendCommandUsage(event, command.commandName, command.commandArgs);
+                    if (command.calculateRequiredArgs() > receivedMessage.size()) {
+                        command.sendCommandUsage(event);
                         return;
                     }
                     // check for potential cooldown
                     if (command.cooldown > 0) {
-                        boolean onCooldown = command.checkCooldown(event, command.cooldownMap);
+                        boolean onCooldown = command.checkCooldown(event);
                         if (onCooldown) {
                             return;
                         }
                     }
                     // check for single instance
                     if (command.singleInstance) {
-                        boolean instanceOpen = command.checkInstanceOpen(event, command.gameInstanceMap, command.commandName);
+                        boolean instanceOpen = command.checkInstanceOpen(event);
                         if (instanceOpen) {
                             return;
                         }
@@ -168,7 +167,7 @@ public class CommandHandler extends ListenerAdapter {
                     }
                     // update the tracker
                     Long userId = event.getAuthor().getIdLong();
-                    command.updateCommandTrackerUser(fullCommandName, userId);
+                    command.updateCommandTrackerUser(userId);
                     try {
                         user.updateExperience(event.getAuthor().getIdLong(), 10, event.getAuthor().getAsMention(),
                                 event.getChannel());
@@ -213,8 +212,8 @@ public class CommandHandler extends ListenerAdapter {
                     command = CommandLoader.commandList.get(strings);
                 }
                 String prefix = prefixes.get(event.getGuild().getIdLong());
-                if (!command.checkRequiredPermissions(event, command.permissions)) {
-                    command.sendMissingPermissions(event, command.commandName, command.permissions, prefix);
+                if (!command.checkRequiredPermissions(event)) {
+                    command.sendMissingPermissions(event, prefix);
                     return;
                 }
                 if (!user.checkIfUserExists(event.getUser().getIdLong())) {
@@ -226,7 +225,7 @@ public class CommandHandler extends ListenerAdapter {
                     }
                 }
                 command.executeSlashCommand(event);
-                command.updateCommandTrackerUser(fullCommandName, event.getUser().getIdLong());
+                command.updateCommandTrackerUser(event.getUser().getIdLong());
                 try {
                     user.updateExperience(event.getUser().getIdLong(), 10, event.getUser().getAsMention(),
                             event.getChannel());

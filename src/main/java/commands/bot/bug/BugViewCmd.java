@@ -35,7 +35,7 @@ public class BugViewCmd extends Command implements SubCmd {
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         if (args.size() < 1) {
-            sendCommandUsage(event, this.commandName, this.commandArgs);
+            sendCommandUsage(event);
         } else {
             Optional<EmbedBuilder> loadedBug = loadBug(Integer.parseInt(args.get(0)), event.getAuthor());
             if (loadedBug.isEmpty()) {
