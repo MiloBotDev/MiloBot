@@ -483,7 +483,7 @@ public abstract class Command {
         return allowedChannelTypes.contains(channelType);
     }
 
-    public boolean sendInvalidChannel(@NotNull Event event) {
+    public void sendInvalidChannel(@NotNull Event event) {
         if (event instanceof MessageReceivedEvent) {
             EmbedBuilder embed = new EmbedBuilder();
             embed.setTitle(String.format("Invalid channel type for: %s", commandName));
@@ -493,7 +493,6 @@ public abstract class Command {
             EmbedUtils.styleEmbed(embed, ((MessageReceivedEvent) event).getAuthor());
             ((MessageReceivedEvent) event).getChannel().sendMessageEmbeds(embed.build()).setActionRow(
                     Button.secondary(((MessageReceivedEvent) event).getAuthor().getId() + ":delete", "Delete")).queue();
-            return false;
         } else if (event instanceof SlashCommandEvent) {
             EmbedBuilder embed = new EmbedBuilder();
             embed.setTitle(String.format("Invalid channel type for: %s", commandName));
@@ -502,9 +501,7 @@ public abstract class Command {
             EmbedUtils.styleEmbed(embed, ((SlashCommandEvent) event).getUser());
             ((SlashCommandEvent) event).replyEmbeds(embed.build()).addActionRow(
                     Button.secondary(((SlashCommandEvent) event).getUser().getId() + ":delete", "Delete")).queue();
-            return false;
         }
-        return true;
     }
     public String generateMarkdown() {
         StringBuilder markdown = new StringBuilder();
