@@ -58,9 +58,7 @@ public class HelpCmd extends Command implements UtilityCmd {
             String arg = args.get(0);
             CommandLoader.commandList.forEach((key, value) -> {
                 if (key.contains(arg.toLowerCase(Locale.ROOT))) {
-                    EmbedBuilder embedBuilder = value.generateHelp(value.commandName, value.commandDescription,
-                            value.commandArgs, value.aliases, value.flags, value.cooldown, value.subCommands,
-                            event.getGuild(), event.getAuthor());
+                    EmbedBuilder embedBuilder = value.generateHelp(event.getGuild(), event.getAuthor());
                     event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
                             Button.secondary(authorId + ":delete", "Delete")).queue();
                     commandFound.set(true);
@@ -84,9 +82,7 @@ public class HelpCmd extends Command implements UtilityCmd {
             String command = Objects.requireNonNull(event.getOption("command")).getAsString();
             CommandLoader.commandList.forEach((key, value) -> {
                 if (key.contains(command.toLowerCase(Locale.ROOT))) {
-                    EmbedBuilder embedBuilder = value.generateHelp(value.commandName, value.commandDescription,
-                            value.commandArgs, value.aliases, value.flags, value.cooldown, value.subCommands,
-                            Objects.requireNonNull(event.getGuild()), event.getUser());
+                    EmbedBuilder embedBuilder = value.generateHelp(Objects.requireNonNull(event.getGuild()), event.getUser());
                     event.replyEmbeds(embedBuilder.build()).addActionRow(Button.secondary(authorId + ":delete", "Delete")).queue();
                     commandFound.set(true);
                 }

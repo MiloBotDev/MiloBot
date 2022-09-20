@@ -130,8 +130,7 @@ public class CommandLoader {
         StringBuilder commandDocumentation = new StringBuilder();
         commandList.forEach((strings, command) -> {
             if(command != null && !(command instanceof SubCmd)) {
-                commandDocumentation.append(command.generateMarkdown(command.commandName, command.commandDescription,
-                        command.commandArgs, command.cooldown, command.permissions, command.subCommands));
+                commandDocumentation.append(command.generateMarkdown());
             }
         });
         System.out.println(commandDocumentation);
