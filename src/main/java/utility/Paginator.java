@@ -94,7 +94,12 @@ public class Paginator {
     public ActionRow getActionRows() {
         Button previous = Button.primary(creator.getId() + ":previousPage", "Previous");
         Button next = Button.primary(creator.getId() + ":nextPage", "Next");
-        Button delete = Button.secondary(creator.getId() + ":deletePaginator", "Delete");
+        Button delete;
+        if (pages.size() > 1) {
+            delete = Button.secondary(creator.getId() + ":deletePaginator", "Delete");
+        } else {
+            delete = Button.secondary(creator.getId() + ":delete", "Delete");
+        }
         if (pages.size() == 1) {
             return ActionRow.of(delete);
         } if (currentPage == 0) {
