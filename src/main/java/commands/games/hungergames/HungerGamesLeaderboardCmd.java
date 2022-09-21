@@ -4,7 +4,6 @@ import commands.Command;
 import commands.SubCmd;
 import database.dao.UserDao;
 import database.model.HungerGames;
-import database.model.Wordle;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -28,7 +27,6 @@ public class HungerGamesLeaderboardCmd extends Command implements SubCmd {
     public HungerGamesLeaderboardCmd() {
         this.commandName = "leaderboard";
         this.commandDescription = "View the hungergames leaderboards.";
-        this.commandArgs = new String[]{};
     }
 
     @Override

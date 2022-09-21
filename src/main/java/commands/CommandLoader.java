@@ -112,7 +112,9 @@ public class CommandLoader {
                                 .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
                                         .setRequiredRange(1, 10000)),
                         new SubcommandData("stats", "View your own blackjack statistics."),
-                        new SubcommandData("info", "A simple tutorial on the rules of blackjack.")))
+                        new SubcommandData("info", "A simple tutorial on the rules of blackjack."),
+                        new SubcommandData("leaderboard", "View the blackjack leaderboards.")))
+
 
                 .addCommands(new CommandData("daily", "Collect your daily reward.").addSubcommands(
                         new SubcommandData("streak", "View your current streak."),

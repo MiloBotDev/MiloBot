@@ -13,6 +13,7 @@ public class BlackjackCmd extends Command implements ParentCmd, GamesCmd {
         this.subCommands.add(new BlackjackPlayCmd());
         this.subCommands.add(new BlackjackStatsCmd());
         this.subCommands.add(new BlackjackInfoCmd());
+        this.subCommands.add(new BlackjackLeaderboardCmd());
     }
 
 }

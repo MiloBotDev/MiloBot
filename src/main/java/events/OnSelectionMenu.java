@@ -1,7 +1,9 @@
 package events;
 
+import database.dao.BlackjackDao;
 import database.dao.HungerGamesDao;
 import database.dao.WordleDao;
+import database.model.Blackjack;
 import database.model.HungerGames;
 import database.model.Wordle;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -17,14 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static commands.games.wordle.WordleLeaderboardCmd.buildEmbeds;
+import static commands.games.wordle.WordleLeaderboardCmd.buildWordleEmbeds;
 import static commands.games.hungergames.HungerGamesLeaderboardCmd.buildHgEmbeds;
+import static commands.games.blackjack.BlackjackLeaderboardCmd.buildBlackjackEmbeds;
 
 public class OnSelectionMenu extends ListenerAdapter {
 
     private final Logger logger = org.slf4j.LoggerFactory.getLogger(OnSelectionMenu.class);
     private final WordleDao wordleDao = WordleDao.getInstance();
     private final HungerGamesDao hungerGamesDao = HungerGamesDao.getInstance();
+    private final BlackjackDao blackjackDao = BlackjackDao.getInstance();
 
     @Override
     public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
@@ -43,23 +47,23 @@ public class OnSelectionMenu extends ListenerAdapter {
                         switch (option) {
                             case "highestStreak" -> {
                                 List<Wordle> topHighestStreak = this.wordleDao.getTopHighestStreak();
-                                embeds = buildEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
+                                embeds = buildWordleEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
                             }
                             case "fastestTime" -> {
                                 List<Wordle> topFastestTime = this.wordleDao.getTopFastestTime();
-                                embeds = buildEmbeds(topFastestTime, "Fastest Time", event.getJDA());
+                                embeds = buildWordleEmbeds(topFastestTime, "Fastest Time", event.getJDA());
                             }
                             case "totalWins" -> {
                                 List<Wordle> topTotalWins = this.wordleDao.getTopTotalWins();
-                                embeds = buildEmbeds(topTotalWins, "Total Wins", event.getJDA());
+                                embeds = buildWordleEmbeds(topTotalWins, "Total Wins", event.getJDA());
                             }
                             case "totalGames" -> {
                                 List<Wordle> topTotalGames = this.wordleDao.getTopTotalGames();
-                                embeds = buildEmbeds(topTotalGames, "Total Games", event.getJDA());
+                                embeds = buildWordleEmbeds(topTotalGames, "Total Games Played", event.getJDA());
                             }
                             case "currentStreak" -> {
                                 List<Wordle> topCurrentStreak = this.wordleDao.getTopCurrentStreak();
-                                embeds = buildEmbeds(topCurrentStreak, "Current Streak", event.getJDA());
+                                embeds = buildWordleEmbeds(topCurrentStreak, "Current Streak", event.getJDA());
                             }
                         }
                     } catch (SQLException e) {
@@ -96,7 +100,7 @@ public class OnSelectionMenu extends ListenerAdapter {
                             }
                             case "totalGamesPlayed" -> {
                                 List<HungerGames> topTotalGames = this.hungerGamesDao.getTopTotalGamesPlayed();
-                                embeds = buildHgEmbeds(topTotalGames, "Total Games", event.getJDA());
+                                embeds = buildHgEmbeds(topTotalGames, "Total Games Played", event.getJDA());
                             }
                             case "totalWins" -> {
                                 List<HungerGames> topTotalWins = this.hungerGamesDao.getTopTotalWins();
@@ -108,6 +112,43 @@ public class OnSelectionMenu extends ListenerAdapter {
                                 .queue(paginator::initialize);
                     } catch (SQLException e) {
                         logger.error("Failed to get the hunger games leaderboard", e);
+                    }
+                }
+                case "blackjackLeaderboard" -> {
+                    String option = Objects.requireNonNull(event.getSelectedOptions()).get(0).getValue();
+                    List<MessageEmbed> embeds = new ArrayList<>();
+                    try {
+                        switch (option) {
+                            case "totalWins" -> {
+                                List<Blackjack> topTotalWins = this.blackjackDao.getTopTotalWins();
+                                embeds = buildBlackjackEmbeds(topTotalWins, "Total Wins", event.getJDA());
+                            }
+                            case "totalDraws" -> {
+                                List<Blackjack> topTotalDraws = this.blackjackDao.getTopTotalDraws();
+                                embeds = buildBlackjackEmbeds(topTotalDraws, "Total Draws", event.getJDA());
+                            }
+                            case "totalGamesPlayed" -> {
+                                List<Blackjack> topTotalGamesPlayed = this.blackjackDao.getTopTotalGamesPlayed();
+                                embeds = buildBlackjackEmbeds(topTotalGamesPlayed, "Total Games Played", event.getJDA());
+                            }
+                            case "highestStreak" -> {
+                                List<Blackjack> topHighestStreak = this.blackjackDao.getTopHighestStreak();
+                                embeds = buildBlackjackEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
+                            }
+                            case "currentStreak" -> {
+                                List<Blackjack> topCurrentStreak = this.blackjackDao.getTopCurrentStreak();
+                                embeds = buildBlackjackEmbeds(topCurrentStreak, "Current Streak", event.getJDA());
+                            }
+                            case "totalEarnings" -> {
+                                List<Blackjack> topTotalEarnings = this.blackjackDao.getTopTotalEarnings();
+                                embeds = buildBlackjackEmbeds(topTotalEarnings, "Total Earnings", event.getJDA());
+                            }
+                        }
+                        Paginator paginator = new Paginator(user, embeds);
+                        event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
+                                .queue(paginator::initialize);
+                    } catch (SQLException e) {
+                        logger.error("Failed to get the blackjack leaderboard", e);
                     }
                 }
             }

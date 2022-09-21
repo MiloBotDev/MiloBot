@@ -124,16 +124,16 @@ public class HungerGamesDao {
         return getHungerGames(highestWins, query);
     }
 
-    private List<HungerGames> getHungerGames(ArrayList<HungerGames> highestDamageDone, String query) throws SQLException {
+    private List<HungerGames> getHungerGames(ArrayList<HungerGames> hgList, String query) throws SQLException {
         Statement st = con.prepareStatement(query);
         ResultSet rs = st.executeQuery(query);
         while (rs.next()) {
             HungerGames hungerGames = new HungerGames(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("total_kills"),
                     rs.getInt("total_damage_done"), rs.getInt("total_damage_taken"), rs.getInt("total_healing_done"),
                     rs.getInt("total_items_collected"), rs.getInt("total_games_played"), rs.getInt("total_wins"));
-            highestDamageDone.add(hungerGames);
+            hgList.add(hungerGames);
         }
-        return highestDamageDone;
+        return hgList;
     }
 
     @Nullable
