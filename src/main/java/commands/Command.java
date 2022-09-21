@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import database.dao.CommandTrackerDao;
 import database.dao.UserDao;
@@ -22,8 +24,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Basic implementation of a command.
@@ -105,6 +106,16 @@ public abstract class Command {
     public Set<ChannelType> allowedChannelTypes = new HashSet<>();
 
     /**
+     * Slash command data for parents command.
+     */
+    public CommandData slashCommandData;
+
+    /**
+     * Slash command data for subcommands.
+     */
+    public SubcommandData slashSubcommandData;
+
+    /**
      * The default constructor for a command.
      */
     public Command() {
@@ -128,21 +139,18 @@ public abstract class Command {
     /**
      * The default implementation for checking if a flag is present.
      */
-    public boolean checkForFlags(MessageReceivedEvent event, @NotNull List<String> args, String commandName,
-                                 String commandDescription, String[] commandArgs, String[] aliases, String[] flags,
-                                 int cooldown, ArrayList<Command> subCommands) {
+    public boolean checkForFlags(MessageReceivedEvent event, @NotNull List<String> args) {
         boolean flagPresent = false;
         // checks if --help flag is present as an argument
         if (args.contains("--help")) {
-            EmbedBuilder embedBuilder = generateHelp(commandName, commandDescription, commandArgs, aliases, flags, cooldown, subCommands,
-                    event.getGuild(), event.getAuthor());
+            EmbedBuilder embedBuilder = generateHelp(event.getGuild(), event.getAuthor());
             event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
                     Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
             flagPresent = true;
         }
         // checks if the --stats flag is present as an argument
         if (args.contains("--stats")) {
-            generateStats(event, commandName);
+            generateStats(event);
             flagPresent = true;
         }
         return flagPresent;
@@ -151,7 +159,7 @@ public abstract class Command {
     /**
      * Checks if the user is using the command again before the cooldown is over.
      */
-    public boolean checkCooldown(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> cooldownMap) {
+    public boolean checkCooldown(@NotNull MessageReceivedEvent event) {
         OffsetDateTime currentTime = event.getMessage().getTimeCreated();
         String authorId = event.getAuthor().getId();
         OffsetDateTime newAvailableTime = event.getMessage().getTimeCreated().plusSeconds(cooldown);
@@ -175,7 +183,7 @@ public abstract class Command {
     /**
      * Checks if the user is using the command again when its only allowed to have 1 instance open.
      */
-    public boolean checkInstanceOpen(@NotNull MessageReceivedEvent event, @NotNull HashMap<String, OffsetDateTime> gameInstanceMap, String commandName) {
+    public boolean checkInstanceOpen(@NotNull MessageReceivedEvent event) {
         OffsetDateTime currentTime = event.getMessage().getTimeCreated();
         String authorId = event.getAuthor().getId();
         OffsetDateTime newAvailableTime = event.getMessage().getTimeCreated().plusSeconds(instanceTime);
@@ -200,10 +208,10 @@ public abstract class Command {
     /**
      * Updates the command tracker for a specific user;
      */
-    public void updateCommandTrackerUser(String commandName, long discordId) {
+    public void updateCommandTrackerUser(long discordId) {
         try {
             database.model.User userByDiscordId = userDao.getUserByDiscordId(discordId);
-            int userId = userByDiscordId.getId();
+            int userId = Objects.requireNonNull(userByDiscordId).getId();
 
             boolean tracked = commandTrackerDao.checkIfUserCommandTracked(commandName, userId);
             if (tracked) {
@@ -221,10 +229,10 @@ public abstract class Command {
     /**
      * Generates a message with the stats of that specific command.
      */
-    public void generateStats(@NotNull MessageReceivedEvent event, String commandName) {
+    public void generateStats(@NotNull MessageReceivedEvent event) {
         try {
             database.model.User userByDiscordId = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
-            int userId = userByDiscordId.getId();
+            int userId = Objects.requireNonNull(userByDiscordId).getId();
 
             int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);
             int globalUsage = commandTrackerDao.getGlobalCommandUsage(commandName);
@@ -246,9 +254,7 @@ public abstract class Command {
     /**
      * Generates a standard help message for when the command is called with the --help flag.
      */
-    public EmbedBuilder generateHelp(String commandName, String commandDescription, String @NotNull [] commandArgs,
-                                     String @NotNull [] aliases, String[] flags, int cooldown,
-                                     @NotNull ArrayList<Command> subCommands, @NotNull Guild guild, @NotNull User author) {
+    public EmbedBuilder generateHelp(@NotNull Guild guild, @NotNull User author) {
         String prefix = CommandHandler.prefixes.get(guild.getIdLong());
 
         EmbedBuilder info = new EmbedBuilder();
@@ -256,7 +262,7 @@ public abstract class Command {
         info.setTitle(commandName);
         info.setDescription(commandDescription);
 
-        StringBuilder argumentsText = getArgumentsText(commandName, commandArgs, prefix);
+        StringBuilder argumentsText = getArgumentsText(prefix);
         info.addField(
                 "Usage",
                 argumentsText.toString(),
@@ -264,7 +270,7 @@ public abstract class Command {
         );
 
         if (!(subCommands.size() == 0)) {
-            StringBuilder subCommandsText = getSubCommandsText(commandName, subCommands, prefix);
+            StringBuilder subCommandsText = getSubCommandsText(prefix);
             info.addField("Sub Commands", subCommandsText.toString(), false);
         }
 
@@ -307,7 +313,7 @@ public abstract class Command {
      * Builds a String that explains the sub commands a command has.
      */
     @NotNull
-    private StringBuilder getSubCommandsText(String commandName, @NotNull ArrayList<Command> subCommands, String prefix) {
+    private StringBuilder getSubCommandsText(String prefix) {
         StringBuilder subCommandsText = new StringBuilder();
         for (Command subCommand : subCommands) {
             subCommandsText.append("\n`").append(prefix).append(String.format("%s ", commandName)).append(subCommand.commandName);
@@ -325,7 +331,7 @@ public abstract class Command {
      * Builds a String that explains the usage of a command.
      */
     @NotNull
-    private StringBuilder getArgumentsText(String commandName, String @NotNull [] commandArgs, String prefix) {
+    private StringBuilder getArgumentsText(String prefix) {
         StringBuilder argumentsText = new StringBuilder();
         if (commandArgs.length == 0) {
             argumentsText.append("`").append(prefix).append(commandName).append("`");
@@ -347,13 +353,13 @@ public abstract class Command {
     /**
      * Generates and sends a message for when the command has been improperly used.
      */
-    public void sendCommandUsage(@NotNull MessageReceivedEvent event, String commandName, String @NotNull [] commandArgs) {
+    public void sendCommandUsage(@NotNull MessageReceivedEvent event) {
         String prefix = CommandHandler.prefixes.get(event.getGuild().getIdLong());
 
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(info, event.getAuthor());
         info.setTitle("Missing required arguments");
-        info.setDescription(getArgumentsText(commandName, commandArgs, prefix));
+        info.setDescription(getArgumentsText(prefix));
 
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessageEmbeds(info.build()).setActionRow(
@@ -363,14 +369,13 @@ public abstract class Command {
     /**
      * Generates and sends a message for when the parent command has been called without a sub command.
      */
-    public void sendCommandExplanation(@NotNull MessageReceivedEvent event, String commandName,
-                                       @NotNull ArrayList<Command> subCommands, String prefix) {
+    public void sendCommandExplanation(@NotNull MessageReceivedEvent event, String prefix) {
         EmbedBuilder embed = new EmbedBuilder();
         EmbedUtils.styleEmbed(embed, event.getAuthor());
         embed.setTitle(commandName);
         embed.setDescription("This is the base command for all " + commandName + " related commands. Please use any of the " +
                 "commands listed below.");
-        embed.addField("Sub Commands", getSubCommandsText(commandName, subCommands, prefix).toString(), false);
+        embed.addField("Sub Commands", getSubCommandsText(prefix).toString(), false);
         event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }
@@ -380,7 +385,7 @@ public abstract class Command {
      *
      * @return the required amount of arguments
      */
-    public int calculateRequiredArgs(String @NotNull [] commandArgs) {
+    public int calculateRequiredArgs() {
         int requiredArgs = 0;
         for (String commandArg : commandArgs) {
             if (!commandArg.contains("*")) {
@@ -395,7 +400,7 @@ public abstract class Command {
      *
      * @return true if the user has the required permissions, false otherwise.
      */
-    public boolean checkRequiredPermissions(@NotNull Event event, @NotNull HashMap<String, Permission> permissions) {
+    public boolean checkRequiredPermissions(@NotNull Event event) {
         AtomicBoolean hasPermission = new AtomicBoolean(false);
         Member member = null;
         if (event instanceof MessageReceivedEvent) {
@@ -411,9 +416,7 @@ public abstract class Command {
             hasPermission.set(true);
         } else {
             Member finalMember = member;
-            permissions.forEach((s, p) -> {
-                hasPermission.set(finalMember.getPermissions().contains(p));
-            });
+            permissions.forEach((s, p) -> hasPermission.set(finalMember.getPermissions().contains(p)));
         }
         return hasPermission.get();
     }
@@ -421,8 +424,7 @@ public abstract class Command {
     /**
      * Generates and sends a message for when a user is missing the required permissions to use the command.
      */
-    public void sendMissingPermissions(@NotNull Event event, String commandName,
-                                       @NotNull HashMap<String, Permission> permissions, String prefix) {
+    public void sendMissingPermissions(@NotNull Event event, String prefix) {
         Member member = null;
         User user = null;
         if (event instanceof MessageReceivedEvent) {
@@ -471,14 +473,43 @@ public abstract class Command {
         }
     }
 
-    public String generateMarkdown(String commandName, String commandDescription, String[] commandArgs, int cooldown,
-                                   HashMap<String, Permission> permissions, ArrayList<Command> subCommands) {
+    /**
+     * Checks if the command can be run in a channel type.
+     *
+     * @param channelType the channel type to check
+     * @return true if the command can be run in the channel type, false otherwise
+     */
+    public boolean checkChannelAllowed(ChannelType channelType) {
+        return allowedChannelTypes.contains(channelType);
+    }
+
+    public void sendInvalidChannel(@NotNull Event event) {
+        if (event instanceof MessageReceivedEvent) {
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.setTitle(String.format("Invalid channel type for: %s", commandName));
+            // allowed channels esparate by spaces
+            embed.setDescription("This command can only be run in the following channel types: " +
+                    allowedChannelTypes.stream().map(Enum::toString).collect(Collectors.joining(", ")));
+            EmbedUtils.styleEmbed(embed, ((MessageReceivedEvent) event).getAuthor());
+            ((MessageReceivedEvent) event).getChannel().sendMessageEmbeds(embed.build()).setActionRow(
+                    Button.secondary(((MessageReceivedEvent) event).getAuthor().getId() + ":delete", "Delete")).queue();
+        } else if (event instanceof SlashCommandEvent) {
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.setTitle(String.format("Invalid channel type for: %s", commandName));
+            embed.setDescription("This command can only be run in the following channel types: " +
+                    allowedChannelTypes.stream().map(Enum::toString).collect(Collectors.joining(", ")));
+            EmbedUtils.styleEmbed(embed, ((SlashCommandEvent) event).getUser());
+            ((SlashCommandEvent) event).replyEmbeds(embed.build()).addActionRow(
+                    Button.secondary(((SlashCommandEvent) event).getUser().getId() + ":delete", "Delete")).queue();
+        }
+    }
+    public String generateMarkdown() {
         StringBuilder markdown = new StringBuilder();
         markdown.append("---\n\n");
         markdown.append(String.format("<h3 id=\"%s\">%s</h3>\n\n", commandName, commandName));
         markdown.append(commandDescription).append("\n\n");
         markdown.append("#### Usage\n\n");
-        String argumentsText = getArgumentsText(commandName, commandArgs, "!")
+        String argumentsText = getArgumentsText("!")
                 .toString()
                 .replace("Arguments marked with * are optional, arguments marked with ** accept multiple inputs.", "");
         markdown.append(argumentsText).append("\n\n");

@@ -52,7 +52,7 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         if (args.size() < 3) {
-            sendCommandUsage(event, this.commandName, this.commandArgs);
+            sendCommandUsage(event);
             return;
         }
         int partySize;
