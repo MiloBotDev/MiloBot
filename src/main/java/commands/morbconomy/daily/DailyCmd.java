@@ -11,6 +11,7 @@ public class DailyCmd extends Command implements MorbconomyCmd, ParentCmd {
         this.commandDescription = "Collect your daily reward.";
         this.subCommands.add(new DailyStreakCmd());
         this.subCommands.add(new DailyClaimCmd());
+        this.subCommands.add(new DailyStatsCmd());
     }
 
 }

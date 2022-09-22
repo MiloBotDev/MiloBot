@@ -118,7 +118,8 @@ public class CommandLoader {
 
                 .addCommands(new CommandData("daily", "Collect your daily reward.").addSubcommands(
                         new SubcommandData("streak", "View your current streak."),
-                        new SubcommandData("claim", "Claim your daily reward."))
+                        new SubcommandData("claim", "Claim your daily reward."),
+                        new SubcommandData("stats", "View your own daily statistics."))
                 )
 
                 .addCommands(new CommandData("usage", "See the amount of times each or a specific command has been used.").addOption(

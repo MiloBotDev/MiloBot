@@ -2,6 +2,7 @@ package database.dao;
 
 import database.model.Daily;
 import database.util.DatabaseConnection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class DailyDao {
         st.execute(query);
     }
 
-    public void add(Daily daily) throws SQLException {
+    public void add(@NotNull Daily daily) throws SQLException {
         String query = "INSERT INTO daily (user_id, last_daily_time, streak, total_claimed) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setInt(1, daily.getUserId());
@@ -54,7 +55,7 @@ public class DailyDao {
         ps.executeUpdate();
     }
 
-    public void update(Daily daily) throws SQLException {
+    public void update(@NotNull Daily daily) throws SQLException {
         String query = "UPDATE daily SET user_id = ?, last_daily_time = ?, streak = ?, total_claimed = ? WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setInt(1, daily.getUserId());

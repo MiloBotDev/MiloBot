@@ -157,6 +157,7 @@ public class HungerGames {
         int round = 1;
         List<Player> playersAliveInRound;
         while (this.alivePlayers.size() > 1) {
+            Collections.shuffle(this.players);
             for (Player player : this.players) {
                 if (this.alivePlayers.contains(player)) {
                     player.doAction();
@@ -168,6 +169,10 @@ public class HungerGames {
                 log(String.format("%s has won the game!", player.getUserName()));
                 this.winner = player;
                 player.setWinner(true);
+            }
+
+            if (this.alivePlayers.size() == 0) {
+                log("No one has won the game!");
             }
 
             playersAliveInRound = new ArrayList<>();
