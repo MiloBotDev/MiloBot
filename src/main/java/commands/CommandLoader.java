@@ -6,6 +6,7 @@ import commands.games.blackjack.BlackjackCmd;
 import commands.games.dnd.encounter.EncounterCmd;
 import commands.games.hungergames.HungerGamesCmd;
 import commands.games.poker.PokerCmd;
+import commands.games.uno.UnoCmd;
 import commands.games.wordle.WordleCmd;
 import commands.morbconomy.daily.DailyCmd;
 import commands.morbconomy.ProfileCmd;
@@ -49,6 +50,7 @@ public class CommandLoader {
         commands.add(new DailyCmd());
         commands.add(new HungerGamesCmd());
         commands.add(new PokerCmd());
+        commands.add(new UnoCmd());
 
         commands.stream().flatMap(command -> command.listeners.stream()).forEach(bot::addEventListener);
         commands.stream().flatMap(command -> command.subCommands.stream())

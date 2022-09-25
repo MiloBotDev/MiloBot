@@ -6,7 +6,7 @@ import java.time.Instant;
 
 public class Daily {
     private final int id;
-    private int userId;
+    private final int userId;
     private Instant lastDailyTime;
     private int streak;
     private int totalClaimed;

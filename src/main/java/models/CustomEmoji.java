@@ -1,6 +1,7 @@
 package models;
 
 import net.dv8tion.jda.api.entities.Emoji;
+import org.jetbrains.annotations.NotNull;
 
 public enum CustomEmoji {
 
@@ -44,7 +45,7 @@ public enum CustomEmoji {
     UNO_BLUE_ZERO(Emoji.fromEmote("B0", 999687962331725854L, false)),
     UNO_BLUE_ONE(Emoji.fromEmote("B1", 999687963799736350L, false)),
     UNO_BLUE_TWO(Emoji.fromEmote("B2", 999687964948959353L, false)),
-    UNO_BLUE_THREE(Emoji.fromEmote("B3", 99968796604787100L, false)),
+    UNO_BLUE_THREE(Emoji.fromEmote("B3", 999687966047871007L, false)),
     UNO_BLUE_FOUR(Emoji.fromEmote("B4", 999687967465554062L, false)),
     UNO_BLUE_FIVE(Emoji.fromEmote("B5", 999687969013235832L, false)),
     UNO_BLUE_SIX(Emoji.fromEmote("B6", 999687971311726642L, false)),
@@ -100,7 +101,6 @@ public enum CustomEmoji {
     UNO_WILD_DRAW_FOUR(Emoji.fromEmote("W4", 999688024583585802L, false)),
     UNO_WILD(Emoji.fromEmote("W", 999688025544081521L, false));
 
-
     private final Emoji emoji;
 
     CustomEmoji(Emoji emoji) {
@@ -109,5 +109,9 @@ public enum CustomEmoji {
 
     public Emoji getEmoji() {
         return emoji;
+    }
+
+    public @NotNull String getCustomEmojiUrl() {
+        return "https://cdn.discordapp.com/emojis/" + emoji.getId() + (emoji.isAnimated() ? ".gif" : ".png");
     }
 }

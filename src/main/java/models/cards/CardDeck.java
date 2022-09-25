@@ -3,6 +3,7 @@ package models.cards;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class CardDeck<T> {
 
@@ -19,8 +20,24 @@ public class CardDeck<T> {
         return deck.remove(0);
     }
 
+    public List<Optional<T>> drawCards(int amount) {
+        List<Optional<T>> drawnCards = new ArrayList<>();
+        for(int i = 0; i < amount; i++) {
+            if(deck.size() == 0) {
+                drawnCards.add(Optional.empty());
+            } else {
+                drawnCards.add(Optional.of(deck.remove(0)));
+            }
+        }
+        return drawnCards;
+    }
+
     public void fillDeck() {
         this.deck.addAll(cards);
+    }
+
+    public void refreshDeck(List<T> cardsToAdd) {
+        this.deck.addAll(cardsToAdd);
     }
 
     public void resetDeck() {

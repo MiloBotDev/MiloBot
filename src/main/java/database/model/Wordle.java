@@ -3,7 +3,7 @@ package database.model;
 public class Wordle {
 
     private final int id;
-    private int userId;
+    private final int userId;
     private int gamesPlayed;
     private int wins;
     private int fastestTime;

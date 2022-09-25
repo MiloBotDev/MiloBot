@@ -1,4 +1,4 @@
-package models.hungergames;
+package games.hungergames.models;
 
 import games.hungergames.HungerGames;
 import games.hungergames.models.Item;

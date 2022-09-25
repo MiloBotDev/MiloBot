@@ -48,6 +48,7 @@ public class Poker {
     }
 
     private static class PlayerData {
+
         private volatile Message embed;
         private List<PlayingCard> hand;
         private int moneyInPot = 0;

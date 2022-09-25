@@ -1,4 +1,4 @@
-package models.hungergames;
+package games.hungergames.models;
 
 import games.hungergames.HungerGames;
 import games.hungergames.models.Event;
@@ -40,7 +40,7 @@ public class EventTest {
     }
 
     @Test
-    public void testBananaPeel() {
+    void testBananaPeel() {
         Event bananaPeel = game.getEventByName("banana peel").orElseThrow(() -> new RuntimeException("banana peel not found"));
 
         player.triggerEvent(bananaPeel);
