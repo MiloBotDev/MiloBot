@@ -5,6 +5,7 @@ import database.dao.UserDao;
 import database.model.Daily;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -46,6 +47,16 @@ public class NewCommandHandler extends ListenerAdapter {
         }
     }
 
+    public void initialize() {
+        // register event listener
+        jda.addEventListener(this);
+        jda.addEventListener((EventListener) genericEvent -> commands.forEach((name, record) -> {
+            record.command.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent)));
+            record.command.subCommands.forEach(subCommand ->
+                    subCommand.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent))));
+        }));
+    }
+
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getMessage().getAuthor().isBot()) {
@@ -81,85 +92,88 @@ public class NewCommandHandler extends ListenerAdapter {
         if (commandRecord == null) {
             return;
         }
-        Command command = commandRecord.command;
-        String fullCommandName = command.commandName;
+
         ExecutorService executorService = commandRecord.executor;
         messageParts.remove(0);
+        executorService.submit(() -> {
+            Command command = commandRecord.command;
+            String fullCommandName = command.commandName;
 
-        if (messageParts.size() > 0) {
-            for (Command subCommand : command.subCommands) {
-                if (subCommand.commandName.equals(messageParts.get(0).toLowerCase())) {
-                    messageParts.remove(0);
-                    command = subCommand;
-                    fullCommandName += " " + subCommand.commandName;
-                    break;
+            if (messageParts.size() > 0) {
+                for (Command subCommand : command.subCommands) {
+                    if (subCommand.commandName.equals(messageParts.get(0).toLowerCase())) {
+                        messageParts.remove(0);
+                        command = subCommand;
+                        fullCommandName += " " + subCommand.commandName;
+                        break;
+                    }
                 }
             }
-        }
 
-        if (!command.checkChannelAllowed(event.getChannel().getType())) {
-            command.sendInvalidChannel(event);
-            return;
-        }
+            if (!command.checkChannelAllowed(event.getChannel().getType())) {
+                command.sendInvalidChannel(event);
+                return;
+            }
 
-        // check for flags if one or multiple arguments are present
-        if (messageParts.size() > 0) {
-            if (command.checkForFlags(event, messageParts)) {
+            // check for flags if one or multiple arguments are present
+            if (messageParts.size() > 0) {
+                if (command.checkForFlags(event, messageParts)) {
+                    return;
+                }
+            }
+            // check if the author has the required permissions
+            if (!command.checkRequiredPermissions(event)) {
+                command.sendMissingPermissions(event, prefix);
                 return;
             }
-        }
-        // check if the author has the required permissions
-        if (!command.checkRequiredPermissions(event)) {
-            command.sendMissingPermissions(event, prefix);
-            return;
-        }
-        // check if the command is a parent command
-        if (command instanceof ParentCmd) {
-            command.sendCommandExplanation(event, prefix);
-            return;
-        }
-        // check if all required args are present
-        if (command.calculateRequiredArgs() > messageParts.size()) {
-            command.sendCommandUsage(event);
-            return;
-        }
-        // check for potential cooldown
-        if (command.cooldown > 0) {
-            boolean onCooldown = command.checkCooldown(event);
-            if (onCooldown) {
+            // check if the command is a parent command
+            if (command instanceof ParentCmd) {
+                command.sendCommandExplanation(event, prefix);
                 return;
             }
-        }
-        // check for single instance
-        if (command.singleInstance) {
-            boolean instanceOpen = command.checkInstanceOpen(event);
-            if (instanceOpen) {
+            // check if all required args are present
+            if (command.calculateRequiredArgs() > messageParts.size()) {
+                command.sendCommandUsage(event);
                 return;
             }
-        }
-        // check if this user exists in the database otherwise add it
-        if (!Users.getInstance().checkIfUserExists(event.getAuthor().getIdLong())) {
+            // check for potential cooldown
+            if (command.cooldown > 0) {
+                boolean onCooldown = command.checkCooldown(event);
+                if (onCooldown) {
+                    return;
+                }
+            }
+            // check for single instance
+            if (command.singleInstance) {
+                boolean instanceOpen = command.checkInstanceOpen(event);
+                if (instanceOpen) {
+                    return;
+                }
+            }
+            // check if this user exists in the database otherwise add it
+            if (!Users.getInstance().checkIfUserExists(event.getAuthor().getIdLong())) {
+                try {
+                    addUserToDatabase(event.getAuthor());
+                } catch (SQLException e) {
+                    logger.error("Couldn't add user to database", e);
+                    return;
+                }
+            }
+            // update the tracker
+            long userId = event.getAuthor().getIdLong();
+            command.updateCommandTrackerUser(userId);
             try {
-                addUserToDatabase(event.getAuthor());
+                Users.getInstance().updateExperience(event.getAuthor().getIdLong(), 10, event.getAuthor().getAsMention(),
+                        event.getChannel());
             } catch (SQLException e) {
-                logger.error("Couldn't add user to database", e);
-                return;
+                logger.error("Couldn't update user experience", e);
             }
-        }
-        // update the tracker
-        long userId = event.getAuthor().getIdLong();
-        command.updateCommandTrackerUser(userId);
-        try {
-            Users.getInstance().updateExperience(event.getAuthor().getIdLong(), 10, event.getAuthor().getAsMention(),
-                    event.getChannel());
-        } catch (SQLException e) {
-            logger.error("Couldn't update user experience", e);
-        }
-        // execute the command
-        Command finalCommand = command;
-        executorService.submit(() -> finalCommand.executeCommand(event, messageParts));
-        logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
-                event.getAuthor().getName()));
+            // execute the command
+            Command finalCommand = command;
+            executorService.submit(() -> finalCommand.executeCommand(event, messageParts));
+            logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
+                    event.getAuthor().getName()));
+        });
     }
 
     @Override
@@ -172,46 +186,63 @@ public class NewCommandHandler extends ListenerAdapter {
         if (commandRecord == null) {
             return;
         }
-        Command command = commandRecord.command;
-        String fullCommandName = command.commandName;
+
         ExecutorService executorService = commandRecord.executor;
-        if (event.getSubcommandName() != null) {
-            for (Command subCommand : command.subCommands) {
-                if (subCommand.commandName.equals(event.getSubcommandName())) {
-                    command = subCommand;
-                    fullCommandName += " " + subCommand.commandName;
-                    break;
+        executorService.submit(() -> {
+            Command command = commandRecord.command;
+            String fullCommandName = command.commandName;
+            if (event.getSubcommandName() != null) {
+                for (Command subCommand : command.subCommands) {
+                    if (subCommand.commandName.equals(event.getSubcommandName())) {
+                        command = subCommand;
+                        fullCommandName += " " + subCommand.commandName;
+                        break;
+                    }
                 }
             }
-        }
-        if (!command.checkChannelAllowed(event.getChannelType())) {
-            command.sendInvalidChannel(event);
-            return;
-        }
-        if (!command.checkRequiredPermissions(event)) {
-            command.sendMissingPermissions(event, "");
-            return;
-        }
-        if (!Users.getInstance().checkIfUserExists(event.getUser().getIdLong())) {
-            try {
-                addUserToDatabase(event.getUser());
-            } catch (SQLException e) {
-                logger.error("Couldn't add user to database", e);
+            if (!command.checkChannelAllowed(event.getChannelType())) {
+                command.sendInvalidChannel(event);
                 return;
             }
-        }
-        long userId = event.getUser().getIdLong();
-        command.updateCommandTrackerUser(userId);
-        try {
-            Users.getInstance().updateExperience(event.getUser().getIdLong(), 10, event.getUser().getAsMention(),
-                    event.getChannel());
-        } catch (SQLException e) {
-            logger.error("Couldn't update user experience", e);
-        }
-        Command finalCommand = command;
-        executorService.submit(() -> finalCommand.executeSlashCommand(event));
-        logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
-                event.getUser().getName()));
+            if (!command.checkRequiredPermissions(event)) {
+                command.sendMissingPermissions(event, "");
+                return;
+            }
+            // check for potential cooldown
+            if (command.cooldown > 0) {
+                boolean onCooldown = command.checkCooldown(event);
+                if (onCooldown) {
+                    return;
+                }
+            }
+            // check for single instance
+            if (command.singleInstance) {
+                boolean instanceOpen = command.checkInstanceOpen(event);
+                if (instanceOpen) {
+                    return;
+                }
+            }
+            if (!Users.getInstance().checkIfUserExists(event.getUser().getIdLong())) {
+                try {
+                    addUserToDatabase(event.getUser());
+                } catch (SQLException e) {
+                    logger.error("Couldn't add user to database", e);
+                    return;
+                }
+            }
+            long userId = event.getUser().getIdLong();
+            command.updateCommandTrackerUser(userId);
+            try {
+                Users.getInstance().updateExperience(event.getUser().getIdLong(), 10, event.getUser().getAsMention(),
+                        event.getChannel());
+            } catch (SQLException e) {
+                logger.error("Couldn't update user experience", e);
+            }
+            Command finalCommand = command;
+            executorService.submit(() -> finalCommand.executeSlashCommand(event));
+            logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
+                    event.getUser().getName()));
+        });
     }
 
     private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {

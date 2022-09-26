@@ -9,8 +9,8 @@ import java.util.concurrent.Executors;
 public class NewCommandLoader {
     public static void loadAllCommands(JDA jda) {
         NewCommandHandler handler = new NewCommandHandler(jda);
-        jda.addEventListener(handler);
         handler.registerCommand(Executors.newSingleThreadExecutor(), new PokerCmd());
         handler.registerCommand(Executors.newSingleThreadExecutor(), new BlackjackCmd());
+        handler.initialize();
     }
 }
