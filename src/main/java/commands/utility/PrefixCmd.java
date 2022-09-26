@@ -2,7 +2,9 @@ package commands.utility;
 
 import commands.Command;
 import commands.CommandHandler;
+import commands.NewCommandHandler;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import database.dao.PrefixDao;
@@ -22,13 +24,16 @@ import java.util.Objects;
 public class PrefixCmd extends Command implements UtilityCmd {
     private final Logger logger = LoggerFactory.getLogger(PrefixCmd.class);
     private final PrefixDao prefixDao = PrefixDao.getInstance();
+    private final NewCommandHandler handler;
 
-    public PrefixCmd() {
+    public PrefixCmd(NewCommandHandler handler) {
         this.commandName = "prefix";
         this.commandDescription = "Change the prefix of the guild you're in.";
         this.commandArgs = new String[]{"prefix"};
         this.cooldown = 60;
         this.permissions.put("Administrator", Permission.ADMINISTRATOR);
+        this.handler = handler;
+        this.allowedChannelTypes.add(ChannelType.TEXT);
     }
 
     @Override
@@ -80,7 +85,7 @@ public class PrefixCmd extends Command implements UtilityCmd {
             logger.error("Could not update prefix for guild", e);
             return false;
         }
-        CommandHandler.prefixes.replace(id, prefix);
+        handler.setGuildPrefix(id, prefix);
         return true;
     }
 
