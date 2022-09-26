@@ -181,12 +181,61 @@ public abstract class Command {
     }
 
     /**
+     * Checks if the user is using the command again before the cooldown is over.
+     */
+    public boolean checkCooldown(@NotNull SlashCommandEvent event) {
+        OffsetDateTime currentTime = event.getTimeCreated();
+        String authorId = event.getUser().getId();
+        OffsetDateTime newAvailableTime = event.getTimeCreated().plusSeconds(cooldown);
+        if (cooldownMap.containsKey(authorId)) {
+            OffsetDateTime availableTime = cooldownMap.get(authorId);
+            if (currentTime.isBefore(availableTime)) {
+                long waitTime = availableTime.toEpochSecond() - currentTime.toEpochSecond();
+                event.getChannel().sendTyping().queue();
+                event.getChannel().sendMessage(String.format("You can use this command again in %d seconds.", waitTime))
+                        .queue();
+                return true;
+            } else {
+                cooldownMap.remove(authorId);
+            }
+        } else {
+            cooldownMap.put(authorId, newAvailableTime);
+        }
+        return false;
+    }
+
+    /**
      * Checks if the user is using the command again when its only allowed to have 1 instance open.
      */
     public boolean checkInstanceOpen(@NotNull MessageReceivedEvent event) {
         OffsetDateTime currentTime = event.getMessage().getTimeCreated();
         String authorId = event.getAuthor().getId();
         OffsetDateTime newAvailableTime = event.getMessage().getTimeCreated().plusSeconds(instanceTime);
+        if (gameInstanceMap.containsKey(authorId)) {
+            OffsetDateTime availableTime = gameInstanceMap.get(authorId);
+            if (currentTime.isBefore(availableTime)) {
+                long waitTime = availableTime.toEpochSecond() - currentTime.toEpochSecond();
+                event.getChannel().sendTyping().queue();
+                event.getChannel().sendMessage(String.format("You can only have 1 %s game open at the same time. " +
+                                "Finish your %s game or wait %d seconds.", commandName, commandName, waitTime))
+                        .queue();
+                return true;
+            } else {
+                gameInstanceMap.remove(authorId);
+            }
+        } else {
+            gameInstanceMap.put(authorId, newAvailableTime);
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the user is using the command again when its only allowed to have 1 instance open.
+     */
+    public boolean checkInstanceOpen(@NotNull SlashCommandEvent event) {
+        OffsetDateTime currentTime = event.getTimeCreated();
+        String authorId = event.getUser().getId();
+        OffsetDateTime newAvailableTime = event.getTimeCreated().plusSeconds(instanceTime);
         if (gameInstanceMap.containsKey(authorId)) {
             OffsetDateTime availableTime = gameInstanceMap.get(authorId);
             if (currentTime.isBefore(availableTime)) {
