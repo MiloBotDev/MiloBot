@@ -1,9 +1,6 @@
 package commands;
 
-import database.dao.DailyDao;
 import database.dao.PrefixDao;
-import database.dao.UserDao;
-import database.model.Daily;
 import database.model.Prefix;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -28,8 +25,6 @@ public class NewCommandHandler extends ListenerAdapter {
     }
     private final Map<String, CommandRecord> commands = new HashMap<>();
     public final Map<Long, String> prefixes = new HashMap<>();
-    private final UserDao userDao = UserDao.getInstance();
-    private final DailyDao dailyDao = DailyDao.getInstance();
     private final PrefixDao prefixDao = PrefixDao.getInstance();
     private final Logger logger = LoggerFactory.getLogger(NewCommandHandler.class);
     private final JDA jda;
@@ -170,7 +165,7 @@ public class NewCommandHandler extends ListenerAdapter {
             // check if this user exists in the database otherwise add it
             if (!Users.getInstance().checkIfUserExists(event.getAuthor().getIdLong())) {
                 try {
-                    addUserToDatabase(event.getAuthor());
+                    Users.getInstance().addUserToDatabase(event.getAuthor());
                 } catch (SQLException e) {
                     logger.error("Couldn't add user to database", e);
                     return;
@@ -241,7 +236,7 @@ public class NewCommandHandler extends ListenerAdapter {
             }
             if (!Users.getInstance().checkIfUserExists(event.getUser().getIdLong())) {
                 try {
-                    addUserToDatabase(event.getUser());
+                    Users.getInstance().addUserToDatabase(event.getUser());
                 } catch (SQLException e) {
                     logger.error("Couldn't add user to database", e);
                     return;
@@ -271,13 +266,6 @@ public class NewCommandHandler extends ListenerAdapter {
         } catch (SQLException e) {
             logger.error("Couldn't delete guild from database", e);
         }
-    }
-
-    private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
-        database.model.User newUser = new database.model.User(user.getIdLong());
-        userDao.add(newUser);
-        Daily daily = new Daily(Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId());
-        dailyDao.add(daily);
     }
 
     public boolean setGuildPrefix(long guildId, String prefix) {
