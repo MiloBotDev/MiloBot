@@ -280,7 +280,26 @@ public class NewCommandHandler extends ListenerAdapter {
         dailyDao.add(daily);
     }
 
-    public void setGuildPrefix(long guildId, String prefix) {
+    public boolean setGuildPrefix(long guildId, String prefix) {
+        Prefix prefixDbObj;
+        try {
+            prefixDbObj = prefixDao.getPrefixByGuildId(guildId);
+        } catch (SQLException e) {
+            logger.error("Could not get prefix for guild", e);
+            return false;
+        }
+        try {
+            if (prefixDbObj != null) {
+                prefixDbObj.setPrefix(prefix);
+                prefixDao.update(prefixDbObj);
+            } else {
+                prefixDao.add(new Prefix(guildId, prefix));
+            }
+        } catch (SQLException e) {
+            logger.error("Could not update prefix for guild", e);
+            return false;
+        }
         prefixes.put(guildId, prefix);
+        return true;
     }
 }
