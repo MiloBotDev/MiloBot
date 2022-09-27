@@ -13,6 +13,11 @@ public class NewCommandLoader {
         handler.registerCommand(Executors.newSingleThreadExecutor(), new PokerCmd());
         handler.registerCommand(Executors.newSingleThreadExecutor(), new BlackjackCmd());
         handler.registerCommand(Executors.newSingleThreadExecutor(), new PrefixCmd(handler));
+        // FOR TEMPORARY TESTING ONLY!!!
+        // TODO: remove later
+        NewButtonHandler.getInstance().registerButton("joinLobby", true,
+                Executors.newSingleThreadExecutor(), evt -> System.out.println("works"));
+        jda.addEventListener(NewButtonHandler.getInstance());
         handler.initialize();
     }
 }
