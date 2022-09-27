@@ -1,15 +1,19 @@
 package commands;
 
 import database.dao.DailyDao;
+import database.dao.PrefixDao;
 import database.dao.UserDao;
 import database.model.Daily;
+import database.model.Prefix;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
@@ -26,6 +30,7 @@ public class NewCommandHandler extends ListenerAdapter {
     public final Map<Long, String> prefixes = new HashMap<>();
     private final UserDao userDao = UserDao.getInstance();
     private final DailyDao dailyDao = DailyDao.getInstance();
+    private final PrefixDao prefixDao = PrefixDao.getInstance();
     private final Logger logger = LoggerFactory.getLogger(NewCommandHandler.class);
     private final JDA jda;
 
@@ -68,7 +73,19 @@ public class NewCommandHandler extends ListenerAdapter {
         if (event.isFromGuild()) {
             long guildId = event.getGuild().getIdLong();
             if (!prefixes.containsKey(guildId)) {
-                prefixes.put(guildId, Config.getInstance().getDefaultPrefix());
+                String dbPrefix;
+                try {
+                    Prefix prefixObj = prefixDao.getPrefixByGuildId(guildId);
+                    if (prefixObj == null) {
+                        dbPrefix = Config.getInstance().getDefaultPrefix();
+                    } else {
+                        dbPrefix = prefixObj.getPrefix();
+                    }
+                    prefixes.put(guildId, dbPrefix);
+                } catch (SQLException e) {
+                    logger.error("Error while getting prefix from database", e);
+                    return;
+                }
             }
 
             prefix = prefixes.get(guildId);
@@ -245,10 +262,44 @@ public class NewCommandHandler extends ListenerAdapter {
         });
     }
 
+    @Override
+    public void onGuildLeave(@NotNull GuildLeaveEvent event) {
+        // remove from prefixes using prefixdao from database
+        try {
+            prefixDao.deleteByGuildId(event.getGuild().getIdLong());
+            setGuildPrefix(event.getGuild().getIdLong(), null);
+        } catch (SQLException e) {
+            logger.error("Couldn't delete guild from database", e);
+        }
+    }
+
     private void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
         database.model.User newUser = new database.model.User(user.getIdLong());
         userDao.add(newUser);
         Daily daily = new Daily(Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId());
         dailyDao.add(daily);
+    }
+
+    public boolean setGuildPrefix(long guildId, String prefix) {
+        Prefix prefixDbObj;
+        try {
+            prefixDbObj = prefixDao.getPrefixByGuildId(guildId);
+        } catch (SQLException e) {
+            logger.error("Could not get prefix for guild", e);
+            return false;
+        }
+        try {
+            if (prefixDbObj != null) {
+                prefixDbObj.setPrefix(prefix);
+                prefixDao.update(prefixDbObj);
+            } else {
+                prefixDao.add(new Prefix(guildId, prefix));
+            }
+        } catch (SQLException e) {
+            logger.error("Could not update prefix for guild", e);
+            return false;
+        }
+        prefixes.put(guildId, prefix);
+        return true;
     }
 }
