@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;
@@ -64,7 +65,7 @@ public class BotLobby extends AbstractLobby {
         return eb.build();
     }
 
-    private String generateDescription() {
+    private @NotNull String generateDescription() {
         StringBuilder sb = new StringBuilder();
         sb.append("**Minimum Players:** ").append(this.minPlayers).append("\n");
         sb.append("**Maximum Players:** ").append(this.maxPlayers).append("\n");
@@ -155,6 +156,13 @@ public class BotLobby extends AbstractLobby {
 
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+    }
+
+    public void setBotsOnly() {
+        for(User user : players) {
+            players.remove(user);
+        }
+        fill();
     }
 
     public static class NonPlayerCharacter {

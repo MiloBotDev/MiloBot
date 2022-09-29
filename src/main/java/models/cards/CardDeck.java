@@ -38,6 +38,7 @@ public class CardDeck<T> {
 
     public void refreshDeck(List<T> cardsToAdd) {
         this.deck.addAll(cardsToAdd);
+        System.out.println(cardsToAdd.size());
     }
 
     public void resetDeck() {
@@ -48,5 +49,9 @@ public class CardDeck<T> {
 
     public void shuffleDeck() {
         Collections.shuffle(this.deck);
+    }
+
+    public void removeCard(T card) {
+        this.deck.remove(card);
     }
 }

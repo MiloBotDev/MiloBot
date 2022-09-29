@@ -1,5 +1,6 @@
 package games.uno;
 
+import games.hungergames.models.LobbyEntry;
 import games.uno.models.UnoCard;
 import models.CustomEmoji;
 import models.cards.CardDeck;
@@ -14,29 +15,34 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
-import static games.uno.models.UnoCard.UNO_WILD;
 import static games.uno.models.UnoCard.getColorByName;
 
 public class UnoGame {
 
     private static final ArrayList<UnoGame> unoGames = new ArrayList<>();
-    private final List<User> players = new ArrayList<>();
-    private final Map<User, List<UnoCard>> playerData = new HashMap<>();
+    private final List<LobbyEntry> players = new ArrayList<>();
+    private final Map<LobbyEntry, List<UnoCard>> playerData = new HashMap<>();
     private final CardDeck<UnoCard> deck = new CardDeck<>(List.of(UnoCard.values()));
     private final List<UnoCard> playedCards = new ArrayList<>();
     private MessageChannel channel;
 
     // game specific data
     private UnoCard lastPlayedCard;
-    private User playerToMove;
-    private int round;
+    private LobbyEntry playerToMove;
     private int turn;
     private int maxTurns;
     private int amountToGrab;
     private Color currentColour;
+    private boolean isReversed;
+    private int totalCardsPlayed;
+    private int totalTurnsPassed;
+    private int totalCardsDrawn;
+    private boolean gameEnded;
 
-    public UnoGame(List<User> players) {
+    public UnoGame(List<LobbyEntry> players) {
         this.players.addAll(players);
     }
 
@@ -55,14 +61,19 @@ public class UnoGame {
             }
         }
         this.deck.resetDeck();
+        this.deck.removeCard(this.lastPlayedCard);
+        this.playedCards.add(this.lastPlayedCard);
 
         this.distributeCards();
-        this.round = 1;
         this.turn = 1;
         this.maxTurns = players.size();
         this.amountToGrab = 0;
         this.playerToMove = players.get(0);
         this.currentColour = this.lastPlayedCard.getColor();
+        this.isReversed = false;
+        this.totalCardsPlayed = 0;
+        this.totalTurnsPassed = 0;
+        this.gameEnded = false;
     }
 
     public void start(MessageChannel channel) {
@@ -71,28 +82,39 @@ public class UnoGame {
         } else {
             this.setupGame();
             unoGames.add(this);
-            this.players.forEach(user -> user.openPrivateChannel().queue(privateChannel -> {
-                EmbedBuilder embedBuilder = generatePlayerCardsEmbed(user);
-                privateChannel.sendMessageEmbeds(embedBuilder.build()).queue();
-            }));
+            this.players.forEach(lobbyEntry -> {
+                if (!lobbyEntry.isBot()) {
+                    User user = lobbyEntry.getUser();
+                    user.openPrivateChannel().queue(privateChannel -> {
+                        EmbedBuilder embedBuilder = generatePlayerCardsEmbed(lobbyEntry);
+                        privateChannel.sendMessageEmbeds(embedBuilder.build()).queue();
+                    });
+                }
+            });
             this.channel = channel;
             MessageEmbed build = generateStatusEmbed(String.format("A new game has been started. The starting card is %s",
                     lastPlayedCard.getEmoji().getEmoji())).setThumbnail(lastPlayedCard.getEmoji().getCustomEmojiUrl()).build();
             this.channel.sendMessageEmbeds(build).queue();
-            this.players.forEach(user -> user.openPrivateChannel().queue(privateChannel -> {
-                privateChannel.sendMessageEmbeds(build).queue();
-            }));
-            this.playerData.get(this.players.get(0)).add(UNO_WILD);
+            this.players.forEach(lobbyEntry -> {
+                if (!lobbyEntry.isBot()) {
+                    User user = lobbyEntry.getUser();
+                    user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessageEmbeds(build).queue());
+                }
+            });
+        }
+
+        if(this.playerToMove.isBot()) {
+            this.botMove();
         }
     }
 
     @NotNull
-    private EmbedBuilder generatePlayerCardsEmbed(User user) {
+    private EmbedBuilder generatePlayerCardsEmbed(LobbyEntry lobbyEntry) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setTitle("Your Cards");
         embedBuilder.setColor(Color.BLUE);
         StringBuilder hand = new StringBuilder();
-        playerData.get(user).forEach(card -> hand.append(String.format("%s - %s.\n", card.getEmoji().getEmoji(), card.getNames()[0])));
+        playerData.get(lobbyEntry).forEach(card -> hand.append(String.format("%s - %s.\n", card.getEmoji().getEmoji(), card.getNames()[0])));
         embedBuilder.setDescription(hand.toString());
         return embedBuilder;
     }
@@ -100,9 +122,21 @@ public class UnoGame {
     private @NotNull EmbedBuilder generateStatusEmbed(String message) {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setColor(this.currentColour);
-        embed.setDescription(String.format("%s. It is now %s's turn. The current color is %s.",
-                message, this.playerToMove.getAsMention(), getColorName(this.currentColour)));
-        embed.setFooter(String.format("Round %d, Turn %d/%d", this.round, this.turn, this.maxTurns));
+        if (gameEnded) {
+            embed.setDescription(message);
+        } else {
+            embed.setDescription(String.format("%s\n\n It is now %s's turn.\n\n The current color is %s.",
+                    message, this.playerToMove.getMention(), getColorName(this.currentColour)));
+        }
+        embed.setFooter(String.format("Total cards played: %d. Total turns passed: %d.", this.totalCardsPlayed, this.totalTurnsPassed));
+        return embed;
+    }
+
+    private @NotNull EmbedBuilder generateWinnerEmbed() {
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setColor(this.currentColour);
+        embed.setDescription(String.format("The winner is %s!", this.playerToMove.getMention()));
+        embed.setFooter(String.format("Total cards played: %d. Total turns passed: %d.", this.totalCardsPlayed, this.totalTurnsPassed));
         return embed;
     }
 
@@ -110,11 +144,24 @@ public class UnoGame {
         List<String> receivedMessage = new ArrayList<>(Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
                 .map(String::toLowerCase).toList());
         User author = event.getAuthor();
+        LobbyEntry authorEntry = players.stream().filter(lobbyEntry -> {
+            if(lobbyEntry.getUser() == null) {
+                return false;
+            }
+            return lobbyEntry.getUser().equals(author);
+        }).findFirst().orElse(null);
         if (receivedMessage.get(0).startsWith("hand")) {
-            author.openPrivateChannel().queue(privateChannel -> privateChannel
-                    .sendMessageEmbeds(generatePlayerCardsEmbed(author).build()).queue());
+            players.forEach(lobbyEntry -> {
+                if(lobbyEntry.isBot()) {
+                    return;
+                }
+                if (lobbyEntry.getUser().equals(author)) {
+                    EmbedBuilder embedBuilder = generatePlayerCardsEmbed(lobbyEntry);
+                    lobbyEntry.getUser().openPrivateChannel().queue(privateChannel -> privateChannel.sendMessageEmbeds(embedBuilder.build()).queue());
+                }
+            });
         } else if (receivedMessage.get(0).startsWith("play")) {
-            if (!this.playerToMove.equals(author)) {
+            if (!this.playerToMove.getUser().equals(author)) {
                 event.getChannel().sendMessage("You can only play a card in your own turn.").queue();
                 return;
             }
@@ -122,7 +169,7 @@ public class UnoGame {
             if (receivedMessage.size() > 0) {
                 String cardName = String.join(" ", receivedMessage);
                 Optional<UnoCard> card;
-                if (cardName.startsWith("wild")) {
+                if (cardName.startsWith("wild") && (!cardName.contains("4") || !cardName.contains("four"))) {
                     card = Optional.of(UnoCard.UNO_WILD);
                 } else {
                     card = UnoCard.getCardByName(cardName);
@@ -130,10 +177,18 @@ public class UnoGame {
                 if (card.isEmpty()) {
                     event.getChannel().sendMessage("That is not a valid card.").queue();
                 } else {
-                    List<UnoCard> hand = this.playerData.get(author);
+                    List<UnoCard> hand = this.playerData.get(this.playerToMove);
                     UnoCard cardToPlay = card.get();
                     if (hand.contains(cardToPlay)) {
                         if (isValidMove(cardToPlay)) {
+                            if(hand.size() == 1 && (cardToPlay.getType().equals(UnoCard.UnoCardType.DRAW_TWO) ||
+                                    cardToPlay.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR) ||
+                                    cardToPlay.getType().equals(UnoCard.UnoCardType.SKIP) ||
+                                    cardToPlay.getType().equals(UnoCard.UnoCardType.REVERSE) ||
+                                    cardToPlay.getType().equals(UnoCard.UnoCardType.WILD))) {
+                                channel.sendMessage("You cannot play this card as your last card.").queue();
+                                return;
+                            }
                             if (cardToPlay.equals(UnoCard.UNO_WILD)) {
                                 // check if the user has specified a colour
                                 String[] cardNameArray = cardName.split(" ");
@@ -143,18 +198,18 @@ public class UnoGame {
                                     event.getChannel().sendMessage("That is not a valid color.").queue();
                                     return;
                                 } else {
-                                    playCard(cardToPlay, color.get(), author);
+                                    playCard(cardToPlay, color.get(), authorEntry);
                                 }
                             } else {
-                                playCard(cardToPlay, null, author);
+                                playCard(cardToPlay, null, authorEntry);
                             }
+                            this.totalCardsPlayed++;
                             CustomEmoji emoji = cardToPlay.getEmoji();
                             EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", author.getAsMention(), emoji.getEmoji()));
-                            statusEmbed.setThumbnail(emoji.getCustomEmojiUrl());
-                            this.channel.sendMessageEmbeds(statusEmbed.build()).queue();
-                            players.forEach(user -> user.openPrivateChannel().queue(privateChannel -> {
-                                privateChannel.sendMessageEmbeds(statusEmbed.build()).queue();
-                            }));
+                            generateCardPlayedEmbed(emoji, statusEmbed);
+                            if(this.playerToMove.isBot()) {
+                                this.botMove();
+                            }
                         } else {
                             event.getChannel().sendMessage("You can't play that card.").queue();
                         }
@@ -166,19 +221,26 @@ public class UnoGame {
                 event.getChannel().sendMessage("Please specify a card to play.").queue();
             }
         } else if (receivedMessage.get(0).startsWith("draw")) {
-            if (!this.playerToMove.equals(author)) {
+            if (!this.playerToMove.getUser().equals(author)) {
                 event.getChannel().sendMessage("You can only draw a card in your own turn.").queue();
                 return;
             }
-            drawCard(author);
-            nextRound(author);
-            CustomEmoji emoji = lastPlayedCard.getEmoji();
-            MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card. The last played card was %s",
-                    author.getAsMention(), emoji.getEmoji())).setThumbnail(emoji.getCustomEmojiUrl()).build();
+            drawCard(authorEntry);
+            nextRound();
+            CustomEmoji emoji = CustomEmoji.UNO_BLANK;
+            MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
+                    author.getAsMention(), lastPlayedCard.getEmoji())).setThumbnail(emoji.getCustomEmojiUrl()).build();
             this.channel.sendMessageEmbeds(build).queue();
-            this.players.forEach(user -> user.openPrivateChannel().queue(privateChannel -> {
-                privateChannel.sendMessageEmbeds(build).queue();
-            }));
+            this.players.forEach(lobbyEntry -> {
+                if (!lobbyEntry.isBot()) {
+                    User user = lobbyEntry.getUser();
+                    user.openPrivateChannel().queue(privateChannel -> privateChannel
+                            .sendMessageEmbeds(build).queue());
+                }
+            });
+            if(this.playerToMove.isBot()) {
+                this.botMove();
+            }
         }
     }
 
@@ -195,18 +257,122 @@ public class UnoGame {
         return null;
     }
 
+    private Color getRandomColor() {
+        List<Color> colors = new ArrayList<>(Arrays.asList(Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW));
+        Collections.shuffle(colors);
+        return colors.get(0);
+    }
+
     /**
      * Moves on to the next round.
      */
-    public void nextRound(User user) {
-        this.turn++;
-        if (this.turn > maxTurns) {
-            this.turn = 1;
-            this.round++;
+    public void nextRound() {
+        if(this.playerData.get(this.playerToMove).size() == 0) {
+            this.endGame();
+            return;
         }
-        if (this.playerToMove != null) {
-            this.playerToMove = players.get(this.turn - 1);
+        if (this.isReversed) {
+            this.turn--;
+            if (this.turn < 1) {
+                this.turn = this.maxTurns;
+            }
+        } else {
+            this.turn++;
+            if (this.turn > this.maxTurns) {
+                this.turn = 1;
+            }
         }
+        this.totalTurnsPassed++;
+        this.playerToMove = players.get(this.turn - 1);
+    }
+
+    private void endGame() {
+        this.channel.sendMessageEmbeds(generateWinnerEmbed().build()).queue();
+        this.players.forEach(lobbyEntry -> {
+            if (!lobbyEntry.isBot()) {
+                User user = lobbyEntry.getUser();
+                user.openPrivateChannel().queue(privateChannel -> privateChannel
+                        .sendMessageEmbeds(generateWinnerEmbed().build()).queue());
+            }
+        });
+        this.gameEnded = true;
+        unoGames.remove(this);
+    }
+
+    private void botMove() {
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        LobbyEntry bot = this.playerToMove;
+        List<UnoCard> botHand = this.playerData.get(bot);
+        UnoCard cardToPlay = null;
+        if(lastPlayedCard.getType().equals(UnoCard.UnoCardType.DRAW_TWO) || lastPlayedCard.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) {
+            for(UnoCard card : botHand) {
+                if(card.getType().equals(UnoCard.UnoCardType.DRAW_TWO) || card.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) {
+                    cardToPlay = card;
+                    break;
+                }
+            }
+            if(cardToPlay == null) {
+                for (UnoCard card : botHand) {
+                    if (isValidMove(card)) {
+                        cardToPlay = card;
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (UnoCard card : botHand) {
+                if (isValidMove(card)) {
+                    cardToPlay = card;
+                    break;
+                }
+            }
+        }
+        if (cardToPlay == null) {
+            drawCard(bot);
+            nextRound();
+            CustomEmoji emoji = lastPlayedCard.getEmoji();
+            MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
+                    bot.getMention(), emoji.getEmoji())).setThumbnail(CustomEmoji.UNO_BLANK.getCustomEmojiUrl()).build();
+            this.channel.sendMessageEmbeds(build).queue();
+            this.players.forEach(lobbyEntry -> {
+                if (!lobbyEntry.isBot()) {
+                    User user = lobbyEntry.getUser();
+                    user.openPrivateChannel().queue(privateChannel -> privateChannel
+                            .sendMessageEmbeds(build).queue());
+                }
+            });
+        } else {
+            if (cardToPlay.equals(UnoCard.UNO_WILD)) {
+                // find the most common color in the bots hand
+
+                playCard(cardToPlay, getRandomColor(), bot);
+            } else {
+                playCard(cardToPlay, null, bot);
+            }
+            this.totalCardsPlayed++;
+            CustomEmoji emoji = cardToPlay.getEmoji();
+            EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", bot.getMention(), emoji.getEmoji()));
+            generateCardPlayedEmbed(emoji, statusEmbed);
+        }
+        if(this.playerToMove.isBot()) {
+            this.botMove();
+        }
+    }
+
+    private void generateCardPlayedEmbed(@NotNull CustomEmoji emoji, @NotNull EmbedBuilder statusEmbed) {
+        statusEmbed.setThumbnail(emoji.getCustomEmojiUrl());
+        this.channel.sendMessageEmbeds(statusEmbed.build()).queue();
+        players.forEach(lobbyEntry -> {
+            if (!lobbyEntry.isBot()) {
+                User user = lobbyEntry.getUser();
+                user.openPrivateChannel().queue(privateChannel -> privateChannel
+                        .sendMessageEmbeds(statusEmbed.build()).queue());
+            }
+        });
     }
 
     /**
@@ -216,22 +382,38 @@ public class UnoGame {
      *                   The first number in the int[] is the amount of cars you want to draw.
      * @param userToDraw The user that needs to draw the cards.
      */
-    public void drawCard(User userToDraw, Integer... amount) {
-        this.playerData.forEach((user, unoCards) -> {
+    public void drawCard(LobbyEntry userToDraw, Integer... amount) {
+        this.playerData.forEach((lobbyEntry, unoCards) -> {
             // find the user that needs to draw a card
-            if (userToDraw.getIdLong() == user.getIdLong()) {
+            if (userToDraw.getUserId() == lobbyEntry.getUserId() || Objects.equals(userToDraw.getUserName(), lobbyEntry.getUserName())) {
                 // check if the previously played card is a draw 2 or draw 4 card
                 if ((this.lastPlayedCard.getType().equals(UnoCard.UnoCardType.DRAW_TWO) ||
                         this.lastPlayedCard.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) && this.amountToGrab > 0) {
-                    innerDraw(user, unoCards, this.amountToGrab);
+                    innerDraw(lobbyEntry, unoCards, this.amountToGrab);
+                    generateHadToDrawEmbed(lobbyEntry);
                     this.amountToGrab = 0;
                 }
-                innerDraw(user, unoCards, amount);
+                innerDraw(lobbyEntry, unoCards, amount);
             }
         });
     }
 
-    private void innerDraw(User user, List<UnoCard> unoCards, Integer @NotNull ... amount) {
+    private void generateHadToDrawEmbed(@NotNull LobbyEntry lobbyEntry) {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setColor(Color.RED);
+        embedBuilder.setDescription(String.format("%s had to draw %d cards.", lobbyEntry.getMention(), amountToGrab));
+        MessageEmbed build = embedBuilder.build();
+        this.channel.sendMessageEmbeds(build).queue();
+        this.players.forEach(player -> {
+            if (!player.isBot()) {
+                User user = player.getUser();
+                user.openPrivateChannel().queue(privateChannel -> privateChannel
+                        .sendMessageEmbeds(build).queue());
+            }
+        });
+    }
+
+    private void innerDraw(LobbyEntry user, List<UnoCard> unoCards, Integer @NotNull ... amount) {
         List<Optional<UnoCard>> drawnCards;
         List<UnoCard> cardsToDraw = new ArrayList<>();
         if (amount.length == 0) {
@@ -250,22 +432,25 @@ public class UnoGame {
         }
         // add all cards the players hand
         unoCards.addAll(cardsToDraw);
-        user.openPrivateChannel().queue(privateChannel -> {
-            EmbedBuilder embed = new EmbedBuilder();
-            embed.setColor(Color.BLUE);
-            embed.setTitle("You drew the following card(s):");
-            StringBuilder hand = new StringBuilder();
-            cardsToDraw.forEach(card -> hand.append(String.format("%s - %s.\n", card.getEmoji().getEmoji(), card.getNames()[0])));
-            embed.setDescription(hand.toString());
-            privateChannel.sendMessageEmbeds(embed.build()).queue();
-        });
+        if(!user.isBot()) {
+            user.getUser().openPrivateChannel().queue(privateChannel -> {
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.setColor(Color.BLUE);
+                embed.setTitle("You drew the following card(s):");
+                StringBuilder hand = new StringBuilder();
+                cardsToDraw.forEach(card -> hand.append(String.format("%s - %s.\n", card.getEmoji().getEmoji(), card.getNames()[0])));
+                embed.setDescription(hand.toString());
+                privateChannel.sendMessageEmbeds(embed.build()).queue();
+            });
+        }
+
     }
 
     /**
      * Hands out 7 cards to each player participating.
      */
     private void distributeCards() {
-        for (User participant : this.players) {
+        for (LobbyEntry participant : this.players) {
             List<Optional<UnoCard>> optionalCards = this.deck.drawCards(7);
             List<UnoCard> hand = new ArrayList<>();
             for (Optional<UnoCard> card : optionalCards) {
@@ -310,7 +495,7 @@ public class UnoGame {
         return isValid;
     }
 
-    public void playCard(@NotNull UnoCard cardToPlay, @Nullable Color color, User user) {
+    public void playCard(@NotNull UnoCard cardToPlay, @Nullable Color color, LobbyEntry user) {
         // check if the card can be played
         if (!isValidMove(cardToPlay)) {
             return;
@@ -327,27 +512,19 @@ public class UnoGame {
             // if yes continue to the next player and increment the cards to draw and skip to the next turn
             if (cardToPlayType.equals(UnoCard.UnoCardType.DRAW_TWO) || cardToPlayType.equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) {
                 if (cardToPlayType.equals(UnoCard.UnoCardType.DRAW_TWO)) {
-                    drawTwoCard(cardToPlay, user);
+                    drawTwoCard(cardToPlay);
                 } else {
-                    wildDrawFourCard(cardToPlay, lastPlayedCard, user);
+                    wildDrawFourCard(cardToPlay, lastPlayedCard);
                 }
                 return;
             } else if (this.amountToGrab > 0) {
-                EmbedBuilder embedBuilder = new EmbedBuilder();
-                embedBuilder.setColor(Color.RED);
-                embedBuilder.setDescription(String.format("%s had to draw %d cards.", user.getAsMention(), amountToGrab));
-                MessageEmbed build = embedBuilder.build();
-                this.channel.sendMessageEmbeds(build).queue();
-                this.players.forEach(player -> {
-                    player.openPrivateChannel().queue(privateChannel -> {
-                        privateChannel.sendMessageEmbeds(build).queue();
-                    });
-                });
+                generateHadToDrawEmbed(user);
                 this.playerData.forEach((participant, unoCards) -> {
-                    if (user.getIdLong() == participant.getIdLong()) {
+                    if ((user.getUser() != null && user.getUser().getIdLong() == participant.getUserId())|| user.getUserName().equals(participant.getUserName())) {
                         innerDraw(participant, unoCards, this.amountToGrab);
                     }
                 });
+                this.amountToGrab = 0;
             }
         }
         // the card has the same color
@@ -357,108 +534,139 @@ public class UnoGame {
             if (cardToPlay.getValue() != -1) {
                 this.lastPlayedCard = cardToPlay;
                 this.currentColour = cardToPlay.getColor();
-                this.nextRound(user);
+                this.playedCards.add(cardToPlay);
+                this.nextRound();
             } else {
                 // the card is not numerical, so It's either
                 // a wild a skip or a reverse
                 // the card is a skip
                 if (cardToPlayType.equals(UnoCard.UnoCardType.SKIP)) {
                     // since the card is a skip we increment the turns twice
-                    skipCard(cardToPlay, user);
+                    skipCard(cardToPlay);
                     // the card is a draw 2
                 } else if (cardToPlayType.equals(UnoCard.UnoCardType.DRAW_TWO)) {
-                    drawTwoCard(cardToPlay, user);
+                    drawTwoCard(cardToPlay);
                     // the card is a reverse
                 } else if (cardToPlayType.equals(UnoCard.UnoCardType.REVERSE)) {
-                    reverseCard(cardToPlay, user);
+                    reverseCard(cardToPlay);
                     // the card is a wild
                 } else if (cardToPlayType.equals(UnoCard.UnoCardType.WILD) && color != null) {
-                    wildCard(cardToPlay, color, user);
+                    wildCard(cardToPlay, color);
                 }
             }
             // the card doesn't have the same color but the same numeric value, so it can be played
         } else if ((cardToPlay.getValue() != -1) && (cardToPlay.getValue() == lastPlayedCard.getValue())) {
             this.lastPlayedCard = cardToPlay;
             this.currentColour = cardToPlay.getColor();
-            this.nextRound(user);
+            this.playedCards.add(cardToPlay);
+            this.nextRound();
             // the card doesn't have the same color, but it is of the same type
         } else if (cardToPlay.getType().equals(lastPlayedCard.getType()) || cardToPlay.getType().equals(UnoCard.UnoCardType.WILD)
                 || cardToPlay.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) {
             if (cardToPlayType.equals(UnoCard.UnoCardType.SKIP)) {
                 // since the card is a skip we increment the turns twice
-                skipCard(cardToPlay, user);
+                skipCard(cardToPlay);
                 // the card is a wild draw 4
             } else if (cardToPlay.equals(UnoCard.UNO_WILD_DRAW_FOUR)) {
-                wildDrawFourCard(cardToPlay, lastPlayedCard, user);
+                wildDrawFourCard(cardToPlay, lastPlayedCard);
                 // the card is a reverse
             } else if (cardToPlayType.equals(UnoCard.UnoCardType.REVERSE)) {
-                reverseCard(cardToPlay, user);
+                reverseCard(cardToPlay);
                 // the card is a wild
             } else if (cardToPlayType.equals(UnoCard.UnoCardType.WILD) && color != null) {
-                wildCard(cardToPlay, color, user);
+                wildCard(cardToPlay, color);
             }
         }
         if (this.playerData.get(user).size() == 1) {
             EmbedBuilder embed = new EmbedBuilder();
-            embed.setDescription(String.format("%s has one card left.", user.getAsMention()));
+            embed.setDescription(String.format("%s has one card left.", user.getMention()));
             embed.setColor(Color.BLUE);
             this.channel.sendMessageEmbeds(embed.build()).queue();
             this.players.forEach(player -> {
-                player.openPrivateChannel().queue(privateChannel -> {
-                    privateChannel.sendMessageEmbeds(embed.build()).queue();
-                });
+                if(!player.isBot()) {
+                    player.getUser().openPrivateChannel().queue(privateChannel -> {
+                        privateChannel.sendMessageEmbeds(embed.build()).queue();
+                    });
+                }
             });
-        } else if (this.playerData.get(user).size() == 0) {
-            EmbedBuilder embed = new EmbedBuilder();
-            embed.setDescription(String.format("%s has won the game!", user.getAsMention()));
-            embed.setColor(Color.GREEN);
-            this.channel.sendMessageEmbeds(embed.build()).queue();
-            this.players.forEach(player -> {
-                player.openPrivateChannel().queue(privateChannel -> {
-                    privateChannel.sendMessageEmbeds(embed.build()).queue();
-                });
-            });
-            unoGames.remove(this);
         }
     }
 
-    private void skipCard(@NotNull UnoCard cardToPlay, User user) {
+    private void skipCard(@NotNull UnoCard cardToPlay) {
         this.lastPlayedCard = cardToPlay;
         this.currentColour = cardToPlay.getColor();
-        this.nextRound(user);
-        this.nextRound(user);
+        this.nextRound();
+        this.nextRound();
+        this.playedCards.add(cardToPlay);
     }
 
-    private void drawTwoCard(@NotNull UnoCard cardToPlay, User user) {
+    private void drawTwoCard(@NotNull UnoCard cardToPlay) {
         this.lastPlayedCard = cardToPlay;
         this.currentColour = cardToPlay.getColor();
         this.amountToGrab += 2;
-        this.nextRound(user);
+        this.nextRound();
+        this.playedCards.add(cardToPlay);
     }
 
-    private void wildDrawFourCard(@NotNull UnoCard cardToPlay, @NotNull UnoCard lastPlayedCard, User user) {
-        this.lastPlayedCard = cardToPlay;
+    private void wildDrawFourCard(@NotNull UnoCard cardToPlay, @NotNull UnoCard lastPlayedCard) {
         this.currentColour = lastPlayedCard.getColor();
+        this.lastPlayedCard = cardToPlay;
         this.amountToGrab += 4;
-        this.nextRound(user);
+        this.nextRound();
+        this.playedCards.add(cardToPlay);
     }
 
-    private void reverseCard(@NotNull UnoCard cardToPlay, User user) {
+    private void reverseCard(@NotNull UnoCard cardToPlay) {
         this.lastPlayedCard = cardToPlay;
         this.currentColour = cardToPlay.getColor();
-//        Collections.reverse(this.players);
-        this.nextRound(user);
+        this.isReversed = !this.isReversed;
+        this.nextRound();
+        this.playedCards.add(cardToPlay);
     }
 
-    private void wildCard(@NotNull UnoCard cardToPlay, @NotNull Color color, User user) {
+    private void wildCard(@NotNull UnoCard cardToPlay, @NotNull Color color) {
         this.lastPlayedCard = cardToPlay;
         this.currentColour = color;
-        this.nextRound(user);
+        this.nextRound();
+        this.playedCards.add(cardToPlay);
     }
 
     public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
             new ArrayList<>(unoGames).forEach(game -> game.onMessage(event));
+        }
+    }
+
+    private class UnoPlayerData {
+
+        private final User user;
+        private int totalCardsPlayed;
+        private int totalCardsDrawn;
+
+        public UnoPlayerData(User user) {
+            this.user = user;
+            this.totalCardsPlayed = 0;
+            this.totalCardsDrawn = 0;
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public int getTotalCardsPlayed() {
+            return totalCardsPlayed;
+        }
+
+        public int getTotalCardsDrawn() {
+            return totalCardsDrawn;
+        }
+
+        public void incrementTotalCardsPlayed() {
+            this.totalCardsPlayed++;
+        }
+
+        public void incrementTotalCardsDrawn() {
+            this.totalCardsDrawn++;
         }
     }
 

@@ -1,8 +1,12 @@
 package games.hungergames.models;
 
+import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.NotNull;
+
 public class LobbyEntry {
 
     private final long userId;
+    private final User user;
     private final String username;
     private final String mention;
     private final boolean isBot;
@@ -12,6 +16,15 @@ public class LobbyEntry {
         this.username = username;
         this.mention = mention;
         this.isBot = false;
+        this.user = null;
+    }
+
+    public LobbyEntry(@NotNull User user) {
+        this.userId = user.getIdLong();
+        this.username = user.getName();
+        this.mention = user.getAsMention();
+        this.isBot = user.isBot();
+        this.user = user;
     }
 
     public LobbyEntry(String username) {
@@ -19,6 +32,7 @@ public class LobbyEntry {
         this.username = username;
         this.mention = username;
         this.isBot = true;
+        this.user = null;
     }
 
     public long getUserId() {
@@ -35,5 +49,9 @@ public class LobbyEntry {
 
     public boolean isBot() {
         return isBot;
+    }
+
+    public User getUser() {
+        return user;
     }
 }
