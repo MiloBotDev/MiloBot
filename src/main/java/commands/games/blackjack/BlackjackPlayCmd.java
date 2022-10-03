@@ -2,9 +2,11 @@ package commands.games.blackjack;
 
 import commands.Command;
 import commands.SubCmd;
+import database.util.NewDatabaseConnection;
 import games.Blackjack;
 import models.cards.PlayingCard;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +37,8 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
         this.commandName = "play";
         this.commandDescription = "Play a game of blackjack on discord.";
         this.commandArgs = new String[]{"bet*"};
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     public static @NotNull EmbedBuilder generateBlackjackEmbed(@NotNull User user, Blackjack.BlackjackStates state) {
@@ -158,10 +163,10 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
             }
         }
 
-        try {
-            if (blackjackDao.getByUserDiscordId(authorIdLong) == null) {
-                blackjackDao.add(new database.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
-                        .getId()));
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            if (blackjackDao.getByUserDiscordId(con, authorIdLong) == null) {
+                blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
+                        userDao.getUserByDiscordId(authorIdLong)).getId()));
             }
         } catch (SQLException e) {
             logger.error("Error creating blackjack entry for user in database when user wanted to play blackjack.", e);
@@ -228,10 +233,10 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
             }
         }
 
-        try {
-            if (blackjackDao.getByUserDiscordId(authorIdLong) == null) {
-                blackjackDao.add(new database.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
-                        .getId()));
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            if (blackjackDao.getByUserDiscordId(con, authorIdLong) == null) {
+                blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
+                        userDao.getUserByDiscordId(authorIdLong)).getId()));
             }
         } catch (SQLException e) {
             logger.error("Error creating blackjack entry for user in database when user wanted to play blackjack.", e);
