@@ -2,6 +2,7 @@ package database.dao;
 
 import database.model.User;
 import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -70,6 +71,18 @@ public class UserDao {
         ps.executeUpdate();
     }
 
+    public void update(Connection con, @NotNull User user) throws SQLException {
+        String query = "UPDATE users SET discord_id = ?, currency = ?, level = ?, experience = ? WHERE id = ?";
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, user.getDiscordId());
+            ps.setInt(2, user.getCurrency());
+            ps.setInt(3, user.getLevel());
+            ps.setInt(4, user.getExperience());
+            ps.setInt(5, user.getId());
+            ps.executeUpdate();
+        }
+    }
+
     @Nullable
     public User getUserByDiscordId(long discordId) throws SQLException {
         String query = "SELECT * FROM users WHERE discord_id = ?";
@@ -83,6 +96,23 @@ public class UserDao {
                     rs.getInt("level"), rs.getInt("experience"));
         } else {
             return null;
+        }
+    }
+
+    @Nullable
+    public User getUserByDiscordId(Connection con, long discordId, RowLockType lockType) throws SQLException {
+        String query = lockType.getQueryWithLock("SELECT * FROM users WHERE discord_id = ?");
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, discordId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new User(rs.getInt("id"), rs.getLong("discord_id"),
+                            rs.getInt("currency"), rs.getInt("level"),
+                            rs.getInt("experience"));
+                } else {
+                    return null;
+                }
+            }
         }
     }
 
