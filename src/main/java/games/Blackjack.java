@@ -1,6 +1,7 @@
 package games;
 
 import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import models.cards.CardDeck;
 import models.cards.PlayingCard;
 import database.dao.BlackjackDao;
@@ -63,37 +64,34 @@ public class Blackjack {
     }
 
     public void updateWallet(@Nullable BlackjackStates state) {
-        database.model.User user;
-        try {
-            user = userDao.getUserByDiscordId(userDiscordId);
-        } catch (SQLException e) {
-            logger.error("Error getting user from database when user wanted to play blackjack.", e);
-            return;
-        }
-        int playerWallet = Objects.requireNonNull(user).getCurrency();
-        int newWallet;
-        if (state == null) {
-            newWallet = playerWallet - playerBet;
-        } else {
-            if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
-                this.winnings = (int) Math.ceil(((double) playerBet) * 1.5d);
-                int ceil = (int) Math.ceil(((double) playerBet) * 2.5d);
-                newWallet = playerWallet + ceil;
-            } else if (state.equals(BlackjackStates.PLAYER_WIN)) {
-                this.winnings = playerBet;
-                int i = winnings * 2;
-                newWallet = playerWallet + i;
-            } else if (state.equals(BlackjackStates.DRAW)) {
-                this.winnings = playerBet;
-                newWallet = playerWallet + playerBet;
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            database.model.User user;
+            user = userDao.getUserByDiscordId(con, userDiscordId, RowLockType.FOR_UPDATE);
+            int playerWallet = Objects.requireNonNull(user).getCurrency();
+            int newWallet;
+            if (state == null) {
+                newWallet = playerWallet - playerBet;
             } else {
-                this.winnings = playerBet;
-                newWallet = playerWallet;
+                if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+                    this.winnings = (int) Math.ceil(((double) playerBet) * 1.5d);
+                    int ceil = (int) Math.ceil(((double) playerBet) * 2.5d);
+                    newWallet = playerWallet + ceil;
+                } else if (state.equals(BlackjackStates.PLAYER_WIN)) {
+                    this.winnings = playerBet;
+                    int i = winnings * 2;
+                    newWallet = playerWallet + i;
+                } else if (state.equals(BlackjackStates.DRAW)) {
+                    this.winnings = playerBet;
+                    newWallet = playerWallet + playerBet;
+                } else {
+                    this.winnings = playerBet;
+                    newWallet = playerWallet;
+                }
             }
-        }
-        user.setCurrency(newWallet);
-        try {
-            userDao.update(user);
+            user.setCurrency(newWallet);
+            userDao.update(con, user);
+            con.commit();
         } catch (SQLException e) {
             logger.error("Blackjack error updating user in database when attempted to update wallet.", e);
         }
