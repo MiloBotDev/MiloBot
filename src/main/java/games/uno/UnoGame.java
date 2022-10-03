@@ -16,7 +16,6 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 import static games.uno.models.UnoCard.getColorByName;
 
@@ -229,7 +228,7 @@ public class UnoGame {
             nextRound();
             CustomEmoji emoji = CustomEmoji.UNO_BLANK;
             MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
-                    author.getAsMention(), lastPlayedCard.getEmoji())).setThumbnail(emoji.getCustomEmojiUrl()).build();
+                    author.getAsMention(), lastPlayedCard.getEmoji().getEmoji())).setThumbnail(emoji.getCustomEmojiUrl()).build();
             this.channel.sendMessageEmbeds(build).queue();
             this.players.forEach(lobbyEntry -> {
                 if (!lobbyEntry.isBot()) {

@@ -10,7 +10,7 @@ import commands.games.uno.UnoCmd;
 import commands.games.wordle.WordleCmd;
 import commands.morbconomy.daily.DailyCmd;
 import commands.morbconomy.ProfileCmd;
-import commands.morbconomy.WalletCmd;
+import commands.morbconomy.bank.BankCmd;
 import commands.utility.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 /**
  * Loads in every command.
@@ -46,7 +45,7 @@ public class CommandLoader {
         commands.add(new BugCmd());
         commands.add(new EncounterCmd());
         commands.add(new BlackjackCmd());
-        commands.add(new WalletCmd());
+        commands.add(new BankCmd());
         commands.add(new DailyCmd());
         commands.add(new HungerGamesCmd());
         commands.add(new PokerCmd());
@@ -126,6 +125,17 @@ public class CommandLoader {
 
                 .addCommands(new CommandData("usage", "See the amount of times each or a specific command has been used.").addOption(
                         OptionType.STRING, "command", "The command you want to check the usage of", false
+                ))
+
+                .addCommands(new CommandData("bank", "All commands related to your virtual bank.").addSubcommands(
+                        new SubcommandData("balance", "Check your bank balance."),
+                        new SubcommandData("transfer", "Send some morbcoins to another user.")
+                                .addOptions(
+                                        new OptionData(OptionType.INTEGER, "amount", "The amount of morbcoins you want to send", true)
+                                                .setRequiredRange(1, 10000),
+                                        new OptionData(OptionType.USER, "user", "The user you want to send morbcoins to.", true)
+                                )
+
                 ))
 
                 .queue();
