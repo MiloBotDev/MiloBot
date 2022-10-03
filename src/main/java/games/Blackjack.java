@@ -1,5 +1,6 @@
 package games;
 
+import database.util.NewDatabaseConnection;
 import models.cards.CardDeck;
 import models.cards.PlayingCard;
 import database.dao.BlackjackDao;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -178,8 +180,8 @@ public class Blackjack {
 
     private void updateBlackjackDatabase(BlackjackStates state) {
         database.model.Blackjack blackjack;
-        try {
-            blackjack = Objects.requireNonNull(blackjackDao.getByUserDiscordId(userDiscordId));
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            blackjack = Objects.requireNonNull(blackjackDao.getByUserDiscordId(con, userDiscordId));
         } catch (SQLException e) {
             logger.error("Error getting blackjack entry from database when updating blackjack database.", e);
             return;
@@ -193,8 +195,8 @@ public class Blackjack {
             // it's a loss;
             blackjack.addGame(database.model.Blackjack.BlackjackResult.LOSS, -this.winnings);
         }
-        try {
-            blackjackDao.update(blackjack);
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            blackjackDao.update(con, blackjack);
         } catch (SQLException e) {
             logger.error("Error updating blackjack entry in database when updating blackjack database.", e);
         }
