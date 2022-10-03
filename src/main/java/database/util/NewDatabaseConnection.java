@@ -26,7 +26,7 @@ public class NewDatabaseConnection {
 
     private static void setupDataSource(String connectURI, String user, String password) {
         BasicDataSource ds = new BasicDataSource();
-        ds.setDriverClassName("org.h2.Driver");
+        ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
         ds.setUrl(connectURI);
         ds.setUsername(user);
         ds.setPassword(password);
