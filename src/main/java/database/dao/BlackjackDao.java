@@ -57,32 +57,34 @@ public class BlackjackDao {
     public void add(@NotNull Connection con, @NotNull Blackjack blackjack) throws SQLException {
         String query = "INSERT INTO blackjack (user_id, won_last_game, streak, total_games, total_wins, total_draws, " +
                 "total_earnings, highest_streak) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, blackjack.getUserId());
-        ps.setBoolean(2, blackjack.wonLastGame());
-        ps.setInt(3, blackjack.getStreak());
-        ps.setInt(4, blackjack.getTotalGames());
-        ps.setInt(5, blackjack.getTotalWins());
-        ps.setInt(6, blackjack.getTotalDraws());
-        ps.setInt(7, blackjack.getTotalEarnings());
-        ps.setInt(8, blackjack.getHighestStreak());
-        ps.executeUpdate();
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, blackjack.getUserId());
+            ps.setBoolean(2, blackjack.wonLastGame());
+            ps.setInt(3, blackjack.getStreak());
+            ps.setInt(4, blackjack.getTotalGames());
+            ps.setInt(5, blackjack.getTotalWins());
+            ps.setInt(6, blackjack.getTotalDraws());
+            ps.setInt(7, blackjack.getTotalEarnings());
+            ps.setInt(8, blackjack.getHighestStreak());
+            ps.executeUpdate();
+        }
     }
 
     public void update(@NotNull Connection con, @NotNull Blackjack blackjack) throws SQLException {
         String query = "UPDATE blackjack SET user_id = ?, won_last_game = ?, streak = ?, total_games = ?, " +
                 "total_wins = ?, total_draws = ?, total_earnings = ?, highest_streak = ? WHERE id = ?";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, blackjack.getUserId());
-        ps.setBoolean(2, blackjack.wonLastGame());
-        ps.setInt(3, blackjack.getStreak());
-        ps.setInt(4, blackjack.getTotalGames());
-        ps.setInt(5, blackjack.getTotalWins());
-        ps.setInt(6, blackjack.getTotalDraws());
-        ps.setInt(7, blackjack.getTotalEarnings());
-        ps.setInt(8, blackjack.getHighestStreak());
-        ps.setInt(9, blackjack.getId());
-        ps.executeUpdate();
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, blackjack.getUserId());
+            ps.setBoolean(2, blackjack.wonLastGame());
+            ps.setInt(3, blackjack.getStreak());
+            ps.setInt(4, blackjack.getTotalGames());
+            ps.setInt(5, blackjack.getTotalWins());
+            ps.setInt(6, blackjack.getTotalDraws());
+            ps.setInt(7, blackjack.getTotalEarnings());
+            ps.setInt(8, blackjack.getHighestStreak());
+            ps.setInt(9, blackjack.getId());
+            ps.executeUpdate();
+        }
     }
 
     public List<Blackjack> getTopTotalGamesPlayed() throws SQLException {
@@ -140,14 +142,18 @@ public class BlackjackDao {
     @Nullable
     public Blackjack getByUserDiscordId(@NotNull Connection con, long userDiscordId) throws SQLException {
         String query = "SELECT * FROM blackjack INNER JOIN users ON blackjack.user_id = users.id WHERE users.discord_id = ?";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setLong(1, userDiscordId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return new Blackjack(rs.getInt("id"), rs.getInt("user_id"), rs.getBoolean("won_last_game"),
-                    rs.getInt("streak"), rs.getInt("total_games"), rs.getInt("total_wins"), rs.getInt("total_draws"),
-                    rs.getInt("total_earnings"), rs.getInt("highest_streak"));
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, userDiscordId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Blackjack(rs.getInt("id"), rs.getInt("user_id"),
+                            rs.getBoolean("won_last_game"),
+                            rs.getInt("streak"), rs.getInt("total_games"),
+                            rs.getInt("total_wins"), rs.getInt("total_draws"),
+                            rs.getInt("total_earnings"), rs.getInt("highest_streak"));
+                }
+                return null;
+            }
         }
-        return null;
     }
 }
