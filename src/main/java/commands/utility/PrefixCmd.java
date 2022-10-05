@@ -1,17 +1,13 @@
 package commands.utility;
 
 import commands.Command;
-import commands.CommandHandler;
+import commands.NewCommandHandler;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import database.dao.PrefixDao;
-import database.model.Prefix;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -20,15 +16,16 @@ import java.util.Objects;
  * Change the prefix the bot listens to for a guild.
  */
 public class PrefixCmd extends Command implements UtilityCmd {
-    private final Logger logger = LoggerFactory.getLogger(PrefixCmd.class);
-    private final PrefixDao prefixDao = PrefixDao.getInstance();
+    private final NewCommandHandler handler;
 
-    public PrefixCmd() {
+    public PrefixCmd(NewCommandHandler handler) {
         this.commandName = "prefix";
         this.commandDescription = "Change the prefix of the guild you're in.";
         this.commandArgs = new String[]{"prefix"};
         this.cooldown = 60;
         this.permissions.put("Administrator", Permission.ADMINISTRATOR);
+        this.handler = handler;
+        this.allowedChannelTypes.add(ChannelType.TEXT);
     }
 
     @Override
@@ -66,22 +63,7 @@ public class PrefixCmd extends Command implements UtilityCmd {
     }
 
     private boolean updatePrefix(String prefix, long id) {
-        Prefix prefixDbObj;
-        try {
-            prefixDbObj = prefixDao.getPrefixByGuildId(id);
-        } catch (SQLException e) {
-            logger.error("Could not get prefix for guild", e);
-            return false;
-        }
-        Objects.requireNonNull(prefixDbObj).setPrefix(prefix);
-        try {
-            prefixDao.update(prefixDbObj);
-        } catch (SQLException e) {
-            logger.error("Could not update prefix for guild", e);
-            return false;
-        }
-        CommandHandler.prefixes.replace(id, prefix);
-        return true;
+        return handler.setGuildPrefix(id, prefix);
     }
 
     private boolean isValidPrefix(@NotNull String prefix) {

@@ -37,7 +37,7 @@ public class CommandLoader {
         commands.add(HelpCmd.getInstance());
         commands.add(new InviteCmd());
         commands.add(new StatusCmd());
-        commands.add(new PrefixCmd());
+        //commands.add(new PrefixCmd());
         commands.add(new UsageCmd());
         commands.add(new UserCmd());
         commands.add(new ProfileCmd());
