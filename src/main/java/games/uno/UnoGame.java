@@ -1,7 +1,6 @@
 package games.uno;
 
 import games.hungergames.models.LobbyEntry;
-import games.uno.models.UnoCard;
 import models.CustomEmoji;
 import models.cards.CardDeck;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -15,9 +14,10 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static games.uno.models.UnoCard.getColorByName;
+import static games.uno.UnoCard.*;
 
 public class UnoGame {
 
@@ -103,7 +103,7 @@ public class UnoGame {
         }
 
         if(this.playerToMove.isBot()) {
-            this.botMove();
+            Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
         }
     }
 
@@ -140,6 +140,9 @@ public class UnoGame {
     }
 
     private void onMessage(@NotNull MessageReceivedEvent event) {
+        if(this.gameEnded) {
+            return;
+        }
         List<String> receivedMessage = new ArrayList<>(Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
                 .map(String::toLowerCase).toList());
         User author = event.getAuthor();
@@ -185,7 +188,7 @@ public class UnoGame {
                                     cardToPlay.getType().equals(UnoCard.UnoCardType.SKIP) ||
                                     cardToPlay.getType().equals(UnoCard.UnoCardType.REVERSE) ||
                                     cardToPlay.getType().equals(UnoCard.UnoCardType.WILD))) {
-                                channel.sendMessage("You cannot play this card as your last card.").queue();
+                                event.getChannel().sendMessage("You cannot play this card as your last card.").queue();
                                 return;
                             }
                             if (cardToPlay.equals(UnoCard.UNO_WILD)) {
@@ -207,7 +210,7 @@ public class UnoGame {
                             EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", author.getAsMention(), emoji.getEmoji()));
                             generateCardPlayedEmbed(emoji, statusEmbed);
                             if(this.playerToMove.isBot()) {
-                                this.botMove();
+                                Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
                             }
                         } else {
                             event.getChannel().sendMessage("You can't play that card.").queue();
@@ -220,13 +223,13 @@ public class UnoGame {
                 event.getChannel().sendMessage("Please specify a card to play.").queue();
             }
         } else if (receivedMessage.get(0).startsWith("draw")) {
-            if (!this.playerToMove.getUser().equals(author)) {
+            if (this.playerToMove.getUser() != null && !this.playerToMove.getUser().equals(author)) {
                 event.getChannel().sendMessage("You can only draw a card in your own turn.").queue();
                 return;
             }
             drawCard(authorEntry);
             nextRound();
-            CustomEmoji emoji = CustomEmoji.UNO_BLANK;
+            CustomEmoji emoji = lastPlayedCard.getEmoji();
             MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
                     author.getAsMention(), lastPlayedCard.getEmoji().getEmoji())).setThumbnail(emoji.getCustomEmojiUrl()).build();
             this.channel.sendMessageEmbeds(build).queue();
@@ -238,7 +241,7 @@ public class UnoGame {
                 }
             });
             if(this.playerToMove.isBot()) {
-                this.botMove();
+                Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
             }
         }
     }
@@ -286,12 +289,12 @@ public class UnoGame {
     }
 
     private void endGame() {
-        this.channel.sendMessageEmbeds(generateWinnerEmbed().build()).queue();
+        this.channel.sendMessageEmbeds(generateWinnerEmbed().build()).queueAfter(1, TimeUnit.SECONDS);
         this.players.forEach(lobbyEntry -> {
             if (!lobbyEntry.isBot()) {
                 User user = lobbyEntry.getUser();
                 user.openPrivateChannel().queue(privateChannel -> privateChannel
-                        .sendMessageEmbeds(generateWinnerEmbed().build()).queue());
+                        .sendMessageEmbeds(generateWinnerEmbed().build()).queueAfter(1, TimeUnit.SECONDS));
             }
         });
         this.gameEnded = true;
@@ -299,15 +302,14 @@ public class UnoGame {
     }
 
     private void botMove() {
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if(this.gameEnded) {
+            return;
         }
         LobbyEntry bot = this.playerToMove;
         List<UnoCard> botHand = this.playerData.get(bot);
         UnoCard cardToPlay = null;
-        if(lastPlayedCard.getType().equals(UnoCard.UnoCardType.DRAW_TWO) || lastPlayedCard.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) {
+        if(((lastPlayedCard.getType().equals(UnoCard.UnoCardType.DRAW_TWO) ||
+                lastPlayedCard.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) && botHand.size() > 1)) {
             for(UnoCard card : botHand) {
                 if(card.getType().equals(UnoCard.UnoCardType.DRAW_TWO) || card.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) {
                     cardToPlay = card;
@@ -316,7 +318,8 @@ public class UnoGame {
             }
             if(cardToPlay == null) {
                 for (UnoCard card : botHand) {
-                    if (isValidMove(card)) {
+                    if (isValidMove(card) &&
+                            ((botHand.size() == 1 && card.getType().equals(UnoCard.UnoCardType.NUMBER)) || botHand.size() > 1)) {
                         cardToPlay = card;
                         break;
                     }
@@ -324,7 +327,8 @@ public class UnoGame {
             }
         } else {
             for (UnoCard card : botHand) {
-                if (isValidMove(card)) {
+                if (isValidMove(card) &&
+                        ((botHand.size() == 1 && card.getType().equals(UnoCard.UnoCardType.NUMBER)) || botHand.size() > 1)) {
                     cardToPlay = card;
                     break;
                 }
@@ -335,7 +339,7 @@ public class UnoGame {
             nextRound();
             CustomEmoji emoji = lastPlayedCard.getEmoji();
             MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
-                    bot.getMention(), emoji.getEmoji())).setThumbnail(CustomEmoji.UNO_BLANK.getCustomEmojiUrl()).build();
+                    bot.getMention(), emoji.getEmoji())).setThumbnail(lastPlayedCard.getEmoji().getCustomEmojiUrl()).build();
             this.channel.sendMessageEmbeds(build).queue();
             this.players.forEach(lobbyEntry -> {
                 if (!lobbyEntry.isBot()) {
@@ -347,7 +351,6 @@ public class UnoGame {
         } else {
             if (cardToPlay.equals(UnoCard.UNO_WILD)) {
                 // find the most common color in the bots hand
-
                 playCard(cardToPlay, getRandomColor(), bot);
             } else {
                 playCard(cardToPlay, null, bot);
@@ -358,7 +361,7 @@ public class UnoGame {
             generateCardPlayedEmbed(emoji, statusEmbed);
         }
         if(this.playerToMove.isBot()) {
-            this.botMove();
+            Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
         }
     }
 
@@ -515,6 +518,7 @@ public class UnoGame {
                 } else {
                     wildDrawFourCard(cardToPlay, lastPlayedCard);
                 }
+                checkCardsLeft(user);
                 return;
             } else if (this.amountToGrab > 0) {
                 generateHadToDrawEmbed(user);
@@ -576,15 +580,19 @@ public class UnoGame {
                 wildCard(cardToPlay, color);
             }
         }
+        checkCardsLeft(user);
+    }
+
+    private void checkCardsLeft(LobbyEntry user) {
         if (this.playerData.get(user).size() == 1) {
             EmbedBuilder embed = new EmbedBuilder();
             embed.setDescription(String.format("%s has one card left.", user.getMention()));
             embed.setColor(Color.BLUE);
-            this.channel.sendMessageEmbeds(embed.build()).queue();
+            this.channel.sendMessageEmbeds(embed.build()).queueAfter(1, TimeUnit.SECONDS);
             this.players.forEach(player -> {
                 if(!player.isBot()) {
                     player.getUser().openPrivateChannel().queue(privateChannel -> {
-                        privateChannel.sendMessageEmbeds(embed.build()).queue();
+                        privateChannel.sendMessageEmbeds(embed.build()).queueAfter(1, TimeUnit.SECONDS);
                     });
                 }
             });

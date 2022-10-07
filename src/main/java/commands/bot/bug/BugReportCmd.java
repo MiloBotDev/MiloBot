@@ -93,7 +93,7 @@ public class BugReportCmd extends Command implements SubCmd {
         event.reply("Please continue the bug report in the DM with Milobot.").queue();
     }
 
-    private void onMessage(MessageReceivedEvent event) {
+    private void onMessage(@NotNull MessageReceivedEvent event) {
         if (event.getMessage().getContentRaw().startsWith(Config.getInstance().getPrivateChannelPrefix()) ||
                 event.getChannelType() != ChannelType.PRIVATE || event.getAuthor().isBot()) {
             return;

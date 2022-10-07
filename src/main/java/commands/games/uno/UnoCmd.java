@@ -14,6 +14,7 @@ public class UnoCmd extends Command implements GamesCmd, ParentCmd {
         this.commandName = "uno";
         this.commandDescription = "Play Uno with your friends!";
         this.subCommands.add(new UnoHostCmd());
+        this.subCommands.add(new UnoBotCmd());
         this.listeners.add(new ListenerAdapter() {
             @Override
             public void onMessageReceived(@NotNull MessageReceivedEvent event) {

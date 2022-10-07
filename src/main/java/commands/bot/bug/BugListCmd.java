@@ -15,18 +15,20 @@ import utility.Paginator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * Displays all issues labeled as a bug.
  */
 public class BugListCmd extends Command implements SubCmd {
 
+    private final static ResourceBundle resourceBundle = ResourceBundle.getBundle("localization.MiloBot_en_US", Locale.getDefault());
     private final GitHubBot gitHubBot;
 
     public BugListCmd() {
-        this.commandName = "list";
-        this.commandDescription = "Shows a list of all reported bugs.";
-
+        this.commandName = resourceBundle.getString("bugListCommandName");
+        this.commandDescription = resourceBundle.getString("bugListCommandDescription");
         this.gitHubBot = GitHubBot.getInstance();
     }
 

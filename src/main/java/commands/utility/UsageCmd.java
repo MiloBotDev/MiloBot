@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import utility.EmbedUtils;
@@ -26,7 +27,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class UsageCmd extends Command implements UtilityCmd {
 
     private final CommandTrackerDao commandTrackerDao = CommandTrackerDao.getInstance();
-    private final UserDao userDao = UserDao.getInstance();
 
     public UsageCmd() {
         this.commandName = "usage";
@@ -38,18 +38,22 @@ public class UsageCmd extends Command implements UtilityCmd {
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         if(args.size() == 0) {
-            event.getChannel().sendMessageEmbeds(createUsageEmbed(event.getAuthor(), null).build()).queue();
+            event.getChannel().sendMessageEmbeds(createUsageEmbed(event.getAuthor(), null).build())
+                    .setActionRow(Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
         } else {
-            event.getChannel().sendMessageEmbeds(createUsageEmbed(event.getAuthor(), String.join(" ", args)).build()).queue();
+            event.getChannel().sendMessageEmbeds(createUsageEmbed(event.getAuthor(), String.join(" ", args)).build())
+                    .setActionRow(Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
         }
     }
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
         if(event.getOption("command") == null) {
-            event.replyEmbeds(createUsageEmbed(event.getUser(), null).build()).queue();
+            event.replyEmbeds(createUsageEmbed(event.getUser(), null).build()).
+                    addActionRow(Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
         } else {
-            event.replyEmbeds(createUsageEmbed(event.getUser(), Objects.requireNonNull(event.getOption("command")).getAsString()).build()).queue();
+            event.replyEmbeds(createUsageEmbed(event.getUser(), Objects.requireNonNull(event.getOption("command")).getAsString()).build())
+                    .addActionRow(Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
         }
     }
 

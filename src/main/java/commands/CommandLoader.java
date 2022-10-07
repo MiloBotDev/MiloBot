@@ -50,6 +50,7 @@ public class CommandLoader {
         commands.add(new HungerGamesCmd());
         commands.add(new PokerCmd());
         commands.add(new UnoCmd());
+        commands.add(new ServerCmd());
 
         commands.stream().flatMap(command -> command.listeners.stream()).forEach(bot::addEventListener);
         commands.stream().flatMap(command -> command.subCommands.stream())
@@ -137,6 +138,8 @@ public class CommandLoader {
                                 )
 
                 ))
+
+                .addCommands(new CommandData("server", "Shows information on the guild you are using this command in."))
 
                 .queue();
     }

@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -17,8 +18,6 @@ import java.util.Objects;
 
 /**
  * Shows the user an overview of their own account details, or that of someone in the same server.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
 public class UserCmd extends Command implements UtilityCmd {
 
@@ -105,7 +104,6 @@ public class UserCmd extends Command implements UtilityCmd {
 
         userEmbed.addField("Account Created", user.getTimeCreated().format(dtf), false);
 
-        event.getChannel().sendMessageEmbeds(userEmbed.build()).queue(EmbedUtils.deleteEmbedButton(event,
-                event.getAuthor().getId()));
+        event.getChannel().sendMessageEmbeds(userEmbed.build()).setActionRow(Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }
 }

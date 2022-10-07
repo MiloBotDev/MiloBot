@@ -26,7 +26,7 @@ public class UnoHostCmd extends Command implements SubCmd {
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        int maxPlayers = 8;
+        int maxPlayers = 4;
         MessageChannel channel = event.getChannel();
         BotLobby unoLobby = new BotLobby("Uno Lobby", event.getAuthor(),
                 (entries, message) -> {
@@ -37,19 +37,19 @@ public class UnoHostCmd extends Command implements SubCmd {
                     });
                     UnoGame unoGame = new UnoGame(participants);
                     unoGame.start(channel);
-                }, 2, 5);
+                }, 2, 4);
         if(args.size() > 0) {
             try {
                 int i = Integer.parseInt(args.get(0));
-                if(i < 2 || i > 8) {
-                    channel.sendMessage("maxPlayers must be a number between 2 and 8.").queue();
+                if(i < 2 || i > 4) {
+                    channel.sendMessage("maxPlayers must be a number between 2 and 4.").queue();
                 } else {
                     unoLobby.setMaxPlayers(i);
                     unoLobby.initialize(channel);
                 }
             } catch (NumberFormatException e) {
                 logger.error("Failed formatting argument to number when setting the max players for uno lobby", e);
-                channel.sendMessage("maxPlayers must be a number between 2 and 8.").queue();
+                channel.sendMessage("maxPlayers must be a number between 2 and 4.").queue();
             }
         } else {
             unoLobby.setMaxPlayers(maxPlayers);

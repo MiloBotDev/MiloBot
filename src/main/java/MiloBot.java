@@ -34,6 +34,9 @@ public class MiloBot {
     private final static Logger logger = LoggerFactory.getLogger(MiloBot.class);
 
     public static void main(String[] args) throws LoginException, InterruptedException {
+        ResourceBundle exampleBundle = ResourceBundle
+                .getBundle("localization.MiloBot_en_US",
+                        Locale.getDefault());
         Config config = Config.getInstance();
 
         JDA bot = JDABuilder.createDefault(config.getBotToken(),
@@ -41,7 +44,7 @@ public class MiloBot {
                         GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_TYPING,
                         GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS,
                         GatewayIntent.DIRECT_MESSAGES)
-                .setActivity(Activity.watching("Morbius"))
+                .setActivity(Activity.watching(exampleBundle.getString("activityStatus")))
                 .addEventListeners(new CommandHandler(), new OnGuildJoin(), new OnGuildLeave(),
                         new OnReadyEvent(), new OnButtonClick(), new OnSelectionMenu())
                 .build().awaitReady();
@@ -105,4 +108,5 @@ public class MiloBot {
             }
         };
     }
+
 }
