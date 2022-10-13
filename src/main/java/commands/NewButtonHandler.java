@@ -18,7 +18,7 @@ public class NewButtonHandler extends ListenerAdapter {
     private final HashMap<String, ButtonRecord> buttons = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(NewButtonHandler.class);
 
-    public static NewButtonHandler getInstance() {
+    public static synchronized NewButtonHandler getInstance() {
         if (instance == null) {
             instance = new NewButtonHandler();
         }

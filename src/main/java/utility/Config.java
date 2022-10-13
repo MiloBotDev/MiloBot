@@ -71,7 +71,7 @@ public class Config {
     /**
      * Returns the only existing instance of Config or creates a new one if no instance exists.
      */
-    public static Config getInstance() {
+    public static synchronized Config getInstance() {
         try {
             if (instance == null) {
                 instance = new Config();

@@ -58,7 +58,7 @@ public class Users {
      *
      * @return The instance of this class.
      */
-    public static Users getInstance() {
+    public static synchronized Users getInstance() {
         if (instance == null) {
             instance = new Users();
         }
