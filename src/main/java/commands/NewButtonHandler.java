@@ -13,17 +13,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 public class NewButtonHandler extends ListenerAdapter {
-    private static NewButtonHandler instance;
     private record ButtonRecord(boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {}
     private final HashMap<String, ButtonRecord> buttons = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(NewButtonHandler.class);
-
-    public static synchronized NewButtonHandler getInstance() {
-        if (instance == null) {
-            instance = new NewButtonHandler();
-        }
-        return instance;
-    }
 
     public void registerButton(String id, boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {
         buttons.put(id, new ButtonRecord(onlyOnUserMatch, service, action));
