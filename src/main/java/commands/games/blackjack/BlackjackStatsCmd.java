@@ -3,6 +3,7 @@ package commands.games.blackjack;
 import commands.Command;
 import commands.SubCmd;
 import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
@@ -61,7 +62,7 @@ public class BlackjackStatsCmd extends Command implements SubCmd {
 
         Blackjack blackjack;
         try (Connection con = NewDatabaseConnection.getConnection()) {
-            blackjack = blackjackDao.getByUserDiscordId(con, user.getIdLong());
+            blackjack = blackjackDao.getByUserDiscordId(con, user.getIdLong(), RowLockType.NONE);
         }
         if (blackjack != null) {
             int currentStreak = blackjack.getStreak();

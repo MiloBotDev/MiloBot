@@ -50,7 +50,6 @@ public class Blackjack {
         this.userDiscordId = userDiscordId;
         this.playerBet = bet;
         this.winnings = 0;
-        updateWallet(null);
         this.startTime = System.nanoTime();
     }
 
@@ -63,38 +62,32 @@ public class Blackjack {
         this.finished = false;
     }
 
-    public void updateWallet(@Nullable BlackjackStates state) {
-        try (Connection con = NewDatabaseConnection.getConnection()) {
-            con.setAutoCommit(false);
-            database.model.User user;
-            user = userDao.getUserByDiscordId(con, userDiscordId, RowLockType.FOR_UPDATE);
-            int playerWallet = Objects.requireNonNull(user).getCurrency();
-            int newWallet;
-            if (state == null) {
-                newWallet = playerWallet - playerBet;
+    public void updateWallet(Connection con, @Nullable BlackjackStates state) throws SQLException {
+        database.model.User user;
+        user = userDao.getUserByDiscordId(con, userDiscordId, RowLockType.FOR_UPDATE);
+        int playerWallet = Objects.requireNonNull(user).getCurrency();
+        int newWallet;
+        if (state == null) {
+            newWallet = playerWallet - playerBet;
+        } else {
+            if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
+                this.winnings = (int) Math.ceil(((double) playerBet) * 1.5d);
+                int ceil = (int) Math.ceil(((double) playerBet) * 2.5d);
+                newWallet = playerWallet + ceil;
+            } else if (state.equals(BlackjackStates.PLAYER_WIN)) {
+                this.winnings = playerBet;
+                int i = winnings * 2;
+                newWallet = playerWallet + i;
+            } else if (state.equals(BlackjackStates.DRAW)) {
+                this.winnings = playerBet;
+                newWallet = playerWallet + playerBet;
             } else {
-                if (state.equals(BlackjackStates.PLAYER_BLACKJACK)) {
-                    this.winnings = (int) Math.ceil(((double) playerBet) * 1.5d);
-                    int ceil = (int) Math.ceil(((double) playerBet) * 2.5d);
-                    newWallet = playerWallet + ceil;
-                } else if (state.equals(BlackjackStates.PLAYER_WIN)) {
-                    this.winnings = playerBet;
-                    int i = winnings * 2;
-                    newWallet = playerWallet + i;
-                } else if (state.equals(BlackjackStates.DRAW)) {
-                    this.winnings = playerBet;
-                    newWallet = playerWallet + playerBet;
-                } else {
-                    this.winnings = playerBet;
-                    newWallet = playerWallet;
-                }
+                this.winnings = playerBet;
+                newWallet = playerWallet;
             }
-            user.setCurrency(newWallet);
-            userDao.update(con, user);
-            con.commit();
-        } catch (SQLException e) {
-            logger.error("Blackjack error updating user in database when attempted to update wallet.", e);
         }
+        user.setCurrency(newWallet);
+        userDao.update(con, user);
     }
 
     public void playerHit() {
@@ -179,24 +172,20 @@ public class Blackjack {
     private void updateBlackjackDatabase(BlackjackStates state) {
         database.model.Blackjack blackjack;
         try (Connection con = NewDatabaseConnection.getConnection()) {
-            blackjack = Objects.requireNonNull(blackjackDao.getByUserDiscordId(con, userDiscordId));
+            con.setAutoCommit(false);
+            updateWallet(con, state);
+            blackjack = Objects.requireNonNull(blackjackDao.getByUserDiscordId(con, userDiscordId, RowLockType.FOR_UPDATE));
+            if (state.equals(BlackjackStates.DRAW)) {
+                blackjack.addGame(database.model.Blackjack.BlackjackResult.DRAW, 0);
+            } else if (state.equals(BlackjackStates.PLAYER_BLACKJACK) || state.equals(BlackjackStates.PLAYER_WIN)) {
+                blackjack.addGame(database.model.Blackjack.BlackjackResult.WIN, this.winnings);
+            } else {
+                // it's a loss;
+                blackjack.addGame(database.model.Blackjack.BlackjackResult.LOSS, -this.winnings);
+            }
+            con.commit();
         } catch (SQLException e) {
-            logger.error("Error getting blackjack entry from database when updating blackjack database.", e);
-            return;
-        }
-        updateWallet(state);
-        if (state.equals(BlackjackStates.DRAW)) {
-            blackjack.addGame(database.model.Blackjack.BlackjackResult.DRAW, 0);
-        } else if (state.equals(BlackjackStates.PLAYER_BLACKJACK) || state.equals(BlackjackStates.PLAYER_WIN)) {
-            blackjack.addGame(database.model.Blackjack.BlackjackResult.WIN, this.winnings);
-        } else {
-            // it's a loss;
-            blackjack.addGame(database.model.Blackjack.BlackjackResult.LOSS, -this.winnings);
-        }
-        try (Connection con = NewDatabaseConnection.getConnection()) {
-            blackjackDao.update(con, blackjack);
-        } catch (SQLException e) {
-            logger.error("Error updating blackjack entry in database when updating blackjack database.", e);
+            logger.error("Error updating user blackjack entry.", e);
         }
     }
 

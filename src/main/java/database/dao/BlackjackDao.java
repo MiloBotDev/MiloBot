@@ -2,6 +2,7 @@ package database.dao;
 
 import database.model.Blackjack;
 import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -140,8 +141,9 @@ public class BlackjackDao {
     }
 
     @Nullable
-    public Blackjack getByUserDiscordId(@NotNull Connection con, long userDiscordId) throws SQLException {
-        String query = "SELECT * FROM blackjack INNER JOIN users ON blackjack.user_id = users.id WHERE users.discord_id = ?";
+    public Blackjack getByUserDiscordId(@NotNull Connection con, long userDiscordId, RowLockType lockType) throws SQLException {
+        String query = lockType.getQueryWithLock(
+                "SELECT * FROM blackjack INNER JOIN users ON blackjack.user_id = users.id WHERE users.discord_id = ?");
         try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setLong(1, userDiscordId);
             try (ResultSet rs = ps.executeQuery()) {
