@@ -157,14 +157,7 @@ public class CommandHandler extends ListenerAdapter {
                         }
                     }
                     // check if this user exists in the database otherwise add it
-                    if (!user.checkIfUserExists(event.getAuthor().getIdLong())) {
-                        try {
-                            user.addUserToDatabase(event.getAuthor());
-                        } catch (SQLException e) {
-                            logger.error("Couldn't add user to database", e);
-                            return;
-                        }
-                    }
+                    user.addUserIfNotExists(event.getAuthor().getIdLong());
                     // update the tracker
                     Long userId = event.getAuthor().getIdLong();
                     command.updateCommandTrackerUser(userId);
@@ -216,14 +209,7 @@ public class CommandHandler extends ListenerAdapter {
                     command.sendMissingPermissions(event, prefix);
                     return;
                 }
-                if (!user.checkIfUserExists(event.getUser().getIdLong())) {
-                    try {
-                        user.addUserToDatabase(event.getUser());
-                    } catch (SQLException e) {
-                        logger.error("Couldn't add user to database", e);
-                        return;
-                    }
-                }
+                user.addUserIfNotExists(event.getUser().getIdLong());
                 command.executeSlashCommand(event);
                 command.updateCommandTrackerUser(event.getUser().getIdLong());
                 try {

@@ -2,6 +2,9 @@ package events;
 
 import commands.games.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
+import database.dao.BlackjackDao;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import games.Blackjack;
 import games.Poker;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -21,6 +24,7 @@ import utility.Users;
 import utility.lobby.AbstractLobby;
 import utility.lobby.BotLobby;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 
@@ -46,14 +50,7 @@ public class OnButtonClick extends ListenerAdapter {
         String type = id[1];
         User user = event.getUser();
         // Check if the user is in the database
-        if (!userUtil.checkIfUserExists(user.getIdLong())) {
-            try {
-                userUtil.addUserToDatabase(event.getUser());
-            } catch (SQLException e) {
-                logger.error("Couldn't add user to database", e);
-                return;
-            }
-        }
+        userUtil.addUserIfNotExists(event.getUser().getIdLong());
         if ((type.equals("joinLobby") || type.equals("leaveLobby") || type.equals("fillLobby"))) {
             event.deferEdit().queue();
             switch (type) {
@@ -156,19 +153,24 @@ public class OnButtonClick extends ListenerAdapter {
                 } else {
                     String s = description.replaceAll("[^0-9]", "");
                     int bet = Integer.parseInt(s);
-                    database.model.User user2;
-                    try {
-                        user2 = userDao.getUserByDiscordId(event.getUser().getIdLong());
+                    try (Connection con = NewDatabaseConnection.getConnection()) {
+                        con.setAutoCommit(false);
+                        database.model.User user2 = userDao.getUserByDiscordId(con, user.getIdLong(), RowLockType.FOR_UPDATE);
+                        int playerWallet = Objects.requireNonNull(user2).getCurrency();
+                        int newWallet = playerWallet - bet;
+                        if (newWallet < 0) {
+                            event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
+                            con.commit();
+                            return;
+                        }
+                        user2.setCurrency(newWallet);
+                        userDao.update(con, user2);
+                        con.commit();
+                        value = new Blackjack(user.getIdLong(), bet);
                     } catch (SQLException e) {
-                        logger.error("Error getting user from database when user wanted to replay blackjack.", e);
+                        logger.error("Error updating blackjack data when user wanted to replay blackjack.", e);
                         return;
                     }
-                    int wallet = Objects.requireNonNull(user2).getCurrency();
-                    if (bet > wallet) {
-                        event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();
-                        break;
-                    }
-                    value = new Blackjack(user.getIdLong(), bet);
                 }
                 value.initializeGame();
                 BlackjackPlayCmd.blackjackGames.put(user.getIdLong(), value);

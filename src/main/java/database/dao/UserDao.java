@@ -53,6 +53,17 @@ public class UserDao {
         ps.executeUpdate();
     }
 
+    public void add(@NotNull Connection con, @NotNull User user) throws SQLException {
+        String query ="INSERT INTO users (discord_id, currency, level, experience) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, user.getDiscordId());
+            ps.setInt(2, user.getCurrency());
+            ps.setInt(3, user.getLevel());
+            ps.setInt(4, user.getExperience());
+            ps.executeUpdate();
+        }
+    }
+
     public void delete(@NotNull User user) throws SQLException {
         String query = "DELETE FROM users WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
@@ -71,7 +82,7 @@ public class UserDao {
         ps.executeUpdate();
     }
 
-    public void update(Connection con, @NotNull User user) throws SQLException {
+    public void update(@NotNull Connection con, @NotNull User user) throws SQLException {
         String query = "UPDATE users SET discord_id = ?, currency = ?, level = ?, experience = ? WHERE id = ?";
         try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setLong(1, user.getDiscordId());
@@ -100,7 +111,7 @@ public class UserDao {
     }
 
     @Nullable
-    public User getUserByDiscordId(Connection con, long discordId, RowLockType lockType) throws SQLException {
+    public User getUserByDiscordId(@NotNull Connection con, long discordId, @NotNull RowLockType lockType) throws SQLException {
         String query = lockType.getQueryWithLock("SELECT * FROM users WHERE discord_id = ?");
         try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setLong(1, discordId);

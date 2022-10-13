@@ -163,14 +163,7 @@ public class NewCommandHandler extends ListenerAdapter {
                 }
             }
             // check if this user exists in the database otherwise add it
-            if (!Users.getInstance().checkIfUserExists(event.getAuthor().getIdLong())) {
-                try {
-                    Users.getInstance().addUserToDatabase(event.getAuthor());
-                } catch (SQLException e) {
-                    logger.error("Couldn't add user to database", e);
-                    return;
-                }
-            }
+            Users.getInstance().addUserIfNotExists(event.getAuthor().getIdLong());
             // update the tracker
             long userId = event.getAuthor().getIdLong();
             command.updateCommandTrackerUser(userId);
@@ -234,14 +227,7 @@ public class NewCommandHandler extends ListenerAdapter {
                     return;
                 }
             }
-            if (!Users.getInstance().checkIfUserExists(event.getUser().getIdLong())) {
-                try {
-                    Users.getInstance().addUserToDatabase(event.getUser());
-                } catch (SQLException e) {
-                    logger.error("Couldn't add user to database", e);
-                    return;
-                }
-            }
+            Users.getInstance().addUserIfNotExists(event.getUser().getIdLong());
             long userId = event.getUser().getIdLong();
             command.updateCommandTrackerUser(userId);
             try {
