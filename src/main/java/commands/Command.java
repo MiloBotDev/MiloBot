@@ -450,24 +450,25 @@ public abstract class Command {
      * @return true if the user has the required permissions, false otherwise.
      */
     public boolean checkRequiredPermissions(@NotNull Event event) {
-        AtomicBoolean hasPermission = new AtomicBoolean(false);
+        boolean hasPermission = false;
         Member member = null;
         if (event instanceof MessageReceivedEvent) {
             member = ((MessageReceivedEvent) event).getMember();
         } else if (event instanceof SlashCommandEvent) {
             member = ((SlashCommandEvent) event).getMember();
         }
-        if (member == null) {
-            hasPermission.set(false);
-            return hasPermission.get();
-        }
         if (permissions.isEmpty()) {
-            hasPermission.set(true);
-        } else {
-            Member finalMember = member;
-            permissions.forEach((s, p) -> hasPermission.set(finalMember.getPermissions().contains(p)));
+            hasPermission = true;
+        } else if (member != null) {
+            hasPermission = true;
+            for (Permission permission : permissions.values()) {
+                if (!member.hasPermission(permission)) {
+                    hasPermission = false;
+                    break;
+                }
+            }
         }
-        return hasPermission.get();
+        return hasPermission;
     }
 
     /**
