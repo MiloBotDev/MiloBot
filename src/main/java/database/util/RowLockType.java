@@ -7,7 +7,7 @@ public enum RowLockType {
 
     public String getQueryWithLock(String query) {
         return switch (this) {
-            case FOR_SHARE -> query + " FOR SHARE";
+            case FOR_SHARE -> query + " LOCK IN SHARE MODE";
             case FOR_UPDATE -> query + " FOR UPDATE";
             default -> query;
         };
