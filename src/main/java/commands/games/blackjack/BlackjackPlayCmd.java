@@ -224,7 +224,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                 int playerWallet = Objects.requireNonNull(user).getCurrency();
                 int newWallet = playerWallet - bet;
                 if (newWallet < 0) {
-                    event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
+                    event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
                     con.commit();
                     return;
                 }
