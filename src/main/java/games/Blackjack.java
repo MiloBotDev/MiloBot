@@ -183,6 +183,7 @@ public class Blackjack {
                 // it's a loss;
                 blackjack.addGame(database.model.Blackjack.BlackjackResult.LOSS, -this.winnings);
             }
+            blackjackDao.update(con, blackjack);
             con.commit();
         } catch (SQLException e) {
             logger.error("Error updating user blackjack entry.", e);
