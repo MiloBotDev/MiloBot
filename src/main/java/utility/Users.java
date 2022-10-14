@@ -139,13 +139,15 @@ public class Users {
     }
 
     public UserNameTag getUserNameTag(long discordId, JDA jda) {
-        try {
-            UserNameTag userNameTag = usersCacheDao.getUserNameTag(discordId);
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            UserNameTag userNameTag = usersCacheDao.getUserNameTag(con, discordId, RowLockType.FOR_UPDATE);
             if (userNameTag == null) {
                 User user = jda.retrieveUserById(discordId).complete();
                 userNameTag = new UserNameTag(user.getName(), Short.parseShort(user.getDiscriminator()));
-                usersCacheDao.add(Objects.requireNonNull(userDao.getUserByDiscordId(discordId)).getId(), userNameTag);
+                usersCacheDao.add(con, Objects.requireNonNull(userDao.getUserByDiscordId(discordId)).getId(), userNameTag);
             }
+            con.commit();
             return userNameTag;
         } catch (SQLException e) {
             logger.error("Error getting user name tag", e);
