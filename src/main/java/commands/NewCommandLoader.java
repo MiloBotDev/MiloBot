@@ -3,6 +3,7 @@ package commands;
 import commands.games.blackjack.BlackjackCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
 import commands.games.poker.PokerCmd;
+import commands.morbconomy.daily.DailyCmd;
 import commands.utility.PrefixCmd;
 import database.dao.UserDao;
 import database.util.NewDatabaseConnection;
@@ -122,6 +123,9 @@ public class NewCommandLoader {
                 )).queue();
             }
         });
+
+        // daily
+        handler.registerCommand(Executors.newSingleThreadExecutor(), new DailyCmd());
 
         handler.registerCommand(Executors.newSingleThreadExecutor(), new PrefixCmd(handler));
         // FOR TEMPORARY TESTING ONLY!!!
