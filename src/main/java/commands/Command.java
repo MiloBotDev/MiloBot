@@ -586,4 +586,14 @@ public abstract class Command {
         }
         return markdown.toString();
     }
+
+    public String parentCommandName;
+
+    public String getFullCommandName() {
+        if (parentCommandName == null) {
+            return commandName;
+        } else {
+            return parentCommandName + " " + commandName;
+        }
+    }
 }
