@@ -1,5 +1,6 @@
 package commands;
 
+import database.util.NewDatabaseConnection;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,6 +20,7 @@ import utility.Config;
 import utility.Users;
 
 import java.awt.*;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
@@ -40,7 +42,7 @@ public class CommandHandler extends ListenerAdapter {
         this.user = Users.getInstance();
         // loads all the prefixes into a map
         List<Prefix> prefixesDbObj;
-        try {
+        /*try {
             prefixesDbObj = PrefixDao.getInstance().getAllPrefixes();
         } catch (SQLException e) {
             logger.error("CommandHandler: Could not load prefixes", e);
@@ -48,7 +50,7 @@ public class CommandHandler extends ListenerAdapter {
         }
         for (Prefix prefixDbObj : prefixesDbObj) {
             prefixes.put(prefixDbObj.getGuildId(), prefixDbObj.getPrefix());
-        }
+        }*/
     }
 
     /**
@@ -56,7 +58,7 @@ public class CommandHandler extends ListenerAdapter {
      */
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-        List<Guild> guilds = event.getJDA().getGuilds();
+        /*List<Guild> guilds = event.getJDA().getGuilds();
         PrefixDao prefixDao = PrefixDao.getInstance();
         List<Prefix> prefixes;
         try {
@@ -78,7 +80,7 @@ public class CommandHandler extends ListenerAdapter {
                 }
                 CommandHandler.prefixes.put(id, Config.getInstance().getDefaultPrefix());
             }
-        }
+        }*/
     }
 
     @Override

@@ -2,6 +2,8 @@ package commands;
 
 import database.dao.PrefixDao;
 import database.model.Prefix;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import utility.Config;
 import utility.Users;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -69,8 +72,8 @@ public class NewCommandHandler extends ListenerAdapter {
             long guildId = event.getGuild().getIdLong();
             if (!prefixes.containsKey(guildId)) {
                 String dbPrefix;
-                try {
-                    Prefix prefixObj = prefixDao.getPrefixByGuildId(guildId);
+                try (Connection con = NewDatabaseConnection.getConnection()) {
+                    Prefix prefixObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.NONE);
                     if (prefixObj == null) {
                         dbPrefix = Config.getInstance().getDefaultPrefix();
                     } else {
@@ -246,8 +249,8 @@ public class NewCommandHandler extends ListenerAdapter {
     @Override
     public void onGuildLeave(@NotNull GuildLeaveEvent event) {
         // remove from prefixes using prefixdao from database
-        try {
-            prefixDao.deleteByGuildId(event.getGuild().getIdLong());
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            prefixDao.deleteByGuildId(con, event.getGuild().getIdLong());
             setGuildPrefix(event.getGuild().getIdLong(), null);
         } catch (SQLException e) {
             logger.error("Couldn't delete guild from database", e);
@@ -255,20 +258,16 @@ public class NewCommandHandler extends ListenerAdapter {
     }
 
     public boolean setGuildPrefix(long guildId, String prefix) {
-        Prefix prefixDbObj;
-        try {
-            prefixDbObj = prefixDao.getPrefixByGuildId(guildId);
-        } catch (SQLException e) {
-            logger.error("Could not get prefix for guild", e);
-            return false;
-        }
-        try {
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            Prefix prefixDbObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.FOR_UPDATE);
             if (prefixDbObj != null) {
                 prefixDbObj.setPrefix(prefix);
-                prefixDao.update(prefixDbObj);
+                prefixDao.update(con, prefixDbObj);
             } else {
-                prefixDao.add(new Prefix(guildId, prefix));
+                prefixDao.add(con, new Prefix(guildId, prefix));
             }
+            con.commit();
         } catch (SQLException e) {
             logger.error("Could not update prefix for guild", e);
             return false;
