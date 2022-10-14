@@ -17,6 +17,7 @@ public class BlackjackCmd extends Command implements ParentCmd, GamesCmd {
         this.allowedChannelTypes.add(ChannelType.PRIVATE);
         this.subCommands.add(new BlackjackInfoCmd());
         this.subCommands.add(new BlackjackLeaderboardCmd());
+        this.subCommands.forEach(subCmd -> subCmd.parentCommandName = "blackjack");
     }
 
 }

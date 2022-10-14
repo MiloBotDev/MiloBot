@@ -1,15 +1,16 @@
 package database.dao;
 
 import database.util.DatabaseConnection;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 
 public class CommandTrackerDao {
-
-    private static final Connection con = DatabaseConnection.getConnection();
-    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommandTrackerDao.class);
     private static CommandTrackerDao instance = null;
 
     private CommandTrackerDao() {
@@ -28,81 +29,96 @@ public class CommandTrackerDao {
     }
 
     private void createTableIfNotExists() throws SQLException {
-        String query = "CREATE TABLE IF NOT EXISTS command_tracker (" +
+        String query = "CREATE TABLE IF NOT EXISTS commands (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "command_name VARCHAR(255) NOT NULL" +
+                ")";
+        try (Connection con = NewDatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
+            st.execute(query);
+        }
+        query = "CREATE TABLE IF NOT EXISTS command_tracker (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL," +
-                "command_name VARCHAR(25) NOT NULL," +
+                "command INT NOT NULL," +
                 "amount INT NOT NULL," +
                 "CONSTRAINT fk_user_id FOREIGN KEY (user_id) " +
                 "REFERENCES users(id) " +
                 "ON DELETE CASCADE " +
-                "ON UPDATE CASCADE" +
-                ");";
-        Statement st = con.createStatement();
-        st.execute(query);
+                "ON UPDATE CASCADE," +
+                "CONSTRAINT fk_command FOREIGN KEY (command) " +
+                "REFERENCES commands(id) " +
+                "ON DELETE CASCADE " +
+                "ON UPDATE CASCADE," +
+                "UNIQUE KEY uc_user_command (user_id, command)" +
+                ")";
+        try (Connection con = NewDatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
+            st.execute(query);
+        }
     }
 
-    public boolean checkIfUserCommandTracked(String commandName, int userId) throws SQLException {
-        String query = "SELECT * FROM command_tracker WHERE command_name = ? AND user_id = ?;";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, commandName);
-        ps.setLong(2, userId);
-        ResultSet rs = ps.executeQuery();
-        return rs.next();
+    public void addToCommandTracker(@NotNull String commandName, int userId) throws SQLException {
+        addCommand(commandName);
+        String query = "INSERT INTO command_tracker (user_id, command, amount) VALUES " +
+                "(?, (SELECT id FROM commands WHERE command_name = ?), 1) " +
+                "ON DUPLICATE KEY UPDATE amount = amount + 1";
+        try (Connection con = NewDatabaseConnection.getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            ps.setString(2, commandName);
+            ps.executeUpdate();
+        }
     }
 
-    public void addUserCommandTracker(String commandName, int userId) throws SQLException {
-        String query = "INSERT INTO command_tracker(command_name, user_id, amount) VALUES(?, ?, ?);";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, commandName);
-        ps.setInt(2, userId);
-        ps.setInt(3, 1);
-        ps.executeUpdate();
-    }
-
-    public void updateUserCommandTracker(String commandName, int userId, int amount) throws SQLException {
-        String query = "UPDATE command_tracker SET amount = ? WHERE command_name = ? AND user_id = ?;";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, amount);
-        ps.setString(2, commandName);
-        ps.setInt(3, userId);
-        ps.executeUpdate();
+    private void addCommand(String commandName) throws SQLException {
+        String query = RowLockType.FOR_UPDATE.getQueryWithLock("SELECT * FROM commands WHERE command_name = ?");
+        try (Connection con = NewDatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            con.setAutoCommit(false);
+            ps.setString(1, commandName);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    query = "INSERT INTO commands (command_name) VALUES (?)";
+                    try (PreparedStatement ps2 = con.prepareStatement(query)) {
+                        ps2.setString(1, commandName);
+                        ps2.executeUpdate();
+                    }
+                }
+            }
+            con.commit();
+        }
     }
 
     public int getUserSpecificCommandUsage(String commandName, int userId) throws SQLException {
-        String query = "SELECT amount FROM command_tracker WHERE command_name = ? AND user_id = ?;";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, commandName);
-        ps.setInt(2, userId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return rs.getInt("amount");
-        } else {
-            return 0;
+        String query = "SELECT amount FROM command_tracker WHERE command = " +
+                "(SELECT id FROM commands WHERE command_name = ?) AND user_id = ?;";
+        try (Connection con = NewDatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, commandName);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("amount");
+                } else {
+                    return 0;
+                }
+            }
         }
     }
-
-    public int getUserTotalCommandUsage(int userId) throws SQLException {
-        String query = "SELECT SUM(amount) AS total FROM command_tracker WHERE user_id = ?;";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, userId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return rs.getInt("total");
-        } else {
-            return 0;
-        }
-    }
-
     public int getGlobalCommandUsage(String commandName) throws SQLException {
-        String query = "SELECT sum(amount) from command_tracker WHERE command_name = ?;";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, commandName);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return rs.getInt(1);
-        } else {
-            return 0;
+        String query = "SELECT sum(amount) from command_tracker WHERE command = " +
+                "(SELECT id FROM commands WHERE command_name = ?);";
+        try (Connection con = NewDatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, commandName);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    return 0;
+                }
+            }
         }
     }
 }

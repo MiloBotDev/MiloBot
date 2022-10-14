@@ -261,15 +261,7 @@ public abstract class Command {
         try {
             database.model.User userByDiscordId = userDao.getUserByDiscordId(discordId);
             int userId = Objects.requireNonNull(userByDiscordId).getId();
-
-            boolean tracked = commandTrackerDao.checkIfUserCommandTracked(commandName, userId);
-            if (tracked) {
-                int userCommandTracker = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);
-                userCommandTracker++;
-                commandTrackerDao.updateUserCommandTracker(commandName, userId, userCommandTracker);
-            } else {
-                commandTrackerDao.addUserCommandTracker(commandName, userId);
-            }
+            commandTrackerDao.addToCommandTracker(getFullCommandName(), userId);
         } catch (Exception e) {
             logger.error("Failed to update command tracker.", e);
         }
@@ -283,12 +275,12 @@ public abstract class Command {
             database.model.User userByDiscordId = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
             int userId = Objects.requireNonNull(userByDiscordId).getId();
 
-            int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);
-            int globalUsage = commandTrackerDao.getGlobalCommandUsage(commandName);
+            int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(getFullCommandName(), userId);
+            int globalUsage = commandTrackerDao.getGlobalCommandUsage(getFullCommandName());
 
             EmbedBuilder stats = new EmbedBuilder();
             EmbedUtils.styleEmbed(stats, event.getAuthor());
-            stats.setTitle(String.format("Stats for %s", commandName));
+            stats.setTitle(String.format("Stats for %s", getFullCommandName()));
             stats.addField("Personal Usages", String.format("You have used this command %d times.", personalUsage), false);
             stats.addField("Global Usages", String.format("This command has been used a total of %d times.", globalUsage), false);
 
