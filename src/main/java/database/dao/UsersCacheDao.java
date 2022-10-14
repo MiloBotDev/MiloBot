@@ -46,8 +46,8 @@ public class UsersCacheDao {
                 "CONSTRAINT discriminator_range " +
                 "CHECK (discriminator >= 0 AND discriminator <= 9999)" +
                 ")";
-        try (Connection con = NewDatabaseConnection.getConnection()) {
-            Statement st = con.createStatement();
+        try (Connection con = NewDatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
             st.execute(query);
         }
     }

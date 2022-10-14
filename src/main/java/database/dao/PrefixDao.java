@@ -35,8 +35,8 @@ public class PrefixDao {
                 "guild_id BIGINT NOT NULL UNIQUE," +
                 "prefix VARCHAR(2) NOT NULL" +
                 ")";
-        try (Connection con = NewDatabaseConnection.getConnection()) {
-            Statement st = con.createStatement();
+        try (Connection con = NewDatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
             st.execute(query);
         }
     }

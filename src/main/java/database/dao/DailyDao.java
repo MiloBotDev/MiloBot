@@ -37,10 +37,9 @@ public class DailyDao {
                 "streak INT NOT NULL," +
                 "total_claimed INT NOT NULL" +
                 ")";
-        try (Connection con = NewDatabaseConnection.getConnection()) {
-            try (Statement st = con.createStatement()) {
+        try (Connection con = NewDatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
                 st.execute(query);
-            }
         }
     }
 
