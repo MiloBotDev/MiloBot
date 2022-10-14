@@ -1,7 +1,7 @@
 package database.dao;
 
 import database.model.Daily;
-import database.util.DatabaseConnection;
+import database.util.NewDatabaseConnection;
 import database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 
 public class DailyDao {
-    private static final Connection con = DatabaseConnection.getConnection();
     private static final Logger logger = LoggerFactory.getLogger(DailyDao.class);
     private static DailyDao instance = null;
 
@@ -38,8 +37,11 @@ public class DailyDao {
                 "streak INT NOT NULL," +
                 "total_claimed INT NOT NULL" +
                 ")";
-        Statement st = con.createStatement();
-        st.execute(query);
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            try (Statement st = con.createStatement()) {
+                st.execute(query);
+            }
+        }
     }
 
     public void add(@NotNull Connection con, @NotNull Daily daily) throws SQLException {
