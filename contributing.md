@@ -12,6 +12,7 @@
     * [Loading Commands](#loading-commands)
         + [Regular Commands](#regular-commands-1)
         + [Slash Commands](#slash-commands-1)
+    * [Database](#database)
 
 ## Configuration
 
@@ -173,3 +174,6 @@ slashCommands.addCommands(Commands.slash("example", "Our example command.")
 
 You can read more about this [here](https://github.com/DV8FromTheWorld/JDA/blob/master/src/examples/java/SlashBotExample.java).
 
+## Database
+
+You can read more about the database structure in the [docs/database.md](docs/database.md) file.
