@@ -2,9 +2,12 @@ package commands.games.blackjack;
 
 import commands.Command;
 import commands.SubCmd;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import games.Blackjack;
 import models.cards.PlayingCard;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -17,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +38,8 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
         this.commandName = "play";
         this.commandDescription = "Play a game of blackjack on discord.";
         this.commandArgs = new String[]{"bet*"};
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     public static @NotNull EmbedBuilder generateBlackjackEmbed(@NotNull User user, Blackjack.BlackjackStates state) {
@@ -132,22 +138,25 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                     event.getChannel().sendMessage("You can't bet more than `10000` Morbcoins.").queue();
                     return;
                 } else {
-                    database.model.User user;
-                    try {
-                        user = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
-                    } catch (SQLException e) {
-                        logger.error("Error getting user from database when user wanted to play blackjack.", e);
-                        return;
-                    }
-                    int playerWallet = Objects.requireNonNull(user).getCurrency();
-                    try {
-                        int integer = playerWallet - playerBet;
-                        if (integer < 0) {
+                    try (Connection con = NewDatabaseConnection.getConnection()) {
+                        con.setAutoCommit(false);
+                        database.model.User user = userDao.getUserByDiscordId(con, event.getAuthor().getIdLong(), RowLockType.FOR_UPDATE);
+                        int playerWallet = Objects.requireNonNull(user).getCurrency();
+                        int newWallet = playerWallet - playerBet;
+                        if (newWallet < 0) {
                             event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", playerBet, playerWallet)).queue();
+                            con.commit();
                             return;
                         }
-                    } catch (NumberFormatException e) {
-                        event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", playerBet, playerWallet)).queue();
+                        user.setCurrency(newWallet);
+                        userDao.update(con, user);
+                        if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
+                            blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
+                                    userDao.getUserByDiscordId(authorIdLong)).getId()));
+                        }
+                        con.commit();
+                    } catch (SQLException e) {
+                        logger.error("Error updating blackjack data when user wanted to play blackjack.", e);
                         return;
                     }
                     bet = playerBet;
@@ -156,16 +165,6 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                 event.getChannel().sendMessage("Invalid bet amount.").queue();
                 return;
             }
-        }
-
-        try {
-            if (blackjackDao.getByUserDiscordId(authorIdLong) == null) {
-                blackjackDao.add(new database.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
-                        .getId()));
-            }
-        } catch (SQLException e) {
-            logger.error("Error creating blackjack entry for user in database when user wanted to play blackjack.", e);
-            return;
         }
 
         if (blackjackGames.containsKey(authorIdLong)) {
@@ -206,36 +205,40 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
         int bet;
         if (event.getOption("bet") == null) {
             bet = 0;
+            try (Connection con = NewDatabaseConnection.getConnection()) {
+                con.setAutoCommit(false);
+                if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
+                    blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
+                            userDao.getUserByDiscordId(authorIdLong)).getId()));
+                }
+                con.commit();
+            } catch (SQLException e) {
+                logger.error("Error updating blackjack data when user wanted to play blackjack.", e);
+                return;
+            }
         } else {
             bet = Math.toIntExact(Objects.requireNonNull(event.getOption("bet")).getAsLong());
-            database.model.User user;
-            try {
-                user = userDao.getUserByDiscordId(event.getUser().getIdLong());
-            } catch (SQLException e) {
-                logger.error("Error getting user from database when user wanted to play blackjack.", e);
-                return;
-            }
-            int playerWallet = Objects.requireNonNull(user).getCurrency();
-            try {
-                int integer = playerWallet - bet;
-                if (integer < 0) {
+            try (Connection con = NewDatabaseConnection.getConnection()) {
+                con.setAutoCommit(false);
+                database.model.User user = userDao.getUserByDiscordId(con, event.getUser().getIdLong(), RowLockType.FOR_UPDATE);
+                int playerWallet = Objects.requireNonNull(user).getCurrency();
+                int newWallet = playerWallet - bet;
+                if (newWallet < 0) {
                     event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
+                    con.commit();
                     return;
                 }
-            } catch (NumberFormatException e) {
-                event.getHook().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
+                user.setCurrency(newWallet);
+                userDao.update(con, user);
+                if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
+                    blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
+                            userDao.getUserByDiscordId(authorIdLong)).getId()));
+                }
+                con.commit();
+            } catch (SQLException e) {
+                logger.error("Error updating blackjack data when user wanted to play blackjack.", e);
                 return;
             }
-        }
-
-        try {
-            if (blackjackDao.getByUserDiscordId(authorIdLong) == null) {
-                blackjackDao.add(new database.model.Blackjack(Objects.requireNonNull(userDao.getUserByDiscordId(authorIdLong))
-                        .getId()));
-            }
-        } catch (SQLException e) {
-            logger.error("Error creating blackjack entry for user in database when user wanted to play blackjack.", e);
-            return;
         }
 
         if (blackjackGames.containsKey(authorIdLong)) {

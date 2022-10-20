@@ -1,7 +1,8 @@
 package database.dao;
 
 import database.model.Blackjack;
-import database.util.DatabaseConnection;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import java.util.List;
 
 public class BlackjackDao {
 
-    private static final Connection con = DatabaseConnection.getConnection();
     private static final Logger logger = LoggerFactory.getLogger(BlackjackDao.class);
     private static BlackjackDao instance = null;
 
@@ -25,7 +25,7 @@ public class BlackjackDao {
         }
     }
 
-    public static BlackjackDao getInstance() {
+    public static synchronized BlackjackDao getInstance() {
         if (instance == null) {
             instance = new BlackjackDao();
         }
@@ -49,39 +49,43 @@ public class BlackjackDao {
                 "    ON DELETE CASCADE" +
                 "    ON UPDATE CASCADE" +
                 ")";
-        Statement st = con.createStatement();
-        st.execute(query);
+        try (Connection con = NewDatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
+            st.execute(query);
+        }
     }
 
-    public void add(@NotNull Blackjack blackjack) throws SQLException {
+    public void add(@NotNull Connection con, @NotNull Blackjack blackjack) throws SQLException {
         String query = "INSERT INTO blackjack (user_id, won_last_game, streak, total_games, total_wins, total_draws, " +
                 "total_earnings, highest_streak) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, blackjack.getUserId());
-        ps.setBoolean(2, blackjack.wonLastGame());
-        ps.setInt(3, blackjack.getStreak());
-        ps.setInt(4, blackjack.getTotalGames());
-        ps.setInt(5, blackjack.getTotalWins());
-        ps.setInt(6, blackjack.getTotalDraws());
-        ps.setInt(7, blackjack.getTotalEarnings());
-        ps.setInt(8, blackjack.getHighestStreak());
-        ps.executeUpdate();
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, blackjack.getUserId());
+            ps.setBoolean(2, blackjack.wonLastGame());
+            ps.setInt(3, blackjack.getStreak());
+            ps.setInt(4, blackjack.getTotalGames());
+            ps.setInt(5, blackjack.getTotalWins());
+            ps.setInt(6, blackjack.getTotalDraws());
+            ps.setInt(7, blackjack.getTotalEarnings());
+            ps.setInt(8, blackjack.getHighestStreak());
+            ps.executeUpdate();
+        }
     }
 
-    public void update(@NotNull Blackjack blackjack) throws SQLException {
+    public void update(@NotNull Connection con, @NotNull Blackjack blackjack) throws SQLException {
         String query = "UPDATE blackjack SET user_id = ?, won_last_game = ?, streak = ?, total_games = ?, " +
                 "total_wins = ?, total_draws = ?, total_earnings = ?, highest_streak = ? WHERE id = ?";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, blackjack.getUserId());
-        ps.setBoolean(2, blackjack.wonLastGame());
-        ps.setInt(3, blackjack.getStreak());
-        ps.setInt(4, blackjack.getTotalGames());
-        ps.setInt(5, blackjack.getTotalWins());
-        ps.setInt(6, blackjack.getTotalDraws());
-        ps.setInt(7, blackjack.getTotalEarnings());
-        ps.setInt(8, blackjack.getHighestStreak());
-        ps.setInt(9, blackjack.getId());
-        ps.executeUpdate();
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, blackjack.getUserId());
+            ps.setBoolean(2, blackjack.wonLastGame());
+            ps.setInt(3, blackjack.getStreak());
+            ps.setInt(4, blackjack.getTotalGames());
+            ps.setInt(5, blackjack.getTotalWins());
+            ps.setInt(6, blackjack.getTotalDraws());
+            ps.setInt(7, blackjack.getTotalEarnings());
+            ps.setInt(8, blackjack.getHighestStreak());
+            ps.setInt(9, blackjack.getId());
+            ps.executeUpdate();
+        }
     }
 
     public List<Blackjack> getTopTotalGamesPlayed() throws SQLException {
@@ -116,35 +120,42 @@ public class BlackjackDao {
 
     private @NotNull List<Blackjack> getBlackjacks(String query) throws SQLException {
         ArrayList<Blackjack> blackjacks = new ArrayList<>();
-        Statement st = con.createStatement();
-        ResultSet rs = st.executeQuery(query);
-        while (rs.next()) {
-            blackjacks.add(new Blackjack(
-                    rs.getInt("id"),
-                    rs.getInt("user_id"),
-                    rs.getBoolean("won_last_game"),
-                    rs.getInt("streak"),
-                    rs.getInt("total_games"),
-                    rs.getInt("total_wins"),
-                    rs.getInt("total_draws"),
-                    rs.getInt("total_earnings"),
-                    rs.getInt("highest_streak")
-            ));
+        try (Connection con = NewDatabaseConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(query)) {
+            while (rs.next()) {
+                blackjacks.add(new Blackjack(
+                        rs.getInt("id"),
+                        rs.getInt("user_id"),
+                        rs.getBoolean("won_last_game"),
+                        rs.getInt("streak"),
+                        rs.getInt("total_games"),
+                        rs.getInt("total_wins"),
+                        rs.getInt("total_draws"),
+                        rs.getInt("total_earnings"),
+                        rs.getInt("highest_streak")
+                ));
+            }
         }
         return blackjacks;
     }
 
     @Nullable
-    public Blackjack getByUserDiscordId(long userDiscordId) throws SQLException {
-        String query = "SELECT * FROM blackjack INNER JOIN users ON blackjack.user_id = users.id WHERE users.discord_id = ?";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setLong(1, userDiscordId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return new Blackjack(rs.getInt("id"), rs.getInt("user_id"), rs.getBoolean("won_last_game"),
-                    rs.getInt("streak"), rs.getInt("total_games"), rs.getInt("total_wins"), rs.getInt("total_draws"),
-                    rs.getInt("total_earnings"), rs.getInt("highest_streak"));
+    public Blackjack getByUserDiscordId(@NotNull Connection con, long userDiscordId, RowLockType lockType) throws SQLException {
+        String query = lockType.getQueryWithLock(
+                "SELECT * FROM blackjack INNER JOIN users ON blackjack.user_id = users.id WHERE users.discord_id = ?");
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, userDiscordId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Blackjack(rs.getInt("id"), rs.getInt("user_id"),
+                            rs.getBoolean("won_last_game"),
+                            rs.getInt("streak"), rs.getInt("total_games"),
+                            rs.getInt("total_wins"), rs.getInt("total_draws"),
+                            rs.getInt("total_earnings"), rs.getInt("highest_streak"));
+                }
+                return null;
+            }
         }
-        return null;
     }
 }

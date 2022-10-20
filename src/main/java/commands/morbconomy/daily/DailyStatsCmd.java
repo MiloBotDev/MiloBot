@@ -2,9 +2,10 @@ package commands.morbconomy.daily;
 
 import commands.Command;
 import commands.SubCmd;
-import commands.games.blackjack.BlackjackStatsCmd;
 import database.dao.DailyDao;
 import database.model.Daily;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -15,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.List;
 
 public class DailyStatsCmd extends Command implements SubCmd {
@@ -46,8 +47,8 @@ public class DailyStatsCmd extends Command implements SubCmd {
         EmbedUtils.styleEmbed(dailyStatsEmbed, user);
         dailyStatsEmbed.setTitle(String.format("Daily Statistics for %s", user.getName()));
 
-        try {
-            Daily daily = dailyDao.getDailyByUserDiscordId(user.getIdLong());
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            Daily daily = dailyDao.getDailyByUserDiscordId(con, user.getIdLong(), RowLockType.NONE);
             if(daily != null) {
                 int streak = daily.getStreak();
                 int totalClaimed = daily.getTotalClaimed();

@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+@Deprecated(since="10/2/22, Migrating toward Apache DBCP in NewDatabaseConnection class", forRemoval=true)
 public class DatabaseConnection {
 
     private static Connection con = null;

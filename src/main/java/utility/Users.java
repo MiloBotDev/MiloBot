@@ -7,6 +7,8 @@ import database.dao.DailyDao;
 import database.dao.UserDao;
 import database.dao.UsersCacheDao;
 import database.model.Daily;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import models.UserNameTag;
 import games.hungergames.HungerGames;
 import net.dv8tion.jda.api.JDA;
@@ -21,6 +23,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Objects;
@@ -55,7 +58,7 @@ public class Users {
      *
      * @return The instance of this class.
      */
-    public static Users getInstance() {
+    public static synchronized Users getInstance() {
         if (instance == null) {
             instance = new Users();
         }
@@ -63,21 +66,20 @@ public class Users {
     }
 
     /**
-     * Checks if a user exists in the database.
+     * Adds a user to the database if it does not already exist.
      *
-     * @param userDiscordId - The id of the user
-     * @return true if the user exists, false if not
+     * @param userDiscordId discord id of the user
      */
-    public boolean checkIfUserExists(long userDiscordId) {
-        boolean exists = false;
-        try {
-            if (userDao.getUserByDiscordId(userDiscordId) != null) {
-                exists = true;
+    public void addUserIfNotExists(long userDiscordId) {
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            if (userDao.getUserByDiscordId(con, userDiscordId, RowLockType.FOR_UPDATE) == null) {
+                userDao.add(con, new database.model.User(userDiscordId));
             }
+            con.commit();
         } catch (SQLException e) {
-            logger.error("Error checking if user exists", e);
+            logger.error("Error adding user to database", e);
         }
-        return exists;
     }
 
     /**
@@ -137,24 +139,19 @@ public class Users {
     }
 
     public UserNameTag getUserNameTag(long discordId, JDA jda) {
-        try {
-            UserNameTag userNameTag = usersCacheDao.getUserNameTag(discordId);
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            UserNameTag userNameTag = usersCacheDao.getUserNameTag(con, discordId, RowLockType.FOR_UPDATE);
             if (userNameTag == null) {
                 User user = jda.retrieveUserById(discordId).complete();
                 userNameTag = new UserNameTag(user.getName(), Short.parseShort(user.getDiscriminator()));
-                usersCacheDao.add(Objects.requireNonNull(userDao.getUserByDiscordId(discordId)).getId(), userNameTag);
+                usersCacheDao.add(con, Objects.requireNonNull(userDao.getUserByDiscordId(discordId)).getId(), userNameTag);
             }
+            con.commit();
             return userNameTag;
         } catch (SQLException e) {
             logger.error("Error getting user name tag", e);
         }
         return null;
-    }
-
-    public void addUserToDatabase(net.dv8tion.jda.api.entities.User user) throws SQLException {
-        database.model.User newUser = new database.model.User(user.getIdLong());
-        userDao.add(newUser);
-        Daily daily = new Daily(Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId());
-        dailyDao.add(daily);
     }
 }

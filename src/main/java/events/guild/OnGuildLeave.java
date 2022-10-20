@@ -54,12 +54,12 @@ public class OnGuildLeave extends ListenerAdapter {
         logs.sendTyping().queue();
         logs.sendMessageEmbeds(embed.build()).queue();
 
-        try {
+        /*try {
             prefixDao.deleteByGuildId(event.getGuild().getIdLong());
             CommandHandler.prefixes.remove(event.getGuild().getIdLong());
         } catch (SQLException e) {
             logger.error("Error deleting prefix from database on guild leave event", e);
-        }
+        }*/
         logger.trace(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
     }
 

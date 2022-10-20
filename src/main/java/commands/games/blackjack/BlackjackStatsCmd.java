@@ -2,7 +2,10 @@ package commands.games.blackjack;
 
 import commands.Command;
 import commands.SubCmd;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -14,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -25,6 +29,8 @@ public class BlackjackStatsCmd extends Command implements SubCmd {
     public BlackjackStatsCmd() {
         this.commandName = "stats";
         this.commandDescription = "View your own blackjack statistics.";
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override
@@ -54,7 +60,10 @@ public class BlackjackStatsCmd extends Command implements SubCmd {
         EmbedUtils.styleEmbed(embed, user);
         embed.setTitle(String.format("Blackjack Statistics for %s", user.getName()));
 
-        Blackjack blackjack = blackjackDao.getByUserDiscordId(user.getIdLong());
+        Blackjack blackjack;
+        try (Connection con = NewDatabaseConnection.getConnection()) {
+            blackjack = blackjackDao.getByUserDiscordId(con, user.getIdLong(), RowLockType.NONE);
+        }
         if (blackjack != null) {
             int currentStreak = blackjack.getStreak();
             int highestStreak = blackjack.getHighestStreak();
