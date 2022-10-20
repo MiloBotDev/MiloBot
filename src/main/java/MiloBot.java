@@ -1,5 +1,6 @@
 import commands.CommandHandler;
 import commands.CommandLoader;
+import commands.NewCommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
 import events.OnButtonClick;
 import events.OnReadyEvent;
@@ -35,20 +36,54 @@ public class MiloBot {
 
     public static void main(String[] args) throws LoginException, InterruptedException {
         Config config = Config.getInstance();
+        
+        // There are two command handler versions: the old one called CommandHandler
+        // and the new one called NewCommandHandler. The NewCommandHandler is still under
+        // development, so for legacy commands use the old one.
+        // To select one, comment out the error message and System.exit(1) and uncomment
+        // the specific command handler loader you want to use
+        // also, when committing, remember that you DO NOT commit this file!!!
+        // This is just temporarily like this until the new command handler is finished
+        
+        System.out.println("ERROR: Command handler version not selected. Please open MiloBot.java file and follow instructions.");
+        System.exit(1);
+        
+        JDA bot = null;
 
-        JDA bot = JDABuilder.createDefault(config.getBotToken(),
+        // This is the old command handler
+        /*
+        bot = JDABuilder.createDefault(config.getBotToken(),
                         GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_EMOJIS, GatewayIntent.GUILD_VOICE_STATES,
                         GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_TYPING,
                         GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS,
                         GatewayIntent.DIRECT_MESSAGES)
                 .setActivity(Activity.watching("Morbius"))
-                .addEventListeners(new CommandHandler(), new OnGuildJoin(), new OnGuildLeave(),
+                .addEventListeners(new CommandHandler, new OnGuildJoin(), new OnGuildLeave(),
                         new OnReadyEvent(), new OnButtonClick(), new OnSelectionMenu())
                 .build().awaitReady();
 
+
         CommandLoader.loadAllCommands(bot);
+         */
         // uncomment the below to generate updated documentation
 //        CommandLoader.generateCommandDocumentation();
+
+        // This is the new command handler:
+        /*
+        
+        bot = JDABuilder.createDefault(config.getBotToken(),
+                        GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_EMOJIS, GatewayIntent.GUILD_VOICE_STATES,
+                        GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_TYPING,
+                        GatewayIntent.DIRECT_MESSAGE_TYPING, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGE_REACTIONS,
+                        GatewayIntent.DIRECT_MESSAGES)
+                .setActivity(Activity.watching("Morbius"))
+                .addEventListeners(new OnGuildJoin(), new OnGuildLeave(),
+                        new OnReadyEvent(), new OnButtonClick(), new OnSelectionMenu())
+                .build().awaitReady();
+        
+        NewCommandLoader.loadAllCommands(bot);
+       
+         */
 
         Timer timer = new Timer();
         TimerTask clearBlackjackInstances = clearInstances(bot);
