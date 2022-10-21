@@ -16,7 +16,7 @@ a pull request.
 | **Morbconomy**               |                          |                    |                  |
 | [!wallet](#wallet)           | [!profile](#profile)     | [!daily](#daily)   |                  |
 | **Games**                    |                          |                    |                  |
-| [!hungergames](#hungergames) | [!blackjack](#blackjack) | [!wordle](#wordle) | [!poker](#poker) |
+| [!hungergames](#hungergames) | [!blackjackGame](#blackjackGame) | [!wordle](#wordle) | [!pokerGame](#pokerGame) |
 | **Bot**                      |                          |                    |                  |
 | [!bug](#bug)                 | [!status](#status)       |                    |                  |
 | **Dungeons & Dragons**       |                          |                    |                  |
@@ -53,26 +53,26 @@ View your own hungergames statistics.
 
 ---
 
-<h3 id="blackjack">blackjack</h3>
+<h3 id="blackjackGame">blackjackGame</h3>
 
 Blackjack brought to discord.
 
 #### Usage
 
-`!blackjack`
+`!blackjackGame`
 
 #### Sub Commands
 
-`!blackjack play {bet*}`
-Play a game of blackjack on discord.
+`!blackjackGame play {bet*}`
+Play a game of blackjackGame on discord.
 
 
-`!blackjack stats`
-View your own blackjack statistics.
+`!blackjackGame stats`
+View your own blackjackGame statistics.
 
 
-`!blackjack info`
-A simple tutorial on the rules of blackjack.
+`!blackjackGame info`
+A simple tutorial on the rules of blackjackGame.
 
 ---
 
@@ -121,18 +121,18 @@ View your own or someone else's profile.
 
 ---
 
-<h3 id="poker">poker</h3>
+<h3 id="pokerGame">pokerGame</h3>
 
 5-card Poker brought to discord.
 
 #### Usage
 
-`!poker`
+`!pokerGame`
 
 #### Sub Commands
 
-`!poker play`
-Play a game of poker on discord.
+`!pokerGame play`
+Play a game of pokerGame on discord.
 
 ---
 

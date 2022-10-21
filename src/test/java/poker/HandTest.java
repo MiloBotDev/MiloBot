@@ -1,6 +1,6 @@
 package poker;
 
-import games.Poker;
+import games.PokerGame;
 import models.cards.PlayingCard;
 import org.junit.jupiter.api.Test;
 
@@ -375,9 +375,9 @@ public class HandTest {
         for (int i = 0; i < hands.size(); i++) {
             for (List<PlayingCard> hand : hands.get(i)) {
                 if (i == index) {
-                    assertEquals(ROYAL_FLUSH, Poker.Hands.getHandValue(hand), "Royal flush: " + hand);
+                    assertEquals(ROYAL_FLUSH, PokerGame.Hands.getHandValue(hand), "Royal flush: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & ROYAL_FLUSH,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & ROYAL_FLUSH,
                             "Not royal flush: " + hand);
                 }
             }
@@ -392,9 +392,9 @@ public class HandTest {
                 List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(STRAIGHT_FLUSH | highCards.get(i).get(j),
-                            Poker.Hands.getHandValue(hand), "Straight flush: " + hand);
+                            PokerGame.Hands.getHandValue(hand), "Straight flush: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & STRAIGHT_FLUSH,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & STRAIGHT_FLUSH,
                             "Not straight flush: " + hand);
                 }
             }
@@ -409,9 +409,9 @@ public class HandTest {
                 List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FOUR_OF_A_KIND | highCards.get(i).get(j),
-                            Poker.Hands.getHandValue(hand), "Four of a kind: " + hand);
+                            PokerGame.Hands.getHandValue(hand), "Four of a kind: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & FOUR_OF_A_KIND,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & FOUR_OF_A_KIND,
                             "Not four of a kind: " + hand);
                 }
             }
@@ -426,9 +426,9 @@ public class HandTest {
                 List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FULL_HOUSE | highCards.get(i).get(j),
-                            Poker.Hands.getHandValue(hand), "Full house: " + hand);
+                            PokerGame.Hands.getHandValue(hand), "Full house: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & FULL_HOUSE,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & FULL_HOUSE,
                             "Not full house: " + hand);
                 }
             }
@@ -443,9 +443,9 @@ public class HandTest {
                 List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(FLUSH | highCards.get(i).get(j),
-                            Poker.Hands.getHandValue(hand), "Flush: " + hand);
+                            PokerGame.Hands.getHandValue(hand), "Flush: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & FLUSH,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & FLUSH,
                             "Not flush: " + hand);
                 }
             }
@@ -460,9 +460,9 @@ public class HandTest {
                 List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(STRAIGHT | highCards.get(i).get(j),
-                            Poker.Hands.getHandValue(hand), "Straight: " + hand);
+                            PokerGame.Hands.getHandValue(hand), "Straight: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & STRAIGHT,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & STRAIGHT,
                             "Not straight: " + hand);
                 }
             }
@@ -477,9 +477,9 @@ public class HandTest {
                 List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(THREE_OF_A_KIND | highCards.get(i).get(j),
-                            Poker.Hands.getHandValue(hand), "Three of a kind: " + hand);
+                            PokerGame.Hands.getHandValue(hand), "Three of a kind: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & THREE_OF_A_KIND,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & THREE_OF_A_KIND,
                             "Not three of a kind: " + hand);
                 }
             }
@@ -494,9 +494,9 @@ public class HandTest {
                 List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(TWO_PAIR | highCards.get(i).get(j),
-                            Poker.Hands.getHandValue(hand), "Two pair: " + hand);
+                            PokerGame.Hands.getHandValue(hand), "Two pair: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & TWO_PAIR,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & TWO_PAIR,
                             "Two pair: " + hand);
                 }
             }
@@ -511,9 +511,9 @@ public class HandTest {
                 List<PlayingCard> hand = hands.get(i).get(j);
                 if (i == index) {
                     assertEquals(PAIR | highCards.get(i).get(j),
-                            Poker.Hands.getHandValue(hand), "Pair: " + hand);
+                            PokerGame.Hands.getHandValue(hand), "Pair: " + hand);
                 } else {
-                    assertEquals(0, Poker.Hands.getHandValue(hand) & PAIR,
+                    assertEquals(0, PokerGame.Hands.getHandValue(hand) & PAIR,
                             "Ppair: " + hand);
                 }
             }

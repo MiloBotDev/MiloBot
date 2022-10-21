@@ -1,5 +1,3 @@
-import commands.CommandHandler;
-import commands.CommandLoader;
 import commands.NewCommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
 import events.OnButtonClick;
@@ -7,7 +5,7 @@ import events.OnReadyEvent;
 import events.OnSelectionMenu;
 import events.guild.OnGuildJoin;
 import events.guild.OnGuildLeave;
-import games.Blackjack;
+import games.BlackjackGame;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -102,11 +100,11 @@ public class MiloBot {
                         .getTextChannelsByName(Config.getInstance().getLoggingChannelName(), true).get(0);
                 long currentNanoTime = System.nanoTime();
 
-                Map<Long, Blackjack> blackjackGames = BlackjackPlayCmd.blackjackGames;
+                Map<Long, BlackjackGame> blackjackGames = BlackjackPlayCmd.blackjackGames;
                 List<Long> blackjackInstancesToRemove = new ArrayList<>();
                 blackjackGames.forEach(
-                        (s, blackjack) -> {
-                            long startTime = blackjack.getStartTime();
+                        (s, blackjackGame) -> {
+                            long startTime = blackjackGame.getStartTime();
                             long elapsedTime = currentNanoTime - startTime;
                             long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
                             if (elapsedTimeSeconds > 900) {

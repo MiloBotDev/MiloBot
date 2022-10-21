@@ -13,7 +13,7 @@ The database model is as follows:
     - update(Connection con, Model model) - Updates a row in the table with the data in the model. The row is identified by the primary key in the model, which is most likely an auto increment 32-bit integer.
     - delete(Connection con, Model model) - Deletes a row in the database. The row is identified by the primary key in the model, which is most likely an auto increment 32-bit integer.
     - getXXXbyYYY(Connection con, YYY yyy, RowLockType lockType) - Retrieves a row from the table identified by some YYYY identifier (often the primary key).
-- Most of the time a model is just a class with a series of private fields with getters and setters. However, the model often does more advanced things. For example, the method `addGame(BlackjackResult won/draw/lost, int moneyEarned)` in blackjack model takes only two parameters and adds a game played to the user's row in the blackjack table, which isn't a simple one-line operation. It has to set all necessary fields: total games played, lost, won, draw, money earned, and streak.
+- Most of the time a model is just a class with a series of private fields with getters and setters. However, the model often does more advanced things. For example, the method `addGame(BlackjackResult won/draw/lost, int moneyEarned)` in blackjackGame model takes only two parameters and adds a game played to the user's row in the blackjackGame table, which isn't a simple one-line operation. It has to set all necessary fields: total games played, lost, won, draw, money earned, and streak.
 
 ## Connection pooling
 

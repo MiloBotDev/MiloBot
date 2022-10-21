@@ -1,13 +1,7 @@
 package events;
 
 import commands.games.dnd.encounter.EncounterGeneratorCmd;
-import commands.games.blackjack.BlackjackPlayCmd;
-import database.dao.BlackjackDao;
-import database.util.NewDatabaseConnection;
-import database.util.RowLockType;
-import games.Blackjack;
-import games.Poker;
-import net.dv8tion.jda.api.EmbedBuilder;
+import games.PokerGame;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
@@ -23,10 +17,6 @@ import utility.Paginator;
 import utility.Users;
 import utility.lobby.AbstractLobby;
 import utility.lobby.BotLobby;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Objects;
 
 /**
  * Triggers when a button is clicked by a user.
@@ -108,20 +98,20 @@ public class OnButtonClick extends ListenerAdapter {
                                 Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
                 break;
             case "poker_check":
-                Poker pokerGame1 = Poker.getUserGame(user);
-                pokerGame1.setPlayerAction(Poker.PlayerAction.CHECK);
+                PokerGame pokerGameGame1 = PokerGame.getUserGame(user);
+                pokerGameGame1.setPlayerAction(PokerGame.PlayerAction.CHECK);
                 break;
             case "poker_call":
-                Poker pokerGame2 = Poker.getUserGame(user);
-                pokerGame2.setPlayerAction(Poker.PlayerAction.CALL);
+                PokerGame pokerGameGame2 = PokerGame.getUserGame(user);
+                pokerGameGame2.setPlayerAction(PokerGame.PlayerAction.CALL);
                 break;
             case "poker_fold":
-                Poker pokerGame3 = Poker.getUserGame(user);
-                pokerGame3.setPlayerAction(Poker.PlayerAction.FOLD);
+                PokerGame pokerGameGame3 = PokerGame.getUserGame(user);
+                pokerGameGame3.setPlayerAction(PokerGame.PlayerAction.FOLD);
                 break;
             case "poker_raise":
-                Poker pokerGame4 = Poker.getUserGame(user);
-                pokerGame4.setPlayerAction(Poker.PlayerAction.RAISE);
+                PokerGame pokerGameGame4 = PokerGame.getUserGame(user);
+                pokerGameGame4.setPlayerAction(PokerGame.PlayerAction.RAISE);
                 break;
             case "startLobby":
                 AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());

@@ -2,7 +2,7 @@ package commands.games.poker;
 
 import commands.Command;
 import commands.SubCmd;
-import games.Poker;
+import games.PokerGame;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -20,8 +20,8 @@ public class PokerPlayCmd extends Command implements SubCmd {
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         new Lobby("Poker lobby", event.getAuthor(),
                 (players, message) -> {
-                    Poker poker = new Poker(players);
-                    poker.start();
+                    PokerGame pokerGame = new PokerGame(players);
+                    pokerGame.start();
                 }, 2, 5).initialize(event.getChannel());
     }
 }

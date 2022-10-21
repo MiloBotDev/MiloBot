@@ -3,7 +3,7 @@ package commands.games.poker;
 import commands.Command;
 import commands.ParentCmd;
 import commands.games.GamesCmd;
-import games.Poker;
+import games.PokerGame;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -19,7 +19,7 @@ public class PokerCmd extends Command implements ParentCmd, GamesCmd {
         this.listeners.add(new ListenerAdapter() {
             @Override
             public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-                Poker.onMessageReceived(event);
+                PokerGame.onMessageReceived(event);
             }
         });
     }

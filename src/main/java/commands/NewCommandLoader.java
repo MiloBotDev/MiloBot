@@ -8,7 +8,7 @@ import commands.utility.PrefixCmd;
 import database.dao.UserDao;
 import database.util.NewDatabaseConnection;
 import database.util.RowLockType;
-import games.Blackjack;
+import games.BlackjackGame;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -32,14 +32,14 @@ public class NewCommandLoader {
         ExecutorService blackjackService = Executors.newSingleThreadExecutor();
         handler.registerCommand(blackjackService, new BlackjackCmd());
         buttonHandler.registerButton("hit", true, blackjackService, (event) -> {
-            Blackjack game = BlackjackPlayCmd.blackjackGames.get(event.getUser().getIdLong());
+            BlackjackGame game = BlackjackPlayCmd.blackjackGames.get(event.getUser().getIdLong());
             if (game.isFinished() || game.isPlayerStand()) {
                 return;
             }
             game.playerHit();
-            Blackjack.BlackjackStates blackjackStates = game.checkWin(false);
+            BlackjackGame.BlackjackStates blackjackStates = game.checkWin(false);
             EmbedBuilder newEmbed;
-            if (blackjackStates.equals(Blackjack.BlackjackStates.DEALER_WIN)) {
+            if (blackjackStates.equals(BlackjackGame.BlackjackStates.DEALER_WIN)) {
                 game.checkWin(true);
                 newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
                 event.getHook().editOriginalEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
@@ -52,15 +52,15 @@ public class NewCommandLoader {
             }
         });
         buttonHandler.registerButton("stand", true, blackjackService, (event) -> {
-            Blackjack.BlackjackStates blackjackStates;
-            Blackjack blackjack = BlackjackPlayCmd.blackjackGames.get(event.getUser().getIdLong());
-            if (blackjack.isFinished() || blackjack.isPlayerStand()) {
+            BlackjackGame.BlackjackStates blackjackStates;
+            BlackjackGame blackjackGame = BlackjackPlayCmd.blackjackGames.get(event.getUser().getIdLong());
+            if (blackjackGame.isFinished() || blackjackGame.isPlayerStand()) {
                 return;
             }
-            blackjack.setPlayerStand(true);
-            blackjack.dealerMoves();
-            blackjack.setDealerStand(true);
-            blackjackStates = blackjack.checkWin(true);
+            blackjackGame.setPlayerStand(true);
+            blackjackGame.dealerMoves();
+            blackjackGame.setDealerStand(true);
+            blackjackStates = blackjackGame.checkWin(true);
             EmbedBuilder embedBuilder = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
             event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
                     Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
@@ -68,17 +68,17 @@ public class NewCommandLoader {
             BlackjackPlayCmd.blackjackGames.remove(event.getUser().getIdLong());
         });
         buttonHandler.registerButton("replayBlackjack", true, blackjackService, (event) -> {
-            Logger logger = LoggerFactory.getLogger(Blackjack.class);
+            Logger logger = LoggerFactory.getLogger(BlackjackGame.class);
             UserDao userDao = UserDao.getInstance();
-            Blackjack.BlackjackStates blackjackStates;
+            BlackjackGame.BlackjackStates blackjackStates;
             String authorId = event.getUser().getId();
             if (BlackjackPlayCmd.blackjackGames.containsKey(event.getUser().getIdLong())) {
                 return;
             }
             String description = event.getMessage().getEmbeds().get(0).getDescription();
-            Blackjack value;
+            BlackjackGame value;
             if (description == null) {
-                value = new Blackjack(event.getUser().getIdLong());
+                value = new BlackjackGame(event.getUser().getIdLong());
             } else {
                 String s = description.replaceAll("[^0-9]", "");
                 int bet = Integer.parseInt(s);
@@ -95,7 +95,7 @@ public class NewCommandLoader {
                     user2.setCurrency(newWallet);
                     userDao.update(con, user2);
                     con.commit();
-                    value = new Blackjack(event.getUser().getIdLong(), bet);
+                    value = new BlackjackGame(event.getUser().getIdLong(), bet);
                 } catch (SQLException e) {
                     logger.error("Error updating blackjack data when user wanted to replay blackjack.", e);
                     return;
@@ -103,9 +103,9 @@ public class NewCommandLoader {
             }
             value.initializeGame();
             BlackjackPlayCmd.blackjackGames.put(event.getUser().getIdLong(), value);
-            Blackjack.BlackjackStates state = value.checkWin(false);
+            BlackjackGame.BlackjackStates state = value.checkWin(false);
             EmbedBuilder embed;
-            if (state.equals(Blackjack.BlackjackStates.PLAYER_BLACKJACK)) {
+            if (state.equals(BlackjackGame.BlackjackStates.PLAYER_BLACKJACK)) {
                 value.dealerHit();
                 value.setDealerStand(true);
                 blackjackStates = value.checkWin(true);

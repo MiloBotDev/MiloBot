@@ -15,9 +15,9 @@ import utility.EmbedUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Poker {
+public class PokerGame {
 
-    private static final ArrayList<Poker> games = new ArrayList<>();
+    private static final ArrayList<PokerGame> games = new ArrayList<>();
     private final List<User> players;
     private final Map<User, PlayerData> playerData = new HashMap<>();
     private final CardDeck<PlayingCard> mainDeck = new CardDeck<>(List.of(PlayingCard.values()));
@@ -56,7 +56,7 @@ public class Poker {
         private boolean replacedCards = false;
     }
 
-    public Poker(List<User> players) {
+    public PokerGame(List<User> players) {
         games.add(this);
         this.players = new ArrayList<>(players);
         state = PokerState.WAITING_TO_START;
@@ -324,7 +324,7 @@ public class Poker {
         return embed;
     }
 
-    public static Poker getUserGame(User user) {
+    public static PokerGame getUserGame(User user) {
         return games.stream().filter(game -> game.players.contains(user)).findAny().orElse(null);
     }
 

@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Blackjack {
+public class BlackjackGame {
 
-    private static final Logger logger = LoggerFactory.getLogger(Blackjack.class);
+    private static final Logger logger = LoggerFactory.getLogger(BlackjackGame.class);
     private final List<PlayingCard> playerHand;
     private final List<PlayingCard> dealerHand;
     private final CardDeck<PlayingCard> deck;
@@ -33,7 +33,7 @@ public class Blackjack {
     private boolean finished;
     private int winnings;
 
-    public Blackjack(long userDiscordId) {
+    public BlackjackGame(long userDiscordId) {
         this.playerHand = new ArrayList<>();
         this.dealerHand = new ArrayList<>();
         this.deck = new CardDeck<>(List.of(PlayingCard.values()));
@@ -43,7 +43,7 @@ public class Blackjack {
         this.startTime = System.nanoTime();
     }
 
-    public Blackjack(long userDiscordId, int bet) {
+    public BlackjackGame(long userDiscordId, int bet) {
         this.playerHand = new ArrayList<>();
         this.dealerHand = new ArrayList<>();
         this.deck = new CardDeck<>(List.of(PlayingCard.values()));
