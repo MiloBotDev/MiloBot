@@ -12,13 +12,12 @@ import java.sql.*;
 
 public class UserDao {
 
-    private static final Connection con = DatabaseConnection.getConnection();
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
     private static UserDao instance = null;
 
     private UserDao() {
         try {
-            creteTableIfNotExists();
+            createTableIfNotExists();
         } catch (SQLException e) {
             logger.error("Error creating table users ", e);
         }
@@ -31,7 +30,7 @@ public class UserDao {
         return instance;
     }
 
-    private void creteTableIfNotExists() throws SQLException {
+    private void createTableIfNotExists() throws SQLException {
         String query = "CREATE TABLE IF NOT EXISTS users (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "discord_id BIGINT NOT NULL UNIQUE," +
@@ -62,17 +61,6 @@ public class UserDao {
         }
     }
 
-    public void update(@NotNull User user) throws SQLException {
-        String query = "UPDATE users SET discord_id = ?, currency = ?, level = ?, experience = ? WHERE id = ?";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setLong(1, user.getDiscordId());
-        ps.setInt(2, user.getCurrency());
-        ps.setInt(3, user.getLevel());
-        ps.setInt(4, user.getExperience());
-        ps.setInt(5, user.getId());
-        ps.executeUpdate();
-    }
-
     public void update(@NotNull Connection con, @NotNull User user) throws SQLException {
         String query = "UPDATE users SET discord_id = ?, currency = ?, level = ?, experience = ? WHERE id = ?";
         try (PreparedStatement ps = con.prepareStatement(query)) {
@@ -84,23 +72,6 @@ public class UserDao {
             ps.executeUpdate();
         }
     }
-
-    @Nullable
-    public User getUserByDiscordId(long discordId) throws SQLException {
-        String query = "SELECT * FROM users WHERE discord_id = ?";
-        PreparedStatement ps;
-        ps = con.prepareStatement(query);
-        ps.setLong(1, discordId);
-        ResultSet rs = ps.executeQuery();
-
-        if (rs.next()) {
-            return new User(rs.getInt("id"), rs.getLong("discord_id"), rs.getInt("currency"),
-                    rs.getInt("level"), rs.getInt("experience"));
-        } else {
-            return null;
-        }
-    }
-
     @Nullable
     public User getUserByDiscordId(@NotNull Connection con, long discordId, @NotNull RowLockType lockType) throws SQLException {
         String query = lockType.getQueryWithLock("SELECT * FROM users WHERE discord_id = ?");
@@ -119,8 +90,8 @@ public class UserDao {
     }
 
     @Nullable
-    public User getUserById(int id) throws SQLException {
-        String query = "SELECT * FROM users WHERE id = ?";
+    public User getUserById(@NotNull Connection con, int id, RowLockType lockType) throws SQLException {
+        String query = lockType.getQueryWithLock("SELECT * FROM users WHERE id = ?");
         PreparedStatement ps;
         ps = con.prepareStatement(query);
         ps.setInt(1, id);
@@ -134,7 +105,7 @@ public class UserDao {
         }
     }
 
-    public int getUserRank(int userId) throws SQLException {
+    public int getUserRank(@NotNull Connection con, int userId) throws SQLException {
         String query =
                 """
                         SELECT

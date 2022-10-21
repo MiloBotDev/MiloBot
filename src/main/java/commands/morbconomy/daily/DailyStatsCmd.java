@@ -4,7 +4,7 @@ import commands.Command;
 import commands.SubCmd;
 import database.dao.DailyDao;
 import database.model.Daily;
-import database.util.NewDatabaseConnection;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -47,7 +47,7 @@ public class DailyStatsCmd extends Command implements SubCmd {
         EmbedUtils.styleEmbed(dailyStatsEmbed, user);
         dailyStatsEmbed.setTitle(String.format("Daily Statistics for %s", user.getName()));
 
-        try (Connection con = NewDatabaseConnection.getConnection()) {
+        try (Connection con = DatabaseConnection.getConnection()) {
             Daily daily = dailyDao.getDailyByUserDiscordId(con, user.getIdLong(), RowLockType.NONE);
             if(daily != null) {
                 int streak = daily.getStreak();

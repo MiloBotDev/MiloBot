@@ -4,8 +4,11 @@ import commands.Command;
 import commands.SubCmd;
 import database.dao.UserDao;
 import database.model.HungerGames;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -14,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import utility.Users;
 
 import java.awt.*;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,8 @@ public class HungerGamesLeaderboardCmd extends Command implements SubCmd {
     public HungerGamesLeaderboardCmd() {
         this.commandName = "leaderboard";
         this.commandDescription = "View the hungergames leaderboards.";
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override
@@ -69,8 +75,10 @@ public class HungerGamesLeaderboardCmd extends Command implements SubCmd {
 
         final int[] counter = {1};
         hungerGames.forEach((hg) -> {
-            try {
-                long discordId = Objects.requireNonNull(userDao.getUserById(hg.getUserId())).getDiscordId();
+            try(Connection con = DatabaseConnection.getConnection()) {
+                con.setAutoCommit(false);
+                long discordId = Objects.requireNonNull(userDao.getUserById(con, hg.getUserId(), RowLockType.NONE)).getDiscordId();
+                con.commit();
                 String name = userUtil.getUserNameTag(discordId, jda).userName();
                 switch (title) {
                     case "Total Kills" -> desc[0].append(String.format("`%d.` %s - %d kills.\n", counter[0], name, hg.getTotalKills()));

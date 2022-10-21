@@ -1,6 +1,6 @@
 package games;
 
-import database.util.NewDatabaseConnection;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import models.cards.CardDeck;
 import models.cards.PlayingCard;
@@ -171,7 +171,7 @@ public class BlackjackGame {
 
     private void updateBlackjackDatabase(BlackjackStates state) {
         database.model.Blackjack blackjack;
-        try (Connection con = NewDatabaseConnection.getConnection()) {
+        try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             updateWallet(con, state);
             blackjack = Objects.requireNonNull(blackjackDao.getByUserDiscordId(con, userDiscordId, RowLockType.FOR_UPDATE));

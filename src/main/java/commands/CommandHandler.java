@@ -1,230 +1,283 @@
 package commands;
 
-import database.util.NewDatabaseConnection;
-import net.dv8tion.jda.api.EmbedBuilder;
+import database.dao.PrefixDao;
+import database.model.Prefix;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import database.dao.DailyDao;
-import database.dao.PrefixDao;
-import database.dao.UserDao;
-import database.model.Daily;
-import database.model.Prefix;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
 import utility.Users;
 
-import java.awt.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
 
-/**
- * Handles the incoming commands.
- */
 public class CommandHandler extends ListenerAdapter {
 
-    public final static HashMap<Long, String> prefixes = new HashMap<>();
-    private final static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
-    private final Users user;
-    private final UserDao userDao = UserDao.getInstance();
-    private final DailyDao dailyDao = DailyDao.getInstance();
+    public record CommandRecord(Command command, ExecutorService executor) {
+    }
+    public static final Map<String, CommandRecord> commands = new HashMap<>();
+    public static final Map<Long, String> prefixes = new HashMap<>();
+    private final PrefixDao prefixDao = PrefixDao.getInstance();
+    private final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
+    private final JDA jda;
 
-    public CommandHandler() {
-        this.user = Users.getInstance();
-        // loads all the prefixes into a map
-        List<Prefix> prefixesDbObj;
-        /*try {
-            prefixesDbObj = PrefixDao.getInstance().getAllPrefixes();
-        } catch (SQLException e) {
-            logger.error("CommandHandler: Could not load prefixes", e);
-            return;
-        }
-        for (Prefix prefixDbObj : prefixesDbObj) {
-            prefixes.put(prefixDbObj.getGuildId(), prefixDbObj.getPrefix());
-        }*/
+    public CommandHandler(JDA jda) {
+        this.jda = jda;
     }
 
-    /**
-     * Loads prefixes for guilds that have the bot but are not in the database yet.
-     */
-    @Override
-    public void onReady(@NotNull ReadyEvent event) {
-        /*List<Guild> guilds = event.getJDA().getGuilds();
-        PrefixDao prefixDao = PrefixDao.getInstance();
-        List<Prefix> prefixes;
-        try {
-            prefixes = prefixDao.getAllPrefixes();
-        } catch (SQLException e) {
-            logger.error("Error loading prefixes.", e);
-            return;
-        }
-        for (Guild guild : guilds) {
-            long id = guild.getIdLong();
-            if (prefixes.stream().noneMatch(prefix -> prefix.getGuildId() == id)) {
-                logger.trace(String.format("Guild: %d does not have a configured prefix.", id) +
-                        " Setting default prefix for guild.");
-                Prefix prefix = new Prefix(id, Config.getInstance().getDefaultPrefix());
-                try {
-                    prefixDao.add(prefix);
-                } catch (SQLException e) {
-                    logger.error("Error adding prefix.", e);
+    public void registerCommand(ExecutorService service, @NotNull Command command) {
+        commands.put(command.commandName, new CommandRecord(command, service));
+        // add slash sub command to jda and check for null
+        if (command.slashCommandData != null) {
+            CommandData commandData = command.slashCommandData;
+            for (Command subCommand : command.subCommands) {
+                if (subCommand.slashSubcommandData != null) {
+                    commandData.addSubcommands(subCommand.slashSubcommandData);
                 }
-                CommandHandler.prefixes.put(id, Config.getInstance().getDefaultPrefix());
             }
-        }*/
+            jda.updateCommands().addCommands(commandData).queue();
+        }
+    }
+
+    public void initialize() {
+        // register event listener
+        jda.addEventListener(this);
+        jda.addEventListener((EventListener) genericEvent -> commands.forEach((name, record) -> {
+            record.command.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent)));
+            record.command.subCommands.forEach(subCommand ->
+                    subCommand.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent))));
+        }));
     }
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (event.getChannelType() != ChannelType.TEXT) {
-            return;
-        }
-
-        // ignore messages from other bots or itself
         if (event.getMessage().getAuthor().isBot()) {
             return;
         }
 
-        long guildId = event.getGuild().getIdLong();
-        List<String> receivedMessage = Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
-                .map(String::toLowerCase).collect(Collectors.toList());
-        AtomicBoolean commandFound = new AtomicBoolean(false);
-        String prefix = prefixes.get(guildId);
-        // check if the message starts with the prefix
-        if (receivedMessage.get(0).startsWith(prefix)) {
-            CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
-                if (receivedMessage.size() == 0) {
+        String message = event.getMessage().getContentRaw();
+        String prefix;
+        if (event.isFromGuild()) {
+            long guildId = event.getGuild().getIdLong();
+            if (!prefixes.containsKey(guildId)) {
+                String dbPrefix;
+                try (Connection con = DatabaseConnection.getConnection()) {
+                    Prefix prefixObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.NONE);
+                    if (prefixObj == null) {
+                        dbPrefix = Config.getInstance().getDefaultPrefix();
+                    } else {
+                        dbPrefix = prefixObj.getPrefix();
+                    }
+                    prefixes.put(guildId, dbPrefix);
+                } catch (SQLException e) {
+                    logger.error("Error while getting prefix from database", e);
                     return;
                 }
-                if (strings.contains(receivedMessage.get(0).toLowerCase(Locale.ROOT).replaceFirst(prefix, ""))) {
-                    // stops the loop
-                    commandFound.set(true);
+            }
 
-                    receivedMessage.remove(0);
-                    Command command = CommandLoader.commandList.get(strings);
-                    String fullCommandName = command.commandName;
-                    // check if the user is calling to a subcommand of this command
-                    if (receivedMessage.size() > 0) {
-                        for (Command subCommand : command.subCommands) {
-                            if (receivedMessage.get(0).toLowerCase(Locale.ROOT).equals(subCommand.commandName)) {
-                                receivedMessage.remove(0);
-                                command = subCommand;
-                                fullCommandName += String.format(" %s", subCommand.commandName);
-                                break;
-                            }
-                        }
-                    }
-                    // check for flags if one or multiple arguments are present
-                    if (receivedMessage.size() > 0) {
-                        if (command.checkForFlags(event, receivedMessage)) {
-                            return;
-                        }
-                    }
-                    // check if the author has the required permissions
-                    if (!command.checkRequiredPermissions(event)) {
-                        command.sendMissingPermissions(event, prefix);
-                        return;
-                    }
-                    // check if the command is a parent command
-                    if (command instanceof ParentCmd) {
-                        command.sendCommandExplanation(event, prefix);
-                        return;
-                    }
-                    // check if all required args are present
-                    if (command.calculateRequiredArgs() > receivedMessage.size()) {
-                        command.sendCommandUsage(event);
-                        return;
-                    }
-                    // check for potential cooldown
-                    if (command.cooldown > 0) {
-                        boolean onCooldown = command.checkCooldown(event);
-                        if (onCooldown) {
-                            return;
-                        }
-                    }
-                    // check for single instance
-                    if (command.singleInstance) {
-                        boolean instanceOpen = command.checkInstanceOpen(event);
-                        if (instanceOpen) {
-                            return;
-                        }
-                    }
-                    // check if this user exists in the database otherwise add it
-                    user.addUserIfNotExists(event.getAuthor().getIdLong());
-                    // update the tracker
-                    Long userId = event.getAuthor().getIdLong();
-                    command.updateCommandTrackerUser(userId);
-                    try {
-                        user.updateExperience(event.getAuthor().getIdLong(), 10, event.getAuthor().getAsMention(),
-                                event.getChannel());
-                    } catch (SQLException e) {
-                        logger.error("Couldn't update user experience", e);
-                    }
-                    // execute the command
-                    command.executeCommand(event, receivedMessage);
-                    logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
-                            event.getAuthor().getName()));
-                }
-            });
+            prefix = prefixes.get(guildId);
+        } else if (event.getChannelType() == ChannelType.PRIVATE) {
+            prefix = Config.getInstance().getPrivateChannelPrefix();
+        } else {
+            prefix = Config.getInstance().getDefaultPrefix();
         }
+        if (!message.startsWith(prefix)) {
+            return;
+        }
+        message = message.substring(prefix.length());
+
+        List<String> messageParts = new ArrayList<>(Arrays.stream(message.split("\\s+"))
+                .map(String::toLowerCase).toList());
+        if (messageParts.size() == 0) {
+            return;
+        }
+
+        CommandRecord commandRecord = commands.get(messageParts.get(0).toLowerCase());
+        if (commandRecord == null) {
+            return;
+        }
+
+        ExecutorService executorService = commandRecord.executor;
+        messageParts.remove(0);
+        executorService.submit(() -> {
+            Command command = commandRecord.command;
+            String fullCommandName = command.commandName;
+
+            if (messageParts.size() > 0) {
+                for (Command subCommand : command.subCommands) {
+                    if (subCommand.commandName.equals(messageParts.get(0).toLowerCase())) {
+                        messageParts.remove(0);
+                        command = subCommand;
+                        fullCommandName += " " + subCommand.commandName;
+                        break;
+                    }
+                }
+            }
+
+            if (!command.checkChannelAllowed(event.getChannel().getType())) {
+                command.sendInvalidChannel(event);
+                return;
+            }
+
+            // check for flags if one or multiple arguments are present
+            if (messageParts.size() > 0) {
+                if (command.checkForFlags(event, messageParts)) {
+                    return;
+                }
+            }
+            // check if the author has the required permissions
+            if (!command.checkRequiredPermissions(event)) {
+                command.sendMissingPermissions(event, prefix);
+                return;
+            }
+            // check if the command is a parent command
+            if (command instanceof ParentCmd) {
+                command.sendCommandExplanation(event, prefix);
+                return;
+            }
+            // check if all required args are present
+            if (command.calculateRequiredArgs() > messageParts.size()) {
+                command.sendCommandUsage(event);
+                return;
+            }
+            // check for potential cooldown
+            if (command.cooldown > 0) {
+                boolean onCooldown = command.checkCooldown(event);
+                if (onCooldown) {
+                    return;
+                }
+            }
+            // check for single instance
+            if (command.singleInstance) {
+                boolean instanceOpen = command.checkInstanceOpen(event);
+                if (instanceOpen) {
+                    return;
+                }
+            }
+            // check if this user exists in the database otherwise add it
+            Users.getInstance().addUserIfNotExists(event.getAuthor().getIdLong());
+            // update the tracker
+            long userId = event.getAuthor().getIdLong();
+            command.updateCommandTrackerUser(userId);
+            try {
+                Users.getInstance().updateExperience(event.getAuthor().getIdLong(), 10, event.getAuthor().getAsMention(),
+                        event.getChannel());
+            } catch (SQLException e) {
+                logger.error("Couldn't update user experience", e);
+            }
+            // execute the command
+            Command finalCommand = command;
+            executorService.submit(() -> finalCommand.executeCommand(event, messageParts));
+            logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
+                    event.getAuthor().getName()));
+        });
     }
 
     @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
-        // send error message for commands not from a guild (commands from DMs)
-        if (event.getGuild() == null) {
-            EmbedBuilder eb = new EmbedBuilder();
-            eb.setColor(Color.RED);
-            eb.setTitle("Error");
-            eb.setDescription("Commands cannot be used in DMs.");
-            event.replyEmbeds(eb.build()).queue();
+    public void onSlashCommand(SlashCommandEvent event) {
+        if (event.getUser().isBot()) {
             return;
         }
-        AtomicBoolean commandFound = new AtomicBoolean(false);
-        CommandLoader.commandList.keySet().stream().takeWhile(i -> !commandFound.get()).forEach(strings -> {
-            if (strings.contains(event.getName()) || strings.contains(event.getSubcommandName())) {
-                commandFound.set(true);
-                Command command = CommandLoader.commandList.get(strings);
-                String fullCommandName = command.commandName;
-                if (event.getSubcommandName() != null) {
-                    for (Command subCommand : command.subCommands) {
-                        if (event.getSubcommandName().toLowerCase(Locale.ROOT).equals(subCommand.commandName)) {
-                            command = subCommand;
-                            fullCommandName += String.format(" %s", subCommand.commandName);
-                            break;
-                        }
+        String commandName = event.getName();
+        CommandRecord commandRecord = commands.get(commandName);
+        if (commandRecord == null) {
+            return;
+        }
+
+        ExecutorService executorService = commandRecord.executor;
+        executorService.submit(() -> {
+            Command command = commandRecord.command;
+            String fullCommandName = command.commandName;
+            if (event.getSubcommandName() != null) {
+                for (Command subCommand : command.subCommands) {
+                    if (subCommand.commandName.equals(event.getSubcommandName())) {
+                        command = subCommand;
+                        fullCommandName += " " + subCommand.commandName;
+                        break;
                     }
-                } else {
-                    command = CommandLoader.commandList.get(strings);
-                }
-                String prefix = prefixes.get(event.getGuild().getIdLong());
-                if (!command.checkRequiredPermissions(event)) {
-                    command.sendMissingPermissions(event, prefix);
-                    return;
-                }
-                user.addUserIfNotExists(event.getUser().getIdLong());
-                command.executeSlashCommand(event);
-                command.updateCommandTrackerUser(event.getUser().getIdLong());
-                try {
-                    user.updateExperience(event.getUser().getIdLong(), 10, event.getUser().getAsMention(),
-                            event.getChannel());
-                } catch (SQLException e) {
-                    logger.error("Couldn't update user experience", e);
                 }
             }
+            if (!command.checkChannelAllowed(event.getChannelType())) {
+                command.sendInvalidChannel(event);
+                return;
+            }
+            if (!command.checkRequiredPermissions(event)) {
+                command.sendMissingPermissions(event, "");
+                return;
+            }
+            if (command instanceof ParentCmd) {
+                command.sendCommandExplanation(event, "");
+                return;
+            }
+            // check for potential cooldown
+            if (command.cooldown > 0) {
+                boolean onCooldown = command.checkCooldown(event);
+                if (onCooldown) {
+                    return;
+                }
+            }
+            // check for single instance
+            if (command.singleInstance) {
+                boolean instanceOpen = command.checkInstanceOpen(event);
+                if (instanceOpen) {
+                    return;
+                }
+            }
+            Users.getInstance().addUserIfNotExists(event.getUser().getIdLong());
+            long userId = event.getUser().getIdLong();
+            command.updateCommandTrackerUser(userId);
+            try {
+                Users.getInstance().updateExperience(event.getUser().getIdLong(), 10, event.getUser().getAsMention(),
+                        event.getChannel());
+            } catch (SQLException e) {
+                logger.error("Couldn't update user experience", e);
+            }
+            Command finalCommand = command;
+            executorService.submit(() -> finalCommand.executeSlashCommand(event));
+            logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
+                    event.getUser().getName()));
         });
-
     }
 
+    @Override
+    public void onGuildLeave(@NotNull GuildLeaveEvent event) {
+        // remove from prefixes using prefixdao from database
+        try (Connection con = DatabaseConnection.getConnection()) {
+            prefixDao.deleteByGuildId(con, event.getGuild().getIdLong());
+            setGuildPrefix(event.getGuild().getIdLong(), null);
+        } catch (SQLException e) {
+            logger.error("Couldn't delete guild from database", e);
+        }
+    }
 
-
+    public boolean setGuildPrefix(long guildId, String prefix) {
+        try (Connection con = DatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            Prefix prefixDbObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.FOR_UPDATE);
+            if (prefixDbObj != null) {
+                prefixDbObj.setPrefix(prefix);
+                prefixDao.update(con, prefixDbObj);
+            } else {
+                prefixDao.add(con, new Prefix(guildId, prefix));
+            }
+            con.commit();
+        } catch (SQLException e) {
+            logger.error("Could not update prefix for guild", e);
+            return false;
+        }
+        prefixes.put(guildId, prefix);
+        return true;
+    }
 }

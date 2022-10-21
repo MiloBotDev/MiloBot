@@ -3,10 +3,12 @@ package commands.bot.bug;
 import commands.Command;
 import commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
 import utility.EmbedUtils;
@@ -30,6 +32,9 @@ public class BugListCmd extends Command implements SubCmd {
         this.commandName = resourceBundle.getString("bugListCommandName");
         this.commandDescription = resourceBundle.getString("bugListCommandDescription");
         this.gitHubBot = GitHubBot.getInstance();
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
     }
 
     @Override

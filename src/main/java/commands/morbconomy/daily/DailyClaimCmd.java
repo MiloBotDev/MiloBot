@@ -5,7 +5,7 @@ import commands.SubCmd;
 import database.dao.DailyDao;
 import database.dao.UserDao;
 import database.model.Daily;
-import database.util.NewDatabaseConnection;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
@@ -65,7 +65,7 @@ public class DailyClaimCmd extends Command implements SubCmd {
         StringBuilder result = new StringBuilder();
 
         Instant timeNow = Instant.now();
-        try (Connection con = NewDatabaseConnection.getConnection()) {
+        try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             database.model.User userDbObj = Objects.requireNonNull(
                     userDao.getUserByDiscordId(con, user.getIdLong(), RowLockType.FOR_UPDATE));

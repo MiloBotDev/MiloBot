@@ -3,8 +3,10 @@ package commands.bot;
 import commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
@@ -21,6 +23,8 @@ public class StatusCmd extends Command implements BotCmd {
         this.commandName = "status";
         this.commandDescription = "The status of the bot.";
         this.cooldown = 60;
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override
@@ -48,7 +52,6 @@ public class StatusCmd extends Command implements BotCmd {
         embed.addField("Random Information", String.format("The bot can see %d emotes and %d roles.",
                 emoteTotal, roleTotal), false);
 
-        event.getChannel().sendTyping().queue();
         event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }

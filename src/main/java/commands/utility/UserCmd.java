@@ -2,6 +2,7 @@ package commands.utility;
 
 import commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -25,6 +26,8 @@ public class UserCmd extends Command implements UtilityCmd {
         this.commandName = "user";
         this.commandDescription = "Shows information about a user.";
         this.commandArgs = new String[]{"*user"};
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override

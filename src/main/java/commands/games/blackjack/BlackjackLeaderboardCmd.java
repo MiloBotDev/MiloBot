@@ -7,9 +7,11 @@ import database.model.Blackjack;
 import database.model.Wordle;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import org.jetbrains.annotations.NotNull;
 import utility.Users;
@@ -28,6 +30,9 @@ public class BlackjackLeaderboardCmd extends Command implements SubCmd {
     public BlackjackLeaderboardCmd() {
         this.commandName = "leaderboard";
         this.commandDescription = "View the blackjack leaderboards.";
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
     }
 
     @Override

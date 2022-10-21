@@ -1,7 +1,6 @@
 package database.dao;
 
 import database.util.DatabaseConnection;
-import database.util.NewDatabaseConnection;
 import database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 
 public class CommandTrackerDao {
+
     private static final Logger logger = LoggerFactory.getLogger(CommandTrackerDao.class);
     private static CommandTrackerDao instance = null;
 
@@ -21,7 +21,7 @@ public class CommandTrackerDao {
         }
     }
 
-    public static CommandTrackerDao getInstance() {
+    public static synchronized CommandTrackerDao getInstance() {
         if (instance == null) {
             instance = new CommandTrackerDao();
         }
@@ -33,7 +33,7 @@ public class CommandTrackerDao {
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "command_name VARCHAR(255) NOT NULL" +
                 ")";
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              Statement st = con.createStatement()) {
             st.execute(query);
         }
@@ -52,7 +52,7 @@ public class CommandTrackerDao {
                 "ON UPDATE CASCADE," +
                 "UNIQUE KEY uc_user_command (user_id, command)" +
                 ")";
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              Statement st = con.createStatement()) {
             st.execute(query);
         }
@@ -63,8 +63,8 @@ public class CommandTrackerDao {
         String query = "INSERT INTO command_tracker (user_id, command, amount) VALUES " +
                 "(?, (SELECT id FROM commands WHERE command_name = ?), 1) " +
                 "ON DUPLICATE KEY UPDATE amount = amount + 1";
-        try (Connection con = NewDatabaseConnection.getConnection();
-                PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setInt(1, userId);
             ps.setString(2, commandName);
             ps.executeUpdate();
@@ -73,7 +73,7 @@ public class CommandTrackerDao {
 
     private void addCommand(String commandName) throws SQLException {
         String query = RowLockType.FOR_UPDATE.getQueryWithLock("SELECT * FROM commands WHERE command_name = ?");
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
             con.setAutoCommit(false);
             ps.setString(1, commandName);
@@ -93,7 +93,7 @@ public class CommandTrackerDao {
     public int getUserSpecificCommandUsage(String commandName, int userId) throws SQLException {
         String query = "SELECT amount FROM command_tracker WHERE command = " +
                 "(SELECT id FROM commands WHERE command_name = ?) AND user_id = ?;";
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, commandName);
             ps.setInt(2, userId);
@@ -109,7 +109,7 @@ public class CommandTrackerDao {
     public int getGlobalCommandUsage(String commandName) throws SQLException {
         String query = "SELECT sum(amount) from command_tracker WHERE command = " +
                 "(SELECT id FROM commands WHERE command_name = ?);";
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, commandName);
             try (ResultSet rs = ps.executeQuery()) {

@@ -3,8 +3,11 @@ package commands.games.wordle;
 import commands.Command;
 import commands.SubCmd;
 import database.dao.UserDao;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -14,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import utility.Users;
 
 import java.awt.*;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,8 +74,8 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
 
         final int[] counter = {1};
         wordles.forEach((wordle) -> {
-            try {
-                long discordId = Objects.requireNonNull(userDao.getUserById(wordle.getUserId())).getDiscordId();
+            try(Connection con = DatabaseConnection.getConnection()) {
+                long discordId = Objects.requireNonNull(userDao.getUserById(con, wordle.getUserId(), RowLockType.NONE)).getDiscordId();
                 String name = userUtil.getUserNameTag(discordId, jda).userName();
                 switch (title) {
                     case "Highest Streak" -> desc[0].append(String.format("`%d.` %s - %d games.\n", counter[0], name, wordle.getHighestStreak()));

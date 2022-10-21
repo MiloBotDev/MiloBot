@@ -1,5 +1,7 @@
 package commands;
 
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -20,10 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -258,10 +260,12 @@ public abstract class Command {
      * Updates the command tracker for a specific user;
      */
     public void updateCommandTrackerUser(long discordId) {
-        try {
-            database.model.User userByDiscordId = userDao.getUserByDiscordId(discordId);
+        try(Connection con = DatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            database.model.User userByDiscordId = userDao.getUserByDiscordId(con, discordId, RowLockType.FOR_UPDATE);
             int userId = Objects.requireNonNull(userByDiscordId).getId();
             commandTrackerDao.addToCommandTracker(getFullCommandName(), userId);
+            con.commit();
         } catch (Exception e) {
             logger.error("Failed to update command tracker.", e);
         }
@@ -271,8 +275,9 @@ public abstract class Command {
      * Generates a message with the stats of that specific command.
      */
     public void generateStats(@NotNull MessageReceivedEvent event) {
-        try {
-            database.model.User userByDiscordId = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
+        try(Connection con = DatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            database.model.User userByDiscordId = userDao.getUserByDiscordId(con, event.getAuthor().getIdLong(), RowLockType.FOR_UPDATE);
             int userId = Objects.requireNonNull(userByDiscordId).getId();
 
             int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(getFullCommandName(), userId);
@@ -287,6 +292,7 @@ public abstract class Command {
             event.getChannel().sendTyping().queue();
             event.getChannel().sendMessageEmbeds(stats.build()).setActionRow(
                     Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+            con.commit();
         } catch (SQLException e) {
             logger.error("Failed to generate stats", e);
         }
@@ -324,6 +330,17 @@ public abstract class Command {
                 }
             }
             info.addField("Aliases", aliasesText.toString(), false);
+        }
+
+        if(!(allowedChannelTypes.size() == 0)) {
+            StringBuilder allowedChannelTypesText = new StringBuilder();
+            for (int i = 0; i < allowedChannelTypes.size(); i++) {
+                allowedChannelTypesText.append('`').append(allowedChannelTypes.toArray()[i].toString()).append('`');
+                if (!(i + 1 == allowedChannelTypes.size())) {
+                    allowedChannelTypesText.append(", ");
+                }
+            }
+            info.addField("Allowed Channel Types", allowedChannelTypesText.toString(), false);
         }
 
         if (!(flags.length == 0)) {
@@ -410,15 +427,27 @@ public abstract class Command {
     /**
      * Generates and sends a message for when the parent command has been called without a sub command.
      */
-    public void sendCommandExplanation(@NotNull MessageReceivedEvent event, String prefix) {
+    public void sendCommandExplanation(@NotNull Event event, String prefix) {
         EmbedBuilder embed = new EmbedBuilder();
-        EmbedUtils.styleEmbed(embed, event.getAuthor());
+        User author;
+        if(event instanceof MessageReceivedEvent) {
+            author = ((MessageReceivedEvent) event).getAuthor();
+        } else if(event instanceof SlashCommandEvent) {
+            author = ((SlashCommandEvent) event).getUser();
+        } else {
+            return;
+        }
+        EmbedUtils.styleEmbed(embed, author);
         embed.setTitle(commandName);
         embed.setDescription("This is the base command for all " + commandName + " related commands. Please use any of the " +
                 "commands listed below.");
         embed.addField("Sub Commands", getSubCommandsText(prefix).toString(), false);
-        event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
-                Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+        if(event instanceof MessageReceivedEvent) {
+            ((MessageReceivedEvent) event).getChannel().sendMessageEmbeds(embed.build()).setActionRow(
+                    Button.secondary(author.getId() + ":delete", "Delete")).queue();
+        } else {
+            ((SlashCommandEvent) event).replyEmbeds(embed.build()).setEphemeral(true).queue();
+        }
     }
 
     /**
@@ -575,6 +604,10 @@ public abstract class Command {
                 }
                 markdown.append("`\n").append(subCommand.commandDescription).append("\n\n");
             }
+        }
+        if(!allowedChannelTypes.isEmpty()) {
+            markdown.append("#### Allowed Channel Types\n\n");
+            markdown.append(allowedChannelTypes.stream().map(Enum::toString).collect(Collectors.joining(", "))).append("\n\n");
         }
         return markdown.toString();
     }

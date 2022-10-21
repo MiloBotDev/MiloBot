@@ -12,12 +12,12 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-public class NewButtonHandler extends ListenerAdapter {
+public class ButtonHandler extends ListenerAdapter {
 
-    private static NewButtonHandler instance;
+    private static ButtonHandler instance;
     private record ButtonRecord(boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {}
     private final HashMap<String, ButtonRecord> buttons = new HashMap<>();
-    private final Logger logger = LoggerFactory.getLogger(NewButtonHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(ButtonHandler.class);
 
     public void registerButton(String id, boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {
         buttons.put(id, new ButtonRecord(onlyOnUserMatch, service, action));

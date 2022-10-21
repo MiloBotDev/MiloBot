@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import utility.Config;
 import utility.GitHubBot;
@@ -48,7 +49,6 @@ public class BugReportCmd extends Command implements SubCmd {
         this.commandName = "report";
         this.commandDescription = "Report a bug you found.";
         this.cooldown = 0;
-
         this.questions = new ArrayList<>(List.of(new String[]{
                 "Please give me a short summary of the bug you found. You can type cancel at any time to stop the command.",
                 "How do you reproduce the bug?",
@@ -56,13 +56,15 @@ public class BugReportCmd extends Command implements SubCmd {
                 "Do you have any additional information about this bug?",
         }));
         this.gitHubBot = GitHubBot.getInstance();
-
         this.listeners.add(new ListenerAdapter() {
             @Override
             public void onMessageReceived(@NotNull MessageReceivedEvent event) {
                 onMessage(event);
             }
         });
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override

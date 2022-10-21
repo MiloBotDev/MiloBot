@@ -14,6 +14,8 @@ public class DailyCmd extends Command implements MorbconomyCmd, ParentCmd {
         this.subCommands.add(new DailyClaimCmd());
         this.subCommands.add(new DailyStatsCmd());
         this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
+
     }
 
 }

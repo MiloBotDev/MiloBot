@@ -2,6 +2,7 @@ package commands.utility;
 
 import commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -18,6 +19,8 @@ public class ServerCmd extends Command implements UtilityCmd {
         this.commandName = "server";
         this.commandDescription = "Shows information on the guild you are using this command in.";
         this.aliases = new String[]{"guild"};
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override

@@ -4,10 +4,14 @@ import commands.Command;
 import commands.SubCmd;
 import games.dnd.models.Encounter;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +39,30 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
         this.commandDescription = "Generate a random encounter for a given average party level, party size, " +
                 "difficulty and an optional environment.";
         this.commandArgs = new String[]{"party size, party level, difficulty, *environment"};
-
         this.difficulties = new String[]{"easy", "medium", "difficult", "deadly"};
         this.environments = new String[]{"city", "dungeon", "forest", "nature", "other plane", "underground", "water"};
         this.gen = EncounterGenerator.getInstance();
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
         this.encounterCache = new HashMap<>();
+        this.slashSubcommandData = new SubcommandData("generate", "Generate a random encounter for the given inputs.")
+                .addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
+                        .setRequired(true)
+                        .setRequiredRange(1, 10))
+                .addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
+                        .setRequired(true)
+                        .setRequiredRange(1, 20))
+                .addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
+                        .setRequired(true)
+                        .addChoices(new net.dv8tion.jda.api.interactions.commands.Command.Choice("easy", "easy"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("medium", "medium"),
+                                new net.dv8tion.jda.api.interactions.commands.Command.Choice("difficult", "difficult"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("deadly", "deadly")))
+                .addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
+                        .setRequired(false)
+                        .addChoices(new net.dv8tion.jda.api.interactions.commands.Command.Choice("city", "city"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("dungeon", "dungeon"),
+                                new net.dv8tion.jda.api.interactions.commands.Command.Choice("forest", "forest"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("nature", "nature"),
+                                new net.dv8tion.jda.api.interactions.commands.Command.Choice("other plane", "other plane"), new net.dv8tion.jda.api.interactions.commands.Command.Choice("underground", "underground"),
+                                new net.dv8tion.jda.api.interactions.commands.Command.Choice("water", "water")
+                        ));
     }
 
     public static EncounterGeneratorCmd getInstance() {

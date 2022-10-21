@@ -2,7 +2,9 @@ package commands.games.blackjack;
 
 import commands.Command;
 import commands.SubCmd;
-import database.util.NewDatabaseConnection;
+import database.dao.BlackjackDao;
+import database.dao.UserDao;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import games.BlackjackGame;
 import models.cards.PlayingCard;
@@ -11,10 +13,11 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
-import database.dao.BlackjackDao;
-import database.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +43,9 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
         this.commandArgs = new String[]{"bet*"};
         this.allowedChannelTypes.add(ChannelType.TEXT);
         this.allowedChannelTypes.add(ChannelType.PRIVATE);
+        this.slashSubcommandData = new SubcommandData("play", "Play a game of blackjack on discord.")
+                .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
+                        .setRequiredRange(1, 10000));
     }
 
     public static @NotNull EmbedBuilder generateBlackjackEmbed(@NotNull User user, BlackjackGame.BlackjackStates state) {
@@ -138,7 +144,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                     event.getChannel().sendMessage("You can't bet more than `10000` Morbcoins.").queue();
                     return;
                 } else {
-                    try (Connection con = NewDatabaseConnection.getConnection()) {
+                    try (Connection con = DatabaseConnection.getConnection()) {
                         con.setAutoCommit(false);
                         database.model.User user = userDao.getUserByDiscordId(con, event.getAuthor().getIdLong(), RowLockType.FOR_UPDATE);
                         int playerWallet = Objects.requireNonNull(user).getCurrency();
@@ -205,7 +211,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
         int bet;
         if (event.getOption("bet") == null) {
             bet = 0;
-            try (Connection con = NewDatabaseConnection.getConnection()) {
+            try (Connection con = DatabaseConnection.getConnection()) {
                 con.setAutoCommit(false);
                 if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
                     blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
@@ -218,7 +224,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
             }
         } else {
             bet = Math.toIntExact(Objects.requireNonNull(event.getOption("bet")).getAsLong());
-            try (Connection con = NewDatabaseConnection.getConnection()) {
+            try (Connection con = DatabaseConnection.getConnection()) {
                 con.setAutoCommit(false);
                 database.model.User user = userDao.getUserByDiscordId(con, event.getUser().getIdLong(), RowLockType.FOR_UPDATE);
                 int playerWallet = Objects.requireNonNull(user).getCurrency();

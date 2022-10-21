@@ -50,7 +50,7 @@ public class WordleDao {
         st.execute(query);
     }
 
-    public void add(@NotNull Wordle wordle) throws SQLException {
+    public void add(@NotNull Connection con, @NotNull Wordle wordle) throws SQLException {
         String query = "INSERT INTO wordle (user_id, games_played, wins, fastest_time, highest_streak, current_streak) VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setInt(1, wordle.getUserId());
@@ -62,7 +62,7 @@ public class WordleDao {
         ps.execute();
     }
 
-    public void update(@NotNull Wordle wordle) throws SQLException {
+    public void update(@NotNull Connection con, @NotNull Wordle wordle) throws SQLException {
         String query = "UPDATE wordle SET games_played = ?, wins = ?, fastest_time = ?, highest_streak = ?, current_streak = ? WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setInt(1, wordle.getGamesPlayed());
@@ -115,28 +115,32 @@ public class WordleDao {
     }
 
     @Nullable
-    public Wordle getByUserId(int userId) throws SQLException {
-        String query = "SELECT * FROM wordle WHERE user_id = ?;";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1, userId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
-                    rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak"));
+    public Wordle getByUserId(@NotNull Connection con, int userId, @NotNull RowLockType lockType) throws SQLException {
+        String query = lockType.getQueryWithLock("SELECT * FROM wordle WHERE user_id = ?;");
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+                            rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak"));
+                }
+            }
+            return null;
         }
-        return null;
     }
 
     @Nullable
-    public Wordle getByUserDiscordId(long userDiscordId) throws SQLException {
-        String query = "SELECT * FROM wordle WHERE user_id = (SELECT id FROM users WHERE discord_id = ?);";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setLong(1, userDiscordId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
-                    rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak"));
+    public Wordle getByUserDiscordId(@NotNull Connection con, long userDiscordId, @NotNull RowLockType lockType) throws SQLException {
+        String query = lockType.getQueryWithLock("SELECT * FROM wordle WHERE user_id = (SELECT id FROM users WHERE discord_id = ?);");
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, userDiscordId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+                            rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak"));
+                }
+            }
+            return null;
         }
-        return null;
     }
 }

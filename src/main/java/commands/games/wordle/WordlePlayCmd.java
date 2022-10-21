@@ -2,6 +2,8 @@ package commands.games.wordle;
 
 import commands.Command;
 import commands.SubCmd;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import games.WordleGame;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -16,6 +18,7 @@ import database.model.Wordle;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -118,47 +121,56 @@ public class WordlePlayCmd extends Command implements SubCmd {
 
                                 event.getJDA().removeEventListener(this);
                                 int fastestTime = timeTaken;
-                                Wordle userWordle = wordleDao.getByUserDiscordId(event.getAuthor().getIdLong());
-                                if (userWordle == null) {
-                                    int user_id = userDao.getUserByDiscordId(event.getAuthor().getIdLong()).getId();
-                                    wordleDao.add(new Wordle(user_id, 1, 1, timeTaken, 1, 1));
-                                } else {
-                                    if (userWordle.getFastestTime() != 0) {
-                                        int currentFastestTime = Math.min(userWordle.getFastestTime(), timeTaken);
-                                        fastestTime = currentFastestTime;
-                                        if (currentFastestTime < userWordle.getFastestTime()) {
-                                            editDescription.append(String.format("That's a new personal best with an improvement of %d seconds!",
-                                                    userWordle.getFastestTime() - currentFastestTime));
-                                        } else if (currentFastestTime == userWordle.getFastestTime()) {
-                                            editDescription.append("You tied your personal best.");
-                                        }
-                                    }
-                                    userWordle.addGame(true, fastestTime);
-                                    wordleDao.update(userWordle);
-                                    editDescription.append(String.format("\n**Personal Best:** %s seconds.\n", userWordle.getFastestTime()));
-                                    editDescription.append(String.format("**Current Streak:** %d games.\n", userWordle.getCurrentStreak()));
-                                    editDescription.append(String.format("**Highest Streak:** %d games.\n", userWordle.getHighestStreak()));
-                                    editDescription.append(String.format("**Total Games Played:** %d games.", userWordle.getGamesPlayed()));
-                                }
-                                gameOver[0] = true;
-                            } else if (wordleGame.guesses + 1 == wordleGame.maxGuesses) {
-                                int user_id = userDao.getUserByDiscordId(event.getAuthor().getIdLong()).getId();
-                                Wordle userWordle = wordleDao.getByUserId(user_id);
-                                editDescription.append(String.format("You ran out of guesses. The correct word was: `%s`.",
-                                        wordleGame.word));
-                                if (userWordle == null) {
-                                    wordleDao.add(new Wordle(user_id, 1, 0, 0, 0, 0));
-                                } else {
-                                    userWordle.addGame(false, 0);
-                                    wordleDao.update(userWordle);
-                                    if (userWordle.getFastestTime() == 0) {
-                                        editDescription.append("\n**Personal Best:** not set yet.\n");
+                                try(Connection con =  DatabaseConnection.getConnection()) {
+                                    con.setAutoCommit(false);
+                                    Wordle userWordle = wordleDao.getByUserDiscordId(con, event.getAuthor().getIdLong(), RowLockType.NONE);
+                                    if (userWordle == null) {
+                                        int user_id = userDao.getUserByDiscordId(con, event.getAuthor().getIdLong(), RowLockType.FOR_UPDATE).getId();
+                                        wordleDao.add(con, new Wordle(user_id, 1, 1, timeTaken, 1, 1));
                                     } else {
-                                        editDescription.append(String.format("\n**Personal Best:** %d seconds.\n", userWordle.getFastestTime()));
+                                        if (userWordle.getFastestTime() != 0) {
+                                            int currentFastestTime = Math.min(userWordle.getFastestTime(), timeTaken);
+                                            fastestTime = currentFastestTime;
+                                            if (currentFastestTime < userWordle.getFastestTime()) {
+                                                editDescription.append(String.format("That's a new personal best with an improvement of %d seconds!",
+                                                        userWordle.getFastestTime() - currentFastestTime));
+                                            } else if (currentFastestTime == userWordle.getFastestTime()) {
+                                                editDescription.append("You tied your personal best.");
+                                            }
+                                        }
+                                        userWordle.addGame(true, fastestTime);
+                                        wordleDao.update(con, userWordle);
+                                        editDescription.append(String.format("\n**Personal Best:** %s seconds.\n", userWordle.getFastestTime()));
+                                        editDescription.append(String.format("**Current Streak:** %d games.\n", userWordle.getCurrentStreak()));
+                                        editDescription.append(String.format("**Highest Streak:** %d games.\n", userWordle.getHighestStreak()));
+                                        editDescription.append(String.format("**Total Games Played:** %d games.", userWordle.getGamesPlayed()));
                                     }
-                                    editDescription.append(String.format("**Highest Streak:** %s games.\n", userWordle.getHighestStreak()));
-                                    editDescription.append(String.format("**Total Games Played:** %d games.", userWordle.getGamesPlayed()));
+                                    gameOver[0] = true;
+                                    con.commit();
                                 }
+                            } else if (wordleGame.guesses + 1 == wordleGame.maxGuesses) {
+                                try(Connection con =  DatabaseConnection.getConnection()) {
+                                    con.setAutoCommit(false);
+                                    int user_id = Objects.requireNonNull(userDao.getUserByDiscordId(con, event.getAuthor().getIdLong(), RowLockType.NONE)).getId();
+                                    Wordle userWordle = wordleDao.getByUserId(con, user_id, RowLockType.FOR_UPDATE);
+                                    editDescription.append(String.format("You ran out of guesses. The correct word was: `%s`.",
+                                            wordleGame.word));
+                                    if (userWordle == null) {
+                                        wordleDao.add(con, new Wordle(user_id, 1, 0, 0, 0, 0));
+                                    } else {
+                                        userWordle.addGame(false, 0);
+                                        wordleDao.update(con, userWordle);
+                                        if (userWordle.getFastestTime() == 0) {
+                                            editDescription.append("\n**Personal Best:** not set yet.\n");
+                                        } else {
+                                            editDescription.append(String.format("\n**Personal Best:** %d seconds.\n", userWordle.getFastestTime()));
+                                        }
+                                        editDescription.append(String.format("**Highest Streak:** %s games.\n", userWordle.getHighestStreak()));
+                                        editDescription.append(String.format("**Total Games Played:** %d games.", userWordle.getGamesPlayed()));
+                                    }
+                                    con.commit();
+                                }
+
                                 event.getJDA().removeEventListener(this);
                                 gameOver[0] = true;
                             }

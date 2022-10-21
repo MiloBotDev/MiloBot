@@ -9,6 +9,7 @@ import games.hungergames.models.Item;
 import games.hungergames.models.LobbyEntry;
 import games.hungergames.models.Player;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -36,6 +37,7 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
         this.aliases = new String[]{"s", "host"};
         this.commandArgs = new String[]{"*maxPlayers"};
         this.commandDescription = "Starts the Hunger Games";
+        this.allowedChannelTypes.add(ChannelType.TEXT);
     }
 
     @Override

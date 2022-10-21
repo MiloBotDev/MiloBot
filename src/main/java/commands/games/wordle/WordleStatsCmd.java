@@ -2,7 +2,10 @@ package commands.games.wordle;
 
 import commands.Command;
 import commands.SubCmd;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -13,6 +16,7 @@ import database.model.Wordle;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
@@ -44,13 +48,15 @@ public class WordleStatsCmd extends Command implements SubCmd {
     }
 
     private @NotNull EmbedBuilder generateEmbed(User user) {
-        try {
+        try(Connection con = DatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
             EmbedBuilder embed = new EmbedBuilder();
             EmbedUtils.styleEmbed(embed, user);
             embed.setTitle(String.format("Wordle Statistics for %s", user.getName()));
 
-            int id = Objects.requireNonNull(userDao.getUserByDiscordId(user.getIdLong())).getId();
-            Wordle userWordle = wordleDao.getByUserId(id);
+            int id = Objects.requireNonNull(userDao.getUserByDiscordId(con, user.getIdLong(), RowLockType.FOR_UPDATE)).getId();
+            Wordle userWordle = wordleDao.getByUserId(con, id, RowLockType.NONE);
+            con.commit();
             if (userWordle == null) {
                 embed.setDescription("No wordle statistics on record.");
             } else {

@@ -2,6 +2,8 @@ package database.dao;
 
 import database.model.HungerGames;
 import database.util.DatabaseConnection;
+import database.util.RowLockType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,13 +14,12 @@ import java.util.List;
 
 public class HungerGamesDao {
 
-    private static final Connection con = DatabaseConnection.getConnection();
     private static final Logger logger = LoggerFactory.getLogger(HungerGamesDao.class);
     private static HungerGamesDao instance = null;
 
     private HungerGamesDao() {
         try {
-            creteTableIfNotExists();
+            createTableIfNotExists();
         } catch (SQLException e) {
             logger.error("Error creating table hungergames ", e);
         }
@@ -31,7 +32,7 @@ public class HungerGamesDao {
         return instance;
     }
 
-    private void creteTableIfNotExists() throws SQLException {
+    private void createTableIfNotExists() throws SQLException {
         String query = "CREATE TABLE IF NOT EXISTS hungergames (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL UNIQUE," +
@@ -48,11 +49,13 @@ public class HungerGamesDao {
                 "    ON DELETE CASCADE" +
                 "    ON UPDATE CASCADE" +
                 ")";
-        Statement st = con.createStatement();
-        st.execute(query);
+        try (Connection con = DatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
+            st.execute(query);
+        }
     }
 
-    public void add(HungerGames hungerGames) throws SQLException {
+    public void add(@NotNull Connection con, @NotNull HungerGames hungerGames) throws SQLException {
         String query = "INSERT INTO hungergames (user_id, total_kills, total_damage_done, total_damage_taken, total_healing_done, " +
                 "total_items_collected, total_games_played, total_wins) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
@@ -67,7 +70,7 @@ public class HungerGamesDao {
         ps.execute();
     }
 
-    public void update(HungerGames hungerGames) throws SQLException {
+    public void update(@NotNull Connection con, @NotNull HungerGames hungerGames) throws SQLException {
         String query = "UPDATE hungergames SET total_kills = ?, total_damage_done = ?, total_damage_taken = ?, " +
                 "total_healing_done = ?, total_items_collected = ?, total_games_played = ?, total_wins = ? WHERE user_id = ?";
         PreparedStatement ps = con.prepareStatement(query);
@@ -125,20 +128,22 @@ public class HungerGamesDao {
     }
 
     private List<HungerGames> getHungerGames(ArrayList<HungerGames> hgList, String query) throws SQLException {
-        Statement st = con.prepareStatement(query);
-        ResultSet rs = st.executeQuery(query);
-        while (rs.next()) {
-            HungerGames hungerGames = new HungerGames(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("total_kills"),
-                    rs.getInt("total_damage_done"), rs.getInt("total_damage_taken"), rs.getInt("total_healing_done"),
-                    rs.getInt("total_items_collected"), rs.getInt("total_games_played"), rs.getInt("total_wins"));
-            hgList.add(hungerGames);
+        try (Connection con = DatabaseConnection.getConnection();
+             Statement st = con.prepareStatement(query);
+             ResultSet rs = st.executeQuery(query)) {
+            while (rs.next()) {
+                HungerGames hungerGames = new HungerGames(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("total_kills"),
+                        rs.getInt("total_damage_done"), rs.getInt("total_damage_taken"), rs.getInt("total_healing_done"),
+                        rs.getInt("total_items_collected"), rs.getInt("total_games_played"), rs.getInt("total_wins"));
+                hgList.add(hungerGames);
+            }
+            return hgList;
         }
-        return hgList;
     }
 
     @Nullable
-    public HungerGames getByUserDiscordId(long userDiscordId) throws SQLException {
-        String query = "SELECT * FROM hungergames WHERE user_id = (SELECT id FROM users WHERE discord_id = ?)";
+    public HungerGames getByUserDiscordId(@NotNull Connection con, long userDiscordId, @NotNull RowLockType locktype) throws SQLException {
+        String query = locktype.getQueryWithLock("SELECT * FROM hungergames WHERE user_id = (SELECT id FROM users WHERE discord_id = ?)");
         PreparedStatement ps = con.prepareStatement(query);
         ps.setLong(1, userDiscordId);
         var rs = ps.executeQuery();

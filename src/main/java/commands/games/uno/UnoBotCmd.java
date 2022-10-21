@@ -4,6 +4,7 @@ import commands.Command;
 import commands.SubCmd;
 import games.hungergames.models.LobbyEntry;
 import games.uno.UnoGame;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,6 +16,7 @@ public class UnoBotCmd extends Command implements SubCmd {
         this.commandName = "bot";
         this.commandDescription = "Let bots verse eachother in uno.";
         this.aliases = new String[]{"b"};
+        this.allowedChannelTypes.add(ChannelType.TEXT);
     }
 
     @Override

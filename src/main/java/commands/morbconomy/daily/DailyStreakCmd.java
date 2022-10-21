@@ -4,7 +4,7 @@ import commands.Command;
 import commands.SubCmd;
 import database.dao.DailyDao;
 import database.model.Daily;
-import database.util.NewDatabaseConnection;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -38,7 +38,7 @@ public class DailyStreakCmd extends Command implements SubCmd {
     }
 
     private int getStreak(long userId) {
-        try (Connection con = NewDatabaseConnection.getConnection()) {
+        try (Connection con = DatabaseConnection.getConnection()) {
             Daily daily = dailyDao.getDailyByUserDiscordId(con, userId, RowLockType.NONE);
             if (daily != null) {
                 return daily.getStreak();

@@ -1,7 +1,7 @@
 package database.dao;
 
 import database.model.Prefix;
-import database.util.NewDatabaseConnection;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 
 public class PrefixDao {
+
     private static final Logger logger = LoggerFactory.getLogger(PrefixDao.class);
     private static PrefixDao instance = null;
 
@@ -35,7 +36,7 @@ public class PrefixDao {
                 "guild_id BIGINT NOT NULL UNIQUE," +
                 "prefix VARCHAR(2) NOT NULL" +
                 ")";
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              Statement st = con.createStatement()) {
             st.execute(query);
         }

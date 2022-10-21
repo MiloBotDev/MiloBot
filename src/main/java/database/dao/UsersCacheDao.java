@@ -1,6 +1,6 @@
 package database.dao;
 
-import database.util.NewDatabaseConnection;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import models.UserNameTag;
 import org.jetbrains.annotations.NotNull;
@@ -11,12 +11,13 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 
 public class UsersCacheDao {
+
     private static final Logger logger = LoggerFactory.getLogger(UsersCacheDao.class);
     private static UsersCacheDao instance = null;
 
     private UsersCacheDao() {
         try {
-            creteTableIfNotExists();
+            createTableIfNotExists();
             reset();
         } catch (SQLException e) {
             logger.error("Error creating and resetting table users_cache ", e);
@@ -30,7 +31,7 @@ public class UsersCacheDao {
         return instance;
     }
 
-    private void creteTableIfNotExists() throws SQLException {
+    private void createTableIfNotExists() throws SQLException {
         String query = "CREATE TABLE IF NOT EXISTS users_cache (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL UNIQUE," +
@@ -46,7 +47,7 @@ public class UsersCacheDao {
                 "CONSTRAINT discriminator_range " +
                 "CHECK (discriminator >= 0 AND discriminator <= 9999)" +
                 ")";
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              Statement st = con.createStatement()) {
             st.execute(query);
         }
@@ -64,15 +65,15 @@ public class UsersCacheDao {
 
     private void reset() throws SQLException {
         String query = "TRUNCATE TABLE users_cache";
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              Statement st = con.createStatement()) {
             st.execute(query);
-            creteTableIfNotExists();
+            createTableIfNotExists();
         }
     }
 
     @Nullable
-    public UserNameTag getUserNameTag(@NotNull Connection con, long userDiscordId, RowLockType lockType) throws SQLException {
+    public UserNameTag getUserNameTag(@NotNull Connection con, long userDiscordId, @NotNull RowLockType lockType) throws SQLException {
         String query = lockType.getQueryWithLock(
                 "SELECT username, discriminator FROM users_cache WHERE user_id = (SELECT id FROM users WHERE discord_id = ?)");
         try (PreparedStatement ps = con.prepareStatement(query)) {

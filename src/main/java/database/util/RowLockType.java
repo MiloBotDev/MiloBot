@@ -1,6 +1,7 @@
 package database.util;
 
 public enum RowLockType {
+
     NONE,
     FOR_SHARE,
     FOR_UPDATE;

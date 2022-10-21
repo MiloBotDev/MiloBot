@@ -3,6 +3,7 @@ package commands.games.hungergames;
 import commands.Command;
 import commands.ParentCmd;
 import commands.games.GamesCmd;
+import net.dv8tion.jda.api.entities.ChannelType;
 
 public class HungerGamesCmd extends Command implements ParentCmd, GamesCmd {
 

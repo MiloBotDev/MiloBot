@@ -1445,7 +1445,7 @@ plush
 poesy
 point
 poise
-pokerGame
+poker
 polar
 polka
 polyp

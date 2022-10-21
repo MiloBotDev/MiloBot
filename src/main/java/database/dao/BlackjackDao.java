@@ -1,7 +1,7 @@
 package database.dao;
 
 import database.model.Blackjack;
-import database.util.NewDatabaseConnection;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +49,7 @@ public class BlackjackDao {
                 "    ON DELETE CASCADE" +
                 "    ON UPDATE CASCADE" +
                 ")";
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              Statement st = con.createStatement()) {
             st.execute(query);
         }
@@ -120,7 +120,7 @@ public class BlackjackDao {
 
     private @NotNull List<Blackjack> getBlackjacks(String query) throws SQLException {
         ArrayList<Blackjack> blackjacks = new ArrayList<>();
-        try (Connection con = NewDatabaseConnection.getConnection();
+        try (Connection con = DatabaseConnection.getConnection();
              Statement st = con.createStatement();
              ResultSet rs = st.executeQuery(query)) {
             while (rs.next()) {
@@ -141,7 +141,7 @@ public class BlackjackDao {
     }
 
     @Nullable
-    public Blackjack getByUserDiscordId(@NotNull Connection con, long userDiscordId, RowLockType lockType) throws SQLException {
+    public Blackjack getByUserDiscordId(@NotNull Connection con, long userDiscordId, @NotNull RowLockType lockType) throws SQLException {
         String query = lockType.getQueryWithLock(
                 "SELECT * FROM blackjack INNER JOIN users ON blackjack.user_id = users.id WHERE users.discord_id = ?");
         try (PreparedStatement ps = con.prepareStatement(query)) {

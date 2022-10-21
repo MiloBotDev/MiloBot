@@ -6,8 +6,7 @@ import com.google.gson.JsonParser;
 import database.dao.DailyDao;
 import database.dao.UserDao;
 import database.dao.UsersCacheDao;
-import database.model.Daily;
-import database.util.NewDatabaseConnection;
+import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import models.UserNameTag;
 import games.hungergames.HungerGames;
@@ -71,7 +70,7 @@ public class Users {
      * @param userDiscordId discord id of the user
      */
     public void addUserIfNotExists(long userDiscordId) {
-        try (Connection con = NewDatabaseConnection.getConnection()) {
+        try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             if (userDao.getUserByDiscordId(con, userDiscordId, RowLockType.FOR_UPDATE) == null) {
                 userDao.add(con, new database.model.User(userDiscordId));
@@ -90,24 +89,28 @@ public class Users {
      */
     public void updateExperience(long discordUserId, int experience, String asMention, MessageChannel channel) throws SQLException {
         // load in their current experience and level
-        database.model.User user = userDao.getUserByDiscordId(discordUserId);
-        Objects.requireNonNull(user).addExperience(experience);
-        // check if they leveled up
-        if (user.getLevel() < maxLevel) {
-            int nextLevel = user.getLevel() + 1;
-            int nextLevelExperience = levels.get(nextLevel);
-            if (user.getExperience() >= nextLevelExperience) {
-                // user leveled up so update their level and experience
-                user.incrementLevel();
-                userDao.update(user);
-                logger.trace(String.format("%s leveled up to level %d!", discordUserId, nextLevel));
-                // send a message to the channel the user leveled up in
-                channel.sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
+        try(Connection con = DatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            database.model.User user = userDao.getUserByDiscordId(con, discordUserId, RowLockType.FOR_UPDATE);
+            Objects.requireNonNull(user).addExperience(experience);
+            // check if they leveled up
+            if (user.getLevel() < maxLevel) {
+                int nextLevel = user.getLevel() + 1;
+                int nextLevelExperience = levels.get(nextLevel);
+                if (user.getExperience() >= nextLevelExperience) {
+                    // user leveled up so update their level and experience
+                    user.incrementLevel();
+                    userDao.update(con, user);
+                    logger.trace(String.format("%s leveled up to level %d!", discordUserId, nextLevel));
+                    // send a message to the channel the user leveled up in
+                    channel.sendMessage(String.format("%s leveled up to level %d!", asMention, nextLevel)).queue();
+                } else {
+                    userDao.update(con, user);
+                }
             } else {
-                userDao.update(user);
+                userDao.update(con, user);
             }
-        } else {
-            userDao.update(user);
+            con.commit();
         }
     }
 
@@ -139,13 +142,13 @@ public class Users {
     }
 
     public UserNameTag getUserNameTag(long discordId, JDA jda) {
-        try (Connection con = NewDatabaseConnection.getConnection()) {
+        try (Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             UserNameTag userNameTag = usersCacheDao.getUserNameTag(con, discordId, RowLockType.FOR_UPDATE);
             if (userNameTag == null) {
                 User user = jda.retrieveUserById(discordId).complete();
                 userNameTag = new UserNameTag(user.getName(), Short.parseShort(user.getDiscriminator()));
-                usersCacheDao.add(con, Objects.requireNonNull(userDao.getUserByDiscordId(discordId)).getId(), userNameTag);
+                usersCacheDao.add(con, Objects.requireNonNull(userDao.getUserByDiscordId(con, discordId, RowLockType.FOR_UPDATE)).getId(), userNameTag);
             }
             con.commit();
             return userNameTag;

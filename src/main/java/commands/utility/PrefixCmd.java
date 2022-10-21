@@ -1,7 +1,7 @@
 package commands.utility;
 
 import commands.Command;
-import commands.NewCommandHandler;
+import commands.CommandHandler;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -17,9 +17,9 @@ import java.util.Objects;
  */
 public class PrefixCmd extends Command implements UtilityCmd {
 
-    private final NewCommandHandler handler;
+    private final CommandHandler handler;
 
-    public PrefixCmd(NewCommandHandler handler) {
+    public PrefixCmd(CommandHandler handler) {
         this.commandName = "prefix";
         this.commandDescription = "Change the prefix of the guild you're in.";
         this.commandArgs = new String[]{"prefix"};

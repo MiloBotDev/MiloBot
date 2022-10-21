@@ -2,22 +2,20 @@ package commands.utility;
 
 import commands.Command;
 import commands.CommandHandler;
-import commands.CommandLoader;
 import commands.bot.BotCmd;
-import commands.games.dnd.DndCmd;
 import commands.games.GamesCmd;
+import commands.games.dnd.DndCmd;
 import commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -30,22 +28,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HelpCmd extends Command implements UtilityCmd {
 
     private static HelpCmd instance;
-
-    private ArrayList<List<ActionRow>> buttons;
+    private final CommandHandler handler;
     private EmbedBuilder help;
 
-    private HelpCmd() {
+    private HelpCmd(CommandHandler handler) {
+        this.handler = handler;
         this.commandName = "help";
         this.commandDescription = "Shows the user a list of available commands.";
         this.commandArgs = new String[]{"*command"};
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     /**
      * Return the only instance of this class or make a new one if no instance exists.
      */
-    public static HelpCmd getInstance() {
+    public static HelpCmd getInstance(CommandHandler handler) {
         if (instance == null) {
-            instance = new HelpCmd();
+            instance = new HelpCmd(handler);
         }
         return instance;
     }
@@ -56,9 +56,9 @@ public class HelpCmd extends Command implements UtilityCmd {
         if (args.size() > 0) {
             AtomicBoolean commandFound = new AtomicBoolean(false);
             String arg = args.get(0);
-            CommandLoader.commandList.forEach((key, value) -> {
+            handler.commands.forEach((key, value) -> {
                 if (key.contains(arg.toLowerCase(Locale.ROOT))) {
-                    EmbedBuilder embedBuilder = value.generateHelp(event.getGuild(), event.getAuthor());
+                    EmbedBuilder embedBuilder = value.command().generateHelp(event.getGuild(), event.getAuthor());
                     event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
                             Button.secondary(authorId + ":delete", "Delete")).queue();
                     commandFound.set(true);
@@ -80,9 +80,9 @@ public class HelpCmd extends Command implements UtilityCmd {
         if (!(event.getOption("command") == null)) {
             AtomicBoolean commandFound = new AtomicBoolean(false);
             String command = Objects.requireNonNull(event.getOption("command")).getAsString();
-            CommandLoader.commandList.forEach((key, value) -> {
+            handler.commands.forEach((key, value) -> {
                 if (key.contains(command.toLowerCase(Locale.ROOT))) {
-                    EmbedBuilder embedBuilder = value.generateHelp(Objects.requireNonNull(event.getGuild()), event.getUser());
+                    EmbedBuilder embedBuilder = value.command().generateHelp(Objects.requireNonNull(event.getGuild()), event.getUser());
                     event.replyEmbeds(embedBuilder.build()).addActionRow(Button.secondary(authorId + ":delete", "Delete")).queue();
                     commandFound.set(true);
                 }
@@ -101,7 +101,7 @@ public class HelpCmd extends Command implements UtilityCmd {
      * Builds the embeds for the help command.
      */
     private void createEmbed(@NotNull User author, @NotNull Guild guild) {
-        String prefix = CommandHandler.prefixes.get(guild.getIdLong());
+        String prefix = handler.prefixes.get(guild.getIdLong());
 
         StringBuilder utility = new StringBuilder();
         StringBuilder morbconomy = new StringBuilder();
@@ -109,17 +109,18 @@ public class HelpCmd extends Command implements UtilityCmd {
         StringBuilder bot = new StringBuilder();
         StringBuilder dnd = new StringBuilder();
 
-        CommandLoader.commandList.forEach((key, value) -> {
-            if (value instanceof UtilityCmd) {
-                utility.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
-            } else if (value instanceof MorbconomyCmd) {
-                morbconomy.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
-            } else if (value instanceof GamesCmd) {
-                games.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
-            } else if (value instanceof BotCmd) {
-                bot.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
-            } else if (value instanceof DndCmd) {
-                dnd.append(String.format("**%s%s** - %s\n", prefix, value.commandName, value.commandDescription));
+        handler.commands.forEach((key, value) -> {
+            Command command = value.command();
+            if (command instanceof UtilityCmd) {
+                utility.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
+            } else if (command instanceof MorbconomyCmd) {
+                morbconomy.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
+            } else if (command instanceof GamesCmd) {
+                games.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
+            } else if (command instanceof BotCmd) {
+                bot.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
+            } else if (command instanceof DndCmd) {
+                dnd.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
             }
         });
 

@@ -11,6 +11,7 @@ import utility.lobby.Lobby;
 import java.util.List;
 
 public class PokerPlayCmd extends Command implements SubCmd {
+
     public PokerPlayCmd() {
         this.commandName = "play";
         this.commandDescription = "Play a game of poker on discord.";

@@ -3,9 +3,13 @@ package commands.bot.bug;
 import commands.Command;
 import commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
@@ -27,10 +31,13 @@ public class BugViewCmd extends Command implements SubCmd {
         this.commandName = "view";
         this.commandDescription = "Lookup a specific bug on the issue tracker.";
         this.commandArgs = new String[]{"id"};
-
         this.gitHubBot = GitHubBot.getInstance();
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription).addOptions(
+                new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
+        );
     }
-
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {

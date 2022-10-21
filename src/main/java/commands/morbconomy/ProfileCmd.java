@@ -1,7 +1,10 @@
 package commands.morbconomy;
 
 import commands.Command;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -21,6 +24,7 @@ import java.util.*;
  * Shows the user their own profile or that of someone else.
  */
 public class ProfileCmd extends Command implements MorbconomyCmd {
+
     private static final Logger logger = LoggerFactory.getLogger(ProfileCmd.class);
     private final Users user;
     private final UserDao userDao = UserDao.getInstance();
@@ -31,6 +35,8 @@ public class ProfileCmd extends Command implements MorbconomyCmd {
         this.commandArgs = new String[]{"*user"};
         this.cooldown = 0;
         this.user = Users.getInstance();
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override
