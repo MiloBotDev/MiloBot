@@ -22,6 +22,8 @@ public class PokerCmd extends Command implements ParentCmd, GamesCmd {
                 PokerGame.onMessageReceived(event);
             }
         });
+        this.subCommands.add(new PokerPlayCmd());
+        this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
     }
 
 }

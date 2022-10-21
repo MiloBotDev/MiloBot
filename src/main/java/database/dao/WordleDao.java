@@ -2,6 +2,7 @@ package database.dao;
 
 import database.model.Wordle;
 import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import java.util.List;
 
 public class WordleDao {
 
-    private static final Connection con = DatabaseConnection.getConnection();
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
     private static WordleDao instance = null;
 
@@ -25,7 +25,7 @@ public class WordleDao {
         }
     }
 
-    public static WordleDao getInstance() {
+    public static synchronized WordleDao getInstance() {
         if (instance == null) {
             instance = new WordleDao();
         }
@@ -46,8 +46,10 @@ public class WordleDao {
                 "ON UPDATE CASCADE " +
                 "ON DELETE CASCADE" +
                 ");";
-        Statement st = con.createStatement();
-        st.execute(query);
+        try (Connection con = DatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
+            st.execute(query);
+        }
     }
 
     public void add(@NotNull Connection con, @NotNull Wordle wordle) throws SQLException {
@@ -105,13 +107,15 @@ public class WordleDao {
     }
 
     private List<Wordle> getWordles(ArrayList<Wordle> currentStreaks, String query) throws SQLException {
-        PreparedStatement ps = con.prepareStatement(query);
-        ResultSet rs = ps.executeQuery();
-        while(rs.next()) {
-            currentStreaks.add(new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
-                    rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak")));
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                currentStreaks.add(new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+                        rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak")));
+            }
+            return currentStreaks;
         }
-        return currentStreaks;
     }
 
     @Nullable

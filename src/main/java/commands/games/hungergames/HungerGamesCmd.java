@@ -14,5 +14,8 @@ public class HungerGamesCmd extends Command implements ParentCmd, GamesCmd {
         this.subCommands.add(new HungerGamesStartCmd());
         this.subCommands.add(new HungerGamesStatsCmd());
         this.subCommands.add(new HungerGamesLeaderboardCmd());
+        this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 }

@@ -38,8 +38,11 @@ public class UserDao {
                 "level INT NOT NULL," +
                 "experience INT NOT NULL" +
                 ")";
-        Statement st = con.createStatement();
-        st.execute(query);
+
+        try (Connection con = DatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
+            st.execute(query);
+        }
     }
 
     public void add(@NotNull Connection con, @NotNull User user) throws SQLException {

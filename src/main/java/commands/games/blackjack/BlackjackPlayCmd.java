@@ -158,7 +158,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                         userDao.update(con, user);
                         if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
                             blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
-                                    userDao.getUserByDiscordId(authorIdLong)).getId()));
+                                    userDao.getUserByDiscordId(con, authorIdLong, RowLockType.NONE)).getId()));
                         }
                         con.commit();
                     } catch (SQLException e) {
@@ -215,7 +215,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                 con.setAutoCommit(false);
                 if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
                     blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
-                            userDao.getUserByDiscordId(authorIdLong)).getId()));
+                            userDao.getUserByDiscordId(con, authorIdLong, RowLockType.NONE)).getId()));
                 }
                 con.commit();
             } catch (SQLException e) {
@@ -238,7 +238,7 @@ public class BlackjackPlayCmd extends Command implements SubCmd {
                 userDao.update(con, user);
                 if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
                     blackjackDao.add(con, new database.model.Blackjack(Objects.requireNonNull(
-                            userDao.getUserByDiscordId(authorIdLong)).getId()));
+                            userDao.getUserByDiscordId(con, authorIdLong, RowLockType.NONE)).getId()));
                 }
                 con.commit();
             } catch (SQLException e) {

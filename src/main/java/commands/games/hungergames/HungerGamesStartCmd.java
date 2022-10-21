@@ -4,6 +4,8 @@ import commands.Command;
 import commands.SubCmd;
 import database.dao.HungerGamesDao;
 import database.dao.UserDao;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import games.hungergames.HungerGames;
 import games.hungergames.models.Item;
 import games.hungergames.models.LobbyEntry;
@@ -22,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import utility.lobby.BotLobby;
 
 import java.awt.*;
+import java.sql.Connection;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -145,17 +148,19 @@ public class HungerGamesStartCmd extends Command implements SubCmd {
         List<Player> players = game.getPlayers();
         for (Player player : players) {
             if(!player.isBot()) {
-                try {
-                    database.model.HungerGames hungerGamesDaoByUserDiscordId = hungerGamesDao.getByUserDiscordId(player.getUserId());
+                try (Connection con = DatabaseConnection.getConnection()) {
+                    con.setAutoCommit(false);
+                    database.model.HungerGames hungerGamesDaoByUserDiscordId = hungerGamesDao.getByUserDiscordId(con, player.getUserId(), RowLockType.FOR_UPDATE);
                     if (hungerGamesDaoByUserDiscordId == null) {
-                        database.model.HungerGames hungerGames = new database.model.HungerGames(Objects.requireNonNull(userDao.getUserByDiscordId(player.getUserId())).getId());
-                        hungerGamesDao.add(hungerGames);
+                        database.model.HungerGames hungerGames = new database.model.HungerGames(Objects.requireNonNull(userDao.getUserByDiscordId(con, player.getUserId(), RowLockType.NONE)).getId());
+                        hungerGamesDao.add(con, hungerGames);
                         updateHungerGamesDb(player, hungerGames);
                         hungerGamesDaoByUserDiscordId = hungerGames;
                     } else {
                         updateHungerGamesDb(player, hungerGamesDaoByUserDiscordId);
                     }
-                    hungerGamesDao.update(hungerGamesDaoByUserDiscordId);
+                    hungerGamesDao.update(con, hungerGamesDaoByUserDiscordId);
+                    con.commit();
                 } catch (Exception e) {
                     logger.error("Error creating hungergames entry for user in database when user wanted to play hungergames.", e);
                 }

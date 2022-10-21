@@ -25,7 +25,7 @@ public class HungerGamesDao {
         }
     }
 
-    public static HungerGamesDao getInstance() {
+    public static synchronized HungerGamesDao getInstance() {
         if (instance == null) {
             instance = new HungerGamesDao();
         }

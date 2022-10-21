@@ -22,5 +22,6 @@ public class UnoCmd extends Command implements GamesCmd, ParentCmd {
                 UnoGame.onMessageReceived(event);
             }
         });
+        this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
     }
 }

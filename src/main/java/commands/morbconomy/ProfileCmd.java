@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import utility.EmbedUtils;
 import utility.Users;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -124,15 +125,15 @@ public class ProfileCmd extends Command implements MorbconomyCmd {
      */
     private Optional<EmbedBuilder> makeEmbed(String name, net.dv8tion.jda.api.entities.User author, String id) {
         database.model.User userDbObj;
-        try {
-            userDbObj = userDao.getUserByDiscordId(author.getIdLong());
+        try (Connection con = DatabaseConnection.getConnection()) {
+            userDbObj = userDao.getUserByDiscordId(con, author.getIdLong(), RowLockType.NONE);
         } catch (SQLException e) {
             logger.error("Error getting user at making user embed at profile command", e);
             return Optional.empty();
         }
         int rank;
-        try {
-            rank = userDao.getUserRank(Objects.requireNonNull(userDbObj).getId());
+        try (Connection con = DatabaseConnection.getConnection()) {
+            rank = userDao.getUserRank(con, Objects.requireNonNull(userDbObj).getId());
         } catch (SQLException e) {
             logger.error("Error getting user rank at making user embed at profile command", e);
             return Optional.empty();

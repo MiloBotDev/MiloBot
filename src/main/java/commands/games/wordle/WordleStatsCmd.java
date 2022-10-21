@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import database.dao.UserDao;
 import database.dao.WordleDao;
@@ -31,6 +32,9 @@ public class WordleStatsCmd extends Command implements SubCmd {
         this.commandDescription = "View your own wordle statistics";
         this.wordleDao = WordleDao.getInstance();
         this.userDao = UserDao.getInstance();
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override

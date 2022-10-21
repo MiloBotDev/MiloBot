@@ -4,7 +4,8 @@ import commands.Command;
 import commands.SubCmd;
 import database.dao.UserDao;
 import database.model.Blackjack;
-import database.model.Wordle;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import utility.Users;
 
 import java.awt.*;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,8 +75,10 @@ public class BlackjackLeaderboardCmd extends Command implements SubCmd {
 
         final int[] counter = {1};
         blackjacks.forEach((blackjack) -> {
-            try {
-                long discordId = Objects.requireNonNull(userDao.getUserById(blackjack.getUserId())).getDiscordId();
+            try (Connection con = DatabaseConnection.getConnection()) {
+                con.setAutoCommit(false);
+                long discordId = Objects.requireNonNull(userDao.getUserById(con, blackjack.getUserId(), RowLockType.NONE)).getDiscordId();
+                con.commit();
                 String name = userUtil.getUserNameTag(discordId, jda).userName();
                 switch (title) {
                     case "Highest Streak" -> desc[0].append(String.format("`%d.` %s - %d games.\n", counter[0], name, blackjack.getHighestStreak()));

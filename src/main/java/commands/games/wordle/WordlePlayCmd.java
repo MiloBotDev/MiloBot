@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import database.dao.UserDao;
 import database.dao.WordleDao;
@@ -23,6 +24,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -40,6 +42,9 @@ public class WordlePlayCmd extends Command implements SubCmd {
         this.singleInstance = true;
         this.wordleDao = WordleDao.getInstance();
         this.userDao = UserDao.getInstance();
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override

@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import database.model.Wordle;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import org.jetbrains.annotations.NotNull;
 import utility.Users;
@@ -35,6 +36,9 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
         this.commandName = "leaderboard";
         this.commandDescription = "View the wordle leaderboards.";
         this.commandArgs = new String[]{};
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override

@@ -1,6 +1,5 @@
 import commands.CommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
-import events.OnButtonClick;
 import events.OnReadyEvent;
 import events.OnSelectionMenu;
 import events.guild.OnGuildJoin;
