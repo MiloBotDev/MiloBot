@@ -8,9 +8,9 @@ import commands.games.hungergames.HungerGamesCmd;
 import commands.games.poker.PokerCmd;
 import commands.games.uno.UnoCmd;
 import commands.games.wordle.WordleCmd;
-import commands.morbconomy.daily.DailyCmd;
 import commands.morbconomy.ProfileCmd;
 import commands.morbconomy.bank.BankCmd;
+import commands.morbconomy.daily.DailyCmd;
 import commands.utility.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
@@ -97,9 +97,10 @@ public class CommandLoader {
                         .addSubcommands(List.of(
                                 new SubcommandData("report", "Report a bug you found."),
                                 new SubcommandData("list", "Shows a list of all reported bugs."),
-                                new SubcommandData("view", "Lookup a specific bug on the issue tracker.").addOptions(
-                                        new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
-                                ))))
+                                new SubcommandData("view", "Lookup a specific bug on the issue tracker.")
+                                        .addOptions(
+                                                new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
+                                        ))))
 
                 .addCommands(new CommandData("invite", "Sends an invite link to add the bot to another server."))
 
@@ -109,37 +110,45 @@ public class CommandLoader {
                 .addCommands(new CommandData("prefix", "Change the prefix of the guild you're in.")
                         .addOption(OptionType.STRING, "prefix", "The new prefix.", true))
 
-                .addCommands(new CommandData("blackjack", "Blackjack brought to discord").addSubcommands(
-                        new SubcommandData("play", "Play a game of blackjack on discord.")
-                                .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
-                                        .setRequiredRange(1, 10000)),
-                        new SubcommandData("stats", "View your own blackjack statistics."),
-                        new SubcommandData("info", "A simple tutorial on the rules of blackjack."),
-                        new SubcommandData("leaderboard", "View the blackjack leaderboards.")))
+                .addCommands(new CommandData("blackjack", "Blackjack brought to discord")
+                        .addSubcommands(
+                                new SubcommandData("play", "Play a game of blackjack on discord.")
+                                        .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
+                                                .setRequiredRange(1, 10000)),
+                                new SubcommandData("stats", "View your own blackjack statistics."),
+                                new SubcommandData("info", "A simple tutorial on the rules of blackjack."),
+                                new SubcommandData("leaderboard", "View the blackjack leaderboards.")))
 
 
-                .addCommands(new CommandData("daily", "Collect your daily reward.").addSubcommands(
-                        new SubcommandData("streak", "View your current streak."),
-                        new SubcommandData("claim", "Claim your daily reward."),
-                        new SubcommandData("stats", "View your own daily statistics."))
+                .addCommands(new CommandData("daily", "Collect your daily reward.")
+                        .addSubcommands(
+                                new SubcommandData("streak", "View your current streak."),
+                                new SubcommandData("claim", "Claim your daily reward."),
+                                new SubcommandData("stats", "View your own daily statistics."))
                 )
 
-                .addCommands(new CommandData("usage", "See the amount of times each or a specific command has been used.").addOption(
-                        OptionType.STRING, "command", "The command you want to check the usage of", false
-                ))
+                .addCommands(new CommandData("usage", "See the amount of times each or a specific command has been used.")
+                        .addOption(
+                                OptionType.STRING, "command", "The command you want to check the usage of", false
+                        ))
 
-                .addCommands(new CommandData("bank", "All commands related to your virtual bank.").addSubcommands(
-                        new SubcommandData("balance", "Check your bank balance."),
-                        new SubcommandData("transfer", "Send some morbcoins to another user.")
-                                .addOptions(
-                                        new OptionData(OptionType.INTEGER, "amount", "The amount of morbcoins you want to send", true)
-                                                .setRequiredRange(1, 10000),
-                                        new OptionData(OptionType.USER, "user", "The user you want to send morbcoins to.", true)
-                                )
+                .addCommands(new CommandData("bank", "All commands related to your virtual bank.")
+                        .addSubcommands(
+                                new SubcommandData("balance", "Check your bank balance."),
+                                new SubcommandData("transfer", "Send some morbcoins to another user.")
+                                        .addOptions(
+                                                new OptionData(OptionType.INTEGER, "amount", "The amount of morbcoins you want to send", true)
+                                                        .setRequiredRange(1, 10000),
+                                                new OptionData(OptionType.USER, "user", "The user you want to send morbcoins to.", true)
+                                        )
 
-                ))
+                        ))
 
                 .addCommands(new CommandData("server", "Shows information on the guild you are using this command in."))
+
+                .addCommands(new CommandData("uno", "Play Uno with your friends!")
+                        .addSubcommands(
+                                new SubcommandData("info", "A simple tutorial on how to play uno with milobot.")))
 
                 .queue();
     }
@@ -147,7 +156,7 @@ public class CommandLoader {
     public static void generateCommandDocumentation() {
         StringBuilder commandDocumentation = new StringBuilder();
         commandList.forEach((strings, command) -> {
-            if(command != null && !(command instanceof SubCmd)) {
+            if (command != null && !(command instanceof SubCmd)) {
                 commandDocumentation.append(command.generateMarkdown());
             }
         });

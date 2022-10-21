@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 public class NewButtonHandler extends ListenerAdapter {
+
     private static NewButtonHandler instance;
     private record ButtonRecord(boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {}
     private final HashMap<String, ButtonRecord> buttons = new HashMap<>();

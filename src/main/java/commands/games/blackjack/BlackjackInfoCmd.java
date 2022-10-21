@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
@@ -20,12 +21,16 @@ public class BlackjackInfoCmd extends Command implements SubCmd {
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
-        event.getChannel().sendMessageEmbeds(createBlackjackInfoEmbed(event.getAuthor()).build()).queue();
+        User author = event.getAuthor();
+        event.getChannel().sendMessageEmbeds(createBlackjackInfoEmbed(author).build())
+                .setActionRow(Button.secondary(author.getId() + ":delete", "Delete")).queue();
     }
 
     @Override
     public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-        event.replyEmbeds(createBlackjackInfoEmbed(event.getUser()).build()).queue();
+        User user = event.getUser();
+        event.replyEmbeds(createBlackjackInfoEmbed(user).build())
+                .addActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
     }
 
     private @NotNull EmbedBuilder createBlackjackInfoEmbed(User user) {

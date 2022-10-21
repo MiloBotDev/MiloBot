@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import utility.TimeTracker;
 
 import java.awt.*;
 import java.util.List;
@@ -26,6 +27,7 @@ public class UnoGame {
     private final Map<LobbyEntry, List<UnoCard>> playerData = new HashMap<>();
     private final CardDeck<UnoCard> deck = new CardDeck<>(List.of(UnoCard.values()));
     private final List<UnoCard> playedCards = new ArrayList<>();
+    private final TimeTracker timeTracker = new TimeTracker();
     private MessageChannel channel;
 
     // game specific data
@@ -101,10 +103,10 @@ public class UnoGame {
                 }
             });
         }
-
         if(this.playerToMove.isBot()) {
             Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
         }
+        this.timeTracker.start();
     }
 
     @NotNull
@@ -127,14 +129,17 @@ public class UnoGame {
             embed.setDescription(String.format("%s\n\n It is now %s's turn.\n\n The current color is %s.",
                     message, this.playerToMove.getMention(), getColorName(this.currentColour)));
         }
-        embed.setFooter(String.format("Total cards played: %d. Total turns passed: %d.", this.totalCardsPlayed, this.totalTurnsPassed));
+        embed.setFooter(String.format("Total cards played: %d. Total turns passed: %d. Total cards drawn: %d. " +
+                "Total time passed: %d seconds.", this.totalCardsPlayed, this.totalTurnsPassed, this.totalCardsDrawn,
+                this.timeTracker.getElapsedTimeSecs()));
         return embed;
     }
 
     private @NotNull EmbedBuilder generateWinnerEmbed() {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setColor(this.currentColour);
-        embed.setDescription(String.format("The winner is %s!", this.playerToMove.getMention()));
+        embed.setDescription(String.format("The winner is %s!\nThis game lasted %d seconds.",
+                this.playerToMove.getMention(), this.timeTracker.getElapsedTimeSecs()));
         embed.setFooter(String.format("Total cards played: %d. Total turns passed: %d.", this.totalCardsPlayed, this.totalTurnsPassed));
         return embed;
     }
@@ -289,6 +294,7 @@ public class UnoGame {
     }
 
     private void endGame() {
+        timeTracker.stop();
         this.channel.sendMessageEmbeds(generateWinnerEmbed().build()).queueAfter(1, TimeUnit.SECONDS);
         this.players.forEach(lobbyEntry -> {
             if (!lobbyEntry.isBot()) {
@@ -434,6 +440,7 @@ public class UnoGame {
         }
         // add all cards the players hand
         unoCards.addAll(cardsToDraw);
+        this.totalCardsDrawn += cardsToDraw.size();
         if(!user.isBot()) {
             user.getUser().openPrivateChannel().queue(privateChannel -> {
                 EmbedBuilder embed = new EmbedBuilder();

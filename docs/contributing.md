@@ -176,4 +176,4 @@ You can read more about this [here](https://github.com/DV8FromTheWorld/JDA/blob/
 
 ## Database
 
-You can read more about the database structure in the [docs/database.md](docs/database.md) file.
+You can read more about the database structure in the [docs/database.md](database.md) file.

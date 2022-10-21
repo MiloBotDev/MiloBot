@@ -16,6 +16,7 @@ import java.util.Objects;
  * Change the prefix the bot listens to for a guild.
  */
 public class PrefixCmd extends Command implements UtilityCmd {
+
     private final NewCommandHandler handler;
 
     public PrefixCmd(NewCommandHandler handler) {

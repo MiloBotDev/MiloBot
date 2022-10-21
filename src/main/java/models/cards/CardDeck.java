@@ -38,7 +38,6 @@ public class CardDeck<T> {
 
     public void refreshDeck(List<T> cardsToAdd) {
         this.deck.addAll(cardsToAdd);
-        System.out.println(cardsToAdd.size());
     }
 
     public void resetDeck() {
