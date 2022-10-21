@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Users;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
@@ -19,13 +18,6 @@ public class NewButtonHandler extends ListenerAdapter {
     private record ButtonRecord(boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {}
     private final HashMap<String, ButtonRecord> buttons = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(NewButtonHandler.class);
-
-    public static NewButtonHandler getInstance() {
-        if (instance == null) {
-            instance = new NewButtonHandler();
-        }
-        return instance;
-    }
 
     public void registerButton(String id, boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {
         buttons.put(id, new ButtonRecord(onlyOnUserMatch, service, action));
@@ -41,14 +33,7 @@ public class NewButtonHandler extends ListenerAdapter {
         String authorId = id[0];
         String type = id[1];
         User user = event.getUser();
-        if (!Users.getInstance().checkIfUserExists(user.getIdLong())) {
-            try {
-                Users.getInstance().addUserToDatabase(event.getUser());
-            } catch (SQLException e) {
-                logger.error("Couldn't add user to database", e);
-                return;
-            }
-        }
+        Users.getInstance().addUserIfNotExists(event.getUser().getIdLong());
 
         if (buttons.containsKey(type)) {
             ButtonRecord record = buttons.get(type);

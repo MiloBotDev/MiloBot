@@ -261,15 +261,7 @@ public abstract class Command {
         try {
             database.model.User userByDiscordId = userDao.getUserByDiscordId(discordId);
             int userId = Objects.requireNonNull(userByDiscordId).getId();
-
-            boolean tracked = commandTrackerDao.checkIfUserCommandTracked(commandName, userId);
-            if (tracked) {
-                int userCommandTracker = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);
-                userCommandTracker++;
-                commandTrackerDao.updateUserCommandTracker(commandName, userId, userCommandTracker);
-            } else {
-                commandTrackerDao.addUserCommandTracker(commandName, userId);
-            }
+            commandTrackerDao.addToCommandTracker(getFullCommandName(), userId);
         } catch (Exception e) {
             logger.error("Failed to update command tracker.", e);
         }
@@ -283,12 +275,12 @@ public abstract class Command {
             database.model.User userByDiscordId = userDao.getUserByDiscordId(event.getAuthor().getIdLong());
             int userId = Objects.requireNonNull(userByDiscordId).getId();
 
-            int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(commandName, userId);
-            int globalUsage = commandTrackerDao.getGlobalCommandUsage(commandName);
+            int personalUsage = commandTrackerDao.getUserSpecificCommandUsage(getFullCommandName(), userId);
+            int globalUsage = commandTrackerDao.getGlobalCommandUsage(getFullCommandName());
 
             EmbedBuilder stats = new EmbedBuilder();
             EmbedUtils.styleEmbed(stats, event.getAuthor());
-            stats.setTitle(String.format("Stats for %s", commandName));
+            stats.setTitle(String.format("Stats for %s", getFullCommandName()));
             stats.addField("Personal Usages", String.format("You have used this command %d times.", personalUsage), false);
             stats.addField("Global Usages", String.format("This command has been used a total of %d times.", globalUsage), false);
 
@@ -450,24 +442,25 @@ public abstract class Command {
      * @return true if the user has the required permissions, false otherwise.
      */
     public boolean checkRequiredPermissions(@NotNull Event event) {
-        AtomicBoolean hasPermission = new AtomicBoolean(false);
+        boolean hasPermission = false;
         Member member = null;
         if (event instanceof MessageReceivedEvent) {
             member = ((MessageReceivedEvent) event).getMember();
         } else if (event instanceof SlashCommandEvent) {
             member = ((SlashCommandEvent) event).getMember();
         }
-        if (member == null) {
-            hasPermission.set(false);
-            return hasPermission.get();
-        }
         if (permissions.isEmpty()) {
-            hasPermission.set(true);
-        } else {
-            Member finalMember = member;
-            permissions.forEach((s, p) -> hasPermission.set(finalMember.getPermissions().contains(p)));
+            hasPermission = true;
+        } else if (member != null) {
+            hasPermission = true;
+            for (Permission permission : permissions.values()) {
+                if (!member.hasPermission(permission)) {
+                    hasPermission = false;
+                    break;
+                }
+            }
         }
-        return hasPermission.get();
+        return hasPermission;
     }
 
     /**
@@ -584,5 +577,15 @@ public abstract class Command {
             }
         }
         return markdown.toString();
+    }
+
+    public String parentCommandName;
+
+    public String getFullCommandName() {
+        if (parentCommandName == null) {
+            return commandName;
+        } else {
+            return parentCommandName + " " + commandName;
+        }
     }
 }

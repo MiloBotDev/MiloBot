@@ -53,12 +53,12 @@ public class OnGuildJoin extends ListenerAdapter {
         logs.sendMessageEmbeds(embed.build()).queue();
 
         Prefix prefix = new Prefix(event.getGuild().getIdLong(), config.getDefaultPrefix());
-        try {
+        /*try {
             prefixDao.add(prefix);
             CommandHandler.prefixes.put(event.getGuild().getIdLong(), config.getDefaultPrefix());
         } catch (SQLException e) {
             logger.error("Error adding prefix on guild join event", e);
-        }
+        }*/
         logger.trace(String.format("Bot has been added to: %s.", event.getGuild().getName()));
     }
 

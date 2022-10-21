@@ -2,6 +2,9 @@ package events;
 
 import commands.games.dnd.encounter.EncounterGeneratorCmd;
 import commands.games.blackjack.BlackjackPlayCmd;
+import database.dao.BlackjackDao;
+import database.util.NewDatabaseConnection;
+import database.util.RowLockType;
 import games.Blackjack;
 import games.Poker;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -21,6 +24,7 @@ import utility.Users;
 import utility.lobby.AbstractLobby;
 import utility.lobby.BotLobby;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 
@@ -46,14 +50,7 @@ public class OnButtonClick extends ListenerAdapter {
         String type = id[1];
         User user = event.getUser();
         // Check if the user is in the database
-        if (!userUtil.checkIfUserExists(user.getIdLong())) {
-            try {
-                userUtil.addUserToDatabase(event.getUser());
-            } catch (SQLException e) {
-                logger.error("Couldn't add user to database", e);
-                return;
-            }
-        }
+        userUtil.addUserIfNotExists(event.getUser().getIdLong());
         if ((type.equals("joinLobby") || type.equals("leaveLobby") || type.equals("fillLobby"))) {
             event.deferEdit().queue();
             switch (type) {
@@ -109,88 +106,6 @@ public class OnButtonClick extends ListenerAdapter {
                         ActionRow.of(Button.primary(event.getUser().getId() + ":regenerate", "Regenerate"),
                                 Button.primary(event.getUser().getId() + ":save", "Save"),
                                 Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
-                break;
-            case "hit":
-                Blackjack game = BlackjackPlayCmd.blackjackGames.get(user.getIdLong());
-                if (game.isFinished() || game.isPlayerStand()) {
-                    break;
-                }
-                game.playerHit();
-                Blackjack.BlackjackStates blackjackStates = game.checkWin(false);
-                EmbedBuilder newEmbed;
-                if (blackjackStates.equals(Blackjack.BlackjackStates.DEALER_WIN)) {
-                    game.checkWin(true);
-                    newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
-                    event.getHook().editOriginalEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
-                            Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
-                            Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
-                    BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
-                } else {
-                    newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
-                    event.getHook().editOriginalEmbeds(newEmbed.build()).queue();
-                }
-                break;
-            case "stand":
-                Blackjack blackjack = BlackjackPlayCmd.blackjackGames.get(user.getIdLong());
-                if (blackjack.isFinished() || blackjack.isPlayerStand()) {
-                    break;
-                }
-                blackjack.setPlayerStand(true);
-                blackjack.dealerMoves();
-                blackjack.setDealerStand(true);
-                blackjackStates = blackjack.checkWin(true);
-                EmbedBuilder embedBuilder = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
-                event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
-                        Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
-                        Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
-                BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
-                break;
-            case "replayBlackjack":
-                if (BlackjackPlayCmd.blackjackGames.containsKey(user.getIdLong())) {
-                    break;
-                }
-                String description = event.getMessage().getEmbeds().get(0).getDescription();
-                Blackjack value;
-                if (description == null) {
-                    value = new Blackjack(user.getIdLong());
-                } else {
-                    String s = description.replaceAll("[^0-9]", "");
-                    int bet = Integer.parseInt(s);
-                    database.model.User user2;
-                    try {
-                        user2 = userDao.getUserByDiscordId(event.getUser().getIdLong());
-                    } catch (SQLException e) {
-                        logger.error("Error getting user from database when user wanted to replay blackjack.", e);
-                        return;
-                    }
-                    int wallet = Objects.requireNonNull(user2).getCurrency();
-                    if (bet > wallet) {
-                        event.getHook().sendMessage(String.format("You can't bet `%d` morbcoins, you only have `%d` in your wallet.", bet, wallet)).queue();
-                        break;
-                    }
-                    value = new Blackjack(user.getIdLong(), bet);
-                }
-                value.initializeGame();
-                BlackjackPlayCmd.blackjackGames.put(user.getIdLong(), value);
-                Blackjack.BlackjackStates state = value.checkWin(false);
-                EmbedBuilder embed;
-                if (state.equals(Blackjack.BlackjackStates.PLAYER_BLACKJACK)) {
-                    value.dealerHit();
-                    value.setDealerStand(true);
-                    blackjackStates = value.checkWin(true);
-                    embed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
-                    BlackjackPlayCmd.blackjackGames.remove(user.getIdLong());
-                    event.getHook().editOriginalEmbeds(embed.build()).setActionRows(ActionRow.of(
-                            Button.primary(authorId + ":replayBlackjack", "Replay"),
-                            Button.secondary(authorId + ":delete", "Delete")
-                    )).queue();
-                } else {
-                    embed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
-                    event.getHook().editOriginalEmbeds(embed.build()).setActionRows(ActionRow.of(
-                            Button.primary(authorId + ":stand", "Stand"),
-                            Button.primary(authorId + ":hit", "Hit")
-                    )).queue();
-                }
                 break;
             case "poker_check":
                 Poker pokerGame1 = Poker.getUserGame(user);
