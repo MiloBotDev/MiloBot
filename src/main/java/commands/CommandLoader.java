@@ -250,9 +250,8 @@ public class CommandLoader {
 
         // generic buttons
         ExecutorService genericButtonHandler = Executors.newSingleThreadExecutor();
-        buttonHandler.registerButton("delete", false, DeferType.NONE, genericButtonHandler, (event) -> {
-            event.getMessage().delete().queue();
-        });
+        buttonHandler.registerButton("delete", false, DeferType.NONE, genericButtonHandler,
+                (event) -> event.getMessage().delete().queue());
 
         jda.addEventListener(buttonHandler);
         handler.initialize();
