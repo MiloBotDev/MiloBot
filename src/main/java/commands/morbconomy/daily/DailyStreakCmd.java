@@ -9,6 +9,7 @@ import database.util.RowLockType;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -23,6 +24,7 @@ public class DailyStreakCmd extends Command implements SubCmd {
         this.commandName = "streak";
         this.commandDescription = "View your current streak.";
         this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
     }
 
     @Override

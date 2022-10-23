@@ -4,6 +4,7 @@ import commands.Command;
 import commands.ParentCmd;
 import commands.games.dnd.DndCmd;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 /**
@@ -17,7 +18,7 @@ public class EncounterCmd extends Command implements ParentCmd, DndCmd {
         this.subCommands.add(EncounterGeneratorCmd.getInstance());
         this.allowedChannelTypes.add(ChannelType.TEXT);
         this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+        this.slashCommandData = new CommandData(this.commandName, this.commandDescription);
         this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
     }
 }

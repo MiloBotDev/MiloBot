@@ -4,6 +4,7 @@ import commands.Command;
 import commands.ParentCmd;
 import commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 public class DailyCmd extends Command implements MorbconomyCmd, ParentCmd {
 
@@ -15,7 +16,7 @@ public class DailyCmd extends Command implements MorbconomyCmd, ParentCmd {
         this.subCommands.add(new DailyStatsCmd());
         this.allowedChannelTypes.add(ChannelType.TEXT);
         this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
-
+        this.slashCommandData = new CommandData(this.commandName, this.commandDescription);
     }
 
 }

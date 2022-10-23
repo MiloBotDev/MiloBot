@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ public class DailyClaimCmd extends Command implements SubCmd {
         this.commandName = "claim";
         this.commandDescription = "Claim your daily reward.";
         this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
     }
 
     @Override
