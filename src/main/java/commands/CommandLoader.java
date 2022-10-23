@@ -1,5 +1,6 @@
 package commands;
 
+import commands.ButtonHandler.DeferType;
 import commands.bot.StatusCmd;
 import commands.bot.bug.BugCmd;
 import commands.games.blackjack.BlackjackCmd;
@@ -44,7 +45,7 @@ public class CommandLoader {
         // blackjack
         ExecutorService blackjackService = Executors.newSingleThreadExecutor();
         handler.registerCommand(blackjackService, new BlackjackCmd());
-        buttonHandler.registerButton("hit", true, blackjackService, (event) -> {
+        buttonHandler.registerButton("hit", true, DeferType.NONE, blackjackService, (event) -> {
             BlackjackGame game = BlackjackPlayCmd.blackjackGames.get(event.getUser().getIdLong());
             if (game.isFinished() || game.isPlayerStand()) {
                 return;
@@ -55,16 +56,16 @@ public class CommandLoader {
             if (blackjackStates.equals(BlackjackGame.BlackjackStates.DEALER_WIN)) {
                 game.checkWin(true);
                 newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
-                event.getHook().editOriginalEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
+                event.editMessageEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
                         Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
                         Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
                 BlackjackPlayCmd.blackjackGames.remove(event.getUser().getIdLong());
             } else {
                 newEmbed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
-                event.getHook().editOriginalEmbeds(newEmbed.build()).queue();
+                event.editMessageEmbeds(newEmbed.build()).queue();
             }
         });
-        buttonHandler.registerButton("stand", true, blackjackService, (event) -> {
+        buttonHandler.registerButton("stand", true, DeferType.NONE, blackjackService, (event) -> {
             BlackjackGame.BlackjackStates blackjackStates;
             BlackjackGame blackjackGame = BlackjackPlayCmd.blackjackGames.get(event.getUser().getIdLong());
             if (blackjackGame.isFinished() || blackjackGame.isPlayerStand()) {
@@ -75,12 +76,12 @@ public class CommandLoader {
             blackjackGame.setDealerStand(true);
             blackjackStates = blackjackGame.checkWin(true);
             EmbedBuilder embedBuilder = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
-            event.getHook().editOriginalEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
+            event.editMessageEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
                     Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
                     Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
             BlackjackPlayCmd.blackjackGames.remove(event.getUser().getIdLong());
         });
-        buttonHandler.registerButton("replayBlackjack", true, blackjackService, (event) -> {
+        buttonHandler.registerButton("replayBlackjack", true, DeferType.NONE, blackjackService, (event) -> {
             Logger logger = LoggerFactory.getLogger(BlackjackGame.class);
             UserDao userDao = UserDao.getInstance();
             BlackjackGame.BlackjackStates blackjackStates;
@@ -101,7 +102,7 @@ public class CommandLoader {
                     int playerWallet = Objects.requireNonNull(user2).getCurrency();
                     int newWallet = playerWallet - bet;
                     if (newWallet < 0) {
-                        event.getChannel().sendMessage(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
+                        event.reply(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
                         con.commit();
                         return;
                     }
@@ -124,13 +125,13 @@ public class CommandLoader {
                 blackjackStates = value.checkWin(true);
                 embed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), blackjackStates);
                 BlackjackPlayCmd.blackjackGames.remove(event.getUser().getIdLong());
-                event.getHook().editOriginalEmbeds(embed.build()).setActionRows(ActionRow.of(
+                event.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
                         Button.primary(authorId + ":replayBlackjack", "Replay"),
                         Button.secondary(authorId + ":delete", "Delete")
                 )).queue();
             } else {
                 embed = BlackjackPlayCmd.generateBlackjackEmbed(event.getUser(), null);
-                event.getHook().editOriginalEmbeds(embed.build()).setActionRows(ActionRow.of(
+                event.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
                         Button.primary(authorId + ":stand", "Stand"),
                         Button.primary(authorId + ":hit", "Hit")
                 )).queue();
@@ -147,25 +148,25 @@ public class CommandLoader {
 
         ExecutorService pokerExecutor = Executors.newSingleThreadExecutor();
         handler.registerCommand(pokerExecutor, new PokerCmd());
-        buttonHandler.registerButton("poker_check", true, pokerExecutor, (event) -> {
+        buttonHandler.registerButton("poker_check", true, DeferType.EDIT, pokerExecutor, (event) -> {
             PokerGame pokerGame = PokerGame.getUserGame(event.getUser());
             if (pokerGame != null) {
                 pokerGame.setPlayerAction(PokerGame.PlayerAction.CHECK);
             }
         });
-        buttonHandler.registerButton("poker_call", true, pokerExecutor, (event) -> {
+        buttonHandler.registerButton("poker_call", true, DeferType.EDIT, pokerExecutor, (event) -> {
             PokerGame pokerGame = PokerGame.getUserGame(event.getUser());
             if (pokerGame != null) {
                 pokerGame.setPlayerAction(PokerGame.PlayerAction.CALL);
             }
         });
-        buttonHandler.registerButton("poker_fold", true, pokerExecutor, (event) -> {
+        buttonHandler.registerButton("poker_fold", true, DeferType.EDIT, pokerExecutor, (event) -> {
             PokerGame pokerGame = PokerGame.getUserGame(event.getUser());
             if (pokerGame != null) {
                 pokerGame.setPlayerAction(PokerGame.PlayerAction.FOLD);
             }
         });
-        buttonHandler.registerButton("poker_raise", true, pokerExecutor, (event) -> {
+        buttonHandler.registerButton("poker_raise", true, DeferType.EDIT, pokerExecutor, (event) -> {
             PokerGame pokerGame = PokerGame.getUserGame(event.getUser());
             if (pokerGame != null) {
                 pokerGame.setPlayerAction(PokerGame.PlayerAction.RAISE);
@@ -190,19 +191,19 @@ public class CommandLoader {
 
         // paginator buttons
         ExecutorService paginatorService = Executors.newSingleThreadExecutor();
-        buttonHandler.registerButton("nextPage", true, paginatorService, (event) -> {
+        buttonHandler.registerButton("nextPage", true, DeferType.EDIT, paginatorService, (event) -> {
             Paginator paginator = Paginator.getPaginatorByMessage(event.getMessage());
             if (paginator != null) {
                 paginator.nextPage();
             }
         });
-        buttonHandler.registerButton("previousPage", true, paginatorService, (event) -> {
+        buttonHandler.registerButton("previousPage", true, DeferType.EDIT, paginatorService, (event) -> {
             Paginator paginator = Paginator.getPaginatorByMessage(event.getMessage());
             if (paginator != null) {
                 paginator.previousPage();
             }
         });
-        buttonHandler.registerButton("deletePaginator", true, paginatorService, (event) -> {
+        buttonHandler.registerButton("deletePaginator", true, DeferType.EDIT, paginatorService, (event) -> {
             Paginator paginator = Paginator.getPaginatorByMessage(event.getMessage());
             if (paginator != null) {
                 paginator.remove();
@@ -211,19 +212,19 @@ public class CommandLoader {
 
         // lobby buttons
         ExecutorService lobbyService = Executors.newSingleThreadExecutor();
-        buttonHandler.registerButton("joinLobby", false, lobbyService, (event) -> {
+        buttonHandler.registerButton("joinLobby", false, DeferType.EDIT, lobbyService, (event) -> {
             AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
             if (lobby != null) {
                 lobby.addPlayer(event.getUser());
             }
         });
-        buttonHandler.registerButton("leaveLobby", false, lobbyService, (event) -> {
+        buttonHandler.registerButton("leaveLobby", false, DeferType.EDIT, lobbyService, (event) -> {
             AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
             if (lobby != null) {
                 lobby.removePlayer(event.getUser());
             }
         });
-        buttonHandler.registerButton("fillLobby", false, lobbyService, (event) -> {
+        buttonHandler.registerButton("fillLobby", false, DeferType.EDIT, lobbyService, (event) -> {
             AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
             if (lobby != null) {
                 if (lobby instanceof BotLobby botLobby) {
@@ -233,13 +234,13 @@ public class CommandLoader {
                 }
             }
         });
-        buttonHandler.registerButton("startLobby", false, lobbyService, (event) -> {
+        buttonHandler.registerButton("startLobby", false, DeferType.EDIT, lobbyService, (event) -> {
             AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
             if (lobby != null) {
                 lobby.start();
             }
         });
-        buttonHandler.registerButton("deleteLobby", false, lobbyService, (event) -> {
+        buttonHandler.registerButton("deleteLobby", false, DeferType.EDIT, lobbyService, (event) -> {
             AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
             if (lobby != null) {
                 lobby.remove();
@@ -249,14 +250,10 @@ public class CommandLoader {
 
         // generic buttons
         ExecutorService genericButtonHandler = Executors.newSingleThreadExecutor();
-        buttonHandler.registerButton("delete", false, genericButtonHandler, (event) -> {
-            event.getHook().deleteOriginal().queue();
+        buttonHandler.registerButton("delete", false, DeferType.NONE, genericButtonHandler, (event) -> {
+            event.getMessage().delete().queue();
         });
 
-        // FOR TEMPORARY TESTING ONLY!!!
-        // TODO: remove later
-        buttonHandler.registerButton("joinLobby", true,
-                Executors.newSingleThreadExecutor(), evt -> System.out.println("works"));
         jda.addEventListener(buttonHandler);
         handler.initialize();
     }

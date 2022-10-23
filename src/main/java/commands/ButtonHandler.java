@@ -14,13 +14,16 @@ import java.util.function.Consumer;
 
 public class ButtonHandler extends ListenerAdapter {
 
-    private static ButtonHandler instance;
-    private record ButtonRecord(boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {}
+    public enum DeferType {
+        NONE, REPLY, EDIT
+    }
+    private record ButtonRecord(boolean onlyOnUserMatch, DeferType deferType, ExecutorService service, Consumer<ButtonClickEvent> action) {}
     private final HashMap<String, ButtonRecord> buttons = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(ButtonHandler.class);
 
-    public void registerButton(String id, boolean onlyOnUserMatch, ExecutorService service, Consumer<ButtonClickEvent> action) {
-        buttons.put(id, new ButtonRecord(onlyOnUserMatch, service, action));
+    public void registerButton(String id, boolean onlyOnUserMatch, DeferType deferType,
+                               ExecutorService service, Consumer<ButtonClickEvent> action) {
+        buttons.put(id, new ButtonRecord(onlyOnUserMatch, deferType, service, action));
     }
 
     @Override
@@ -37,10 +40,14 @@ public class ButtonHandler extends ListenerAdapter {
 
         if (buttons.containsKey(type)) {
             ButtonRecord record = buttons.get(type);
-            if (record.onlyOnUserMatch() && !authorId.equals(user.getId())) {
-                return;
+            if (authorId.equals(user.getId()) || !record.onlyOnUserMatch()) {
+                if (record.deferType() == DeferType.REPLY) {
+                    event.deferReply().queue();
+                } else if (record.deferType() == DeferType.EDIT) {
+                    event.deferEdit().queue();
+                }
+                record.service().submit(() -> record.action().accept(event));
             }
-            record.service().submit(() -> record.action().accept(event));
         }
     }
 }
