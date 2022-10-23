@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ public class DailyStatsCmd extends Command implements SubCmd {
     public DailyStatsCmd() {
         this.commandName = "stats";
         this.commandDescription = "View your own daily statistics.";
+        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
     }
 
     @Override

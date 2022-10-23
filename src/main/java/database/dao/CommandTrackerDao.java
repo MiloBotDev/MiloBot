@@ -58,14 +58,14 @@ public class CommandTrackerDao {
         }
     }
 
-    public void addToCommandTracker(@NotNull String commandName, int userId) throws SQLException {
+    public void addToCommandTracker(@NotNull String commandName, long userDiscordId) throws SQLException {
         addCommand(commandName);
         String query = "INSERT INTO command_tracker (user_id, command, amount) VALUES " +
-                "(?, (SELECT id FROM commands WHERE command_name = ?), 1) " +
+                "((SELECT id FROM users WHERE discord_id = ?), (SELECT id FROM commands WHERE command_name = ?), 1) " +
                 "ON DUPLICATE KEY UPDATE amount = amount + 1";
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setInt(1, userId);
+            ps.setLong(1, userDiscordId);
             ps.setString(2, commandName);
             ps.executeUpdate();
         }

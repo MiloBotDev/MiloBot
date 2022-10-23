@@ -260,13 +260,9 @@ public abstract class Command {
      * Updates the command tracker for a specific user;
      */
     public void updateCommandTrackerUser(long discordId) {
-        try(Connection con = DatabaseConnection.getConnection()) {
-            con.setAutoCommit(false);
-            database.model.User userByDiscordId = userDao.getUserByDiscordId(con, discordId, RowLockType.FOR_UPDATE);
-            int userId = Objects.requireNonNull(userByDiscordId).getId();
-            commandTrackerDao.addToCommandTracker(getFullCommandName(), userId);
-            con.commit();
-        } catch (Exception e) {
+        try {
+            commandTrackerDao.addToCommandTracker(getFullCommandName(), discordId);
+        } catch (SQLException e) {
             logger.error("Failed to update command tracker.", e);
         }
     }

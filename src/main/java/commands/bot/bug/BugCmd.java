@@ -28,6 +28,7 @@ public class BugCmd extends Command implements BotCmd, ParentCmd {
         this.allowedChannelTypes.add(ChannelType.PRIVATE);
         this.slashCommandData = new CommandData(this.commandName, this.commandDescription);
         this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
+        this.slashCommandData = new CommandData(this.commandName, this.commandDescription);
     }
 
 }

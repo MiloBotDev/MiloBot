@@ -39,16 +39,6 @@ public class CommandHandler extends ListenerAdapter {
 
     public void registerCommand(ExecutorService service, @NotNull Command command) {
         commands.put(command.commandName, new CommandRecord(command, service));
-        // add slash sub command to jda and check for null
-        if (command.slashCommandData != null) {
-            CommandData commandData = command.slashCommandData;
-            for (Command subCommand : command.subCommands) {
-                if (subCommand.slashSubcommandData != null) {
-                    commandData.addSubcommands(subCommand.slashSubcommandData);
-                }
-            }
-            jda.updateCommands().addCommands(commandData).queue();
-        }
     }
 
     public void initialize() {
@@ -59,6 +49,22 @@ public class CommandHandler extends ListenerAdapter {
             record.command.subCommands.forEach(subCommand ->
                     subCommand.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent))));
         }));
+
+        // slash commands
+        ArrayList<CommandData> commandDatas = new ArrayList<>();
+        for (CommandRecord commandRecord : commands.values()) {
+            Command command = commandRecord.command;
+            if (command.slashCommandData != null) {
+                CommandData commandData = command.slashCommandData;
+                for (Command subCommand : command.subCommands) {
+                    if (subCommand.slashSubcommandData != null) {
+                        commandData.addSubcommands(subCommand.slashSubcommandData);
+                    }
+                }
+                commandDatas.add(commandData);
+            }
+        }
+        jda.updateCommands().addCommands(commandDatas).queue();
     }
 
     @Override
