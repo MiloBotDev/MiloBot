@@ -33,6 +33,7 @@ public class WordleDao {
     }
 
     private void createTableIfNotExists() throws SQLException {
+        UserDao.getInstance();
         String query = "CREATE TABLE IF NOT EXISTS wordle (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL UNIQUE," +

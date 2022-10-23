@@ -31,6 +31,8 @@ public class DailyDao {
     }
 
     private void creteTableIfNotExists() throws SQLException {
+        UserDao.getInstance();
+        // TODO: add fk constraint for user_id
         String query = "CREATE TABLE IF NOT EXISTS daily (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL UNIQUE," +

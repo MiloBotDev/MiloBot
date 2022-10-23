@@ -32,6 +32,7 @@ public class UsersCacheDao {
     }
 
     private void createTableIfNotExists() throws SQLException {
+        UserDao.getInstance();
         String query = "CREATE TABLE IF NOT EXISTS users_cache (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL UNIQUE," +
