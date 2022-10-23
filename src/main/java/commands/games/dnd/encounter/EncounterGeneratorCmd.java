@@ -127,7 +127,6 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
         MessageEmbed build = embed.build();
         event.getChannel().sendMessageEmbeds(build).setActionRows(ActionRow.of(
                 Button.primary(event.getAuthor().getId() + ":regenerate", "Regenerate"),
-                Button.primary(event.getAuthor().getId() + ":save", "Save"),
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete"))).queue();
         encounterCache.put(build.getFields().get(0).getValue(), embedBuilderEncounterMap.get(embed));
     }
@@ -148,7 +147,6 @@ public class EncounterGeneratorCmd extends Command implements SubCmd {
         MessageEmbed build = embed.build();
         event.replyEmbeds(build).addActionRows(
                 ActionRow.of(Button.primary(id + ":regenerate", "Regenerate"),
-                        Button.primary(id + ":save", "Save"),
                         Button.secondary(id + ":delete", "Delete"))).queue();
         encounterCache.put(build.getFields().get(0).getValue(), embedBuilderEncounterMap.get(embed));
     }

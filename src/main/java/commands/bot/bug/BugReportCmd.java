@@ -48,7 +48,7 @@ public class BugReportCmd extends Command implements SubCmd {
     public BugReportCmd() {
         this.commandName = "report";
         this.commandDescription = "Report a bug you found.";
-        this.cooldown = 0;
+        this.cooldown = 600;
         this.questions = new ArrayList<>(List.of(new String[]{
                 "Please give me a short summary of the bug you found. You can type cancel at any time to stop the command.",
                 "How do you reproduce the bug?",

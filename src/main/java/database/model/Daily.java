@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 
 public class Daily {
+
     private final int id;
     private final int userId;
     private Instant lastDailyTime;

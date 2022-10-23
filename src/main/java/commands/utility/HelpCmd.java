@@ -56,7 +56,7 @@ public class HelpCmd extends Command implements UtilityCmd {
         if (args.size() > 0) {
             AtomicBoolean commandFound = new AtomicBoolean(false);
             String arg = args.get(0);
-            handler.commands.forEach((key, value) -> {
+            CommandHandler.commands.forEach((key, value) -> {
                 if (key.contains(arg.toLowerCase(Locale.ROOT))) {
                     EmbedBuilder embedBuilder = value.command().generateHelp(event.getGuild(), event.getAuthor());
                     event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
@@ -80,7 +80,7 @@ public class HelpCmd extends Command implements UtilityCmd {
         if (!(event.getOption("command") == null)) {
             AtomicBoolean commandFound = new AtomicBoolean(false);
             String command = Objects.requireNonNull(event.getOption("command")).getAsString();
-            handler.commands.forEach((key, value) -> {
+            CommandHandler.commands.forEach((key, value) -> {
                 if (key.contains(command.toLowerCase(Locale.ROOT))) {
                     EmbedBuilder embedBuilder = value.command().generateHelp(Objects.requireNonNull(event.getGuild()), event.getUser());
                     event.replyEmbeds(embedBuilder.build()).addActionRow(Button.secondary(authorId + ":delete", "Delete")).queue();

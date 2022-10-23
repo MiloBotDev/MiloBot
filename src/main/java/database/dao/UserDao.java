@@ -93,7 +93,7 @@ public class UserDao {
     }
 
     @Nullable
-    public User getUserById(@NotNull Connection con, int id, RowLockType lockType) throws SQLException {
+    public User getUserById(@NotNull Connection con, int id, @NotNull RowLockType lockType) throws SQLException {
         String query = lockType.getQueryWithLock("SELECT * FROM users WHERE id = ?");
         PreparedStatement ps;
         ps = con.prepareStatement(query);
