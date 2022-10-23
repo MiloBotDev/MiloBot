@@ -33,6 +33,7 @@ public class BlackjackDao {
     }
 
     private void creteTableIfNotExists() throws SQLException {
+        UserDao.getInstance();
         String query = "CREATE TABLE IF NOT EXISTS blackjack (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL UNIQUE," +

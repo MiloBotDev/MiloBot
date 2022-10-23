@@ -37,6 +37,7 @@ public class CommandTrackerDao {
              Statement st = con.createStatement()) {
             st.execute(query);
         }
+        UserDao.getInstance();
         query = "CREATE TABLE IF NOT EXISTS command_tracker (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "user_id INT NOT NULL," +
