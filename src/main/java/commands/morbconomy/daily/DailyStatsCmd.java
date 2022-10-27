@@ -7,6 +7,7 @@ import database.model.Daily;
 import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -29,6 +30,8 @@ public class DailyStatsCmd extends Command implements SubCmd {
     public DailyStatsCmd() {
         this.commandName = "stats";
         this.commandDescription = "View your own daily statistics.";
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
         this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
     }
 

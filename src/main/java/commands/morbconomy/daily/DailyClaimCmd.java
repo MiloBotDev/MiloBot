@@ -36,6 +36,7 @@ public class DailyClaimCmd extends Command implements SubCmd {
         this.commandName = "claim";
         this.commandDescription = "Claim your daily reward.";
         this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
         this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
     }
 
