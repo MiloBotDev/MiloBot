@@ -16,7 +16,7 @@ a pull request.
 | **Morbconomy**               |                          |                    |                  |
 | [!wallet](#wallet)           | [!profile](#profile)     | [!daily](#daily)   |                  |
 | **Games**                    |                          |                    |                  |
-| [!hungergames](#hungergames) | [!blackjackGame](#blackjackGame) | [!wordle](#wordle) | [!pokerGame](#pokerGame) |
+| [!hungergames](#hungergames) | [!blackjackGame](#blackjackGame) | [!wordle](#wordle) | [!poker](#poker) |
 | **Bot**                      |                          |                    |                  |
 | [!bug](#bug)                 | [!status](#status)       |                    |                  |
 | **Dungeons & Dragons**       |                          |                    |                  |
@@ -121,17 +121,17 @@ View your own or someone else's profile.
 
 ---
 
-<h3 id="pokerGame">pokerGame</h3>
+<h3 id="poker">poker</h3>
 
 5-card Poker brought to discord.
 
 #### Usage
 
-`!pokerGame`
+`!poker`
 
 #### Sub Commands
 
-`!pokerGame play`
+`!poker play`
 Play a game of pokerGame on discord.
 
 ---
