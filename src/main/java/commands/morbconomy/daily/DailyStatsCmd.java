@@ -21,6 +21,7 @@ import utility.EmbedUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 public class DailyStatsCmd extends Command implements SubCmd {
 
@@ -57,7 +58,7 @@ public class DailyStatsCmd extends Command implements SubCmd {
             if(daily != null) {
                 int streak = daily.getStreak();
                 int totalClaimed = daily.getTotalClaimed();
-                String lastDailyTime = daily.getLastDailyTime().toString();
+                String lastDailyTime = Objects.requireNonNull(daily.getLastDailyTime()).toString();
 
                 dailyStatsEmbed.addField("Current Streak", String.valueOf(streak), true);
                 dailyStatsEmbed.addField("Total Dailies Claimed", String.valueOf(totalClaimed), true);

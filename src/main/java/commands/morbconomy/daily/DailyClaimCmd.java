@@ -76,10 +76,11 @@ public class DailyClaimCmd extends Command implements SubCmd {
             if (daily == null) {
                 daily = new Daily(userDbObj.getId());
                 dailyDao.add(con, daily);
+                daily = dailyDao.getDailyByUserId(con, userDbObj.getId(), RowLockType.FOR_UPDATE);
             }
 
             boolean claimed = true;
-            if (daily.getLastDailyTime() == null) {
+            if (Objects.requireNonNull(daily).getLastDailyTime() == null) {
                 result.append(String.format("You claimed your first daily! You earn `%d` morbcoins.", reward));
                 daily.incrementStreak();
             } else {
