@@ -3,18 +3,25 @@ package commands.games.wordle;
 import commands.Command;
 import commands.SubCmd;
 import database.dao.UserDao;
+import database.dao.WordleDao;
 import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import database.model.Wordle;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utility.Paginator;
 import utility.Users;
 
 import java.awt.*;
@@ -30,6 +37,8 @@ import java.util.Objects;
 public class WordleLeaderboardCmd extends Command implements SubCmd {
 
     private static final UserDao userDao = UserDao.getInstance();
+    private static final WordleDao wordleDao = WordleDao.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(WordleLeaderboardCmd.class);
     private static final Users userUtil = Users.getInstance();
 
     public WordleLeaderboardCmd() {
@@ -39,6 +48,51 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
         this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
         this.allowedChannelTypes.add(ChannelType.TEXT);
         this.allowedChannelTypes.add(ChannelType.PRIVATE);
+
+        this.listeners.add(new ListenerAdapter() {
+            @Override
+            public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
+                String[] id = event.getComponentId().split(":");
+                String authorId = id[0];
+                String type = id[1];
+                User user = event.getUser();
+
+                if (user.getId().equals(authorId) && type.equals("wordleLeaderboard")) {
+                    event.deferEdit().queue();
+                    String option = Objects.requireNonNull(event.getSelectedOptions()).get(0).getValue();
+                    List<MessageEmbed> embeds = new ArrayList<>();
+                    try {
+                        switch (option) {
+                            case "highestStreak" -> {
+                                List<Wordle> topHighestStreak = wordleDao.getTopHighestStreak();
+                                embeds = buildWordleEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
+                            }
+                            case "fastestTime" -> {
+                                List<Wordle> topFastestTime = wordleDao.getTopFastestTime();
+                                embeds = buildWordleEmbeds(topFastestTime, "Fastest Time", event.getJDA());
+                            }
+                            case "totalWins" -> {
+                                List<Wordle> topTotalWins = wordleDao.getTopTotalWins();
+                                embeds = buildWordleEmbeds(topTotalWins, "Total Wins", event.getJDA());
+                            }
+                            case "totalGames" -> {
+                                List<Wordle> topTotalGames = wordleDao.getTopTotalGames();
+                                embeds = buildWordleEmbeds(topTotalGames, "Total Games Played", event.getJDA());
+                            }
+                            case "currentStreak" -> {
+                                List<Wordle> topCurrentStreak = wordleDao.getTopCurrentStreak();
+                                embeds = buildWordleEmbeds(topCurrentStreak, "Current Streak", event.getJDA());
+                            }
+                        }
+                    } catch (SQLException e) {
+                        logger.error("Failed to get the wordle leaderboard", e);
+                    }
+                    Paginator paginator = new Paginator(user, embeds);
+                    event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
+                            .queue(paginator::initialize);
+                }
+            }
+        });
     }
 
     @Override
