@@ -63,7 +63,6 @@ public class WordleLeaderboardCmd extends Command implements SubCmd {
                 .addOption("Total Wins", "totalWins")
                 .addOption("Total Games Played", "totalGames")
                 .addOption("Current Streak", "currentStreak")
-                .addOption("Highest Streak", "highestStreak")
                 .build();
         event.reply("Wordle Leaderboard Selection").addActionRow(menu).queue();
     }
