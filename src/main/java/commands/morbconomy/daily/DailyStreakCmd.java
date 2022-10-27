@@ -24,6 +24,7 @@ public class DailyStreakCmd extends Command implements SubCmd {
         this.commandName = "streak";
         this.commandDescription = "View your current streak.";
         this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
         this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
     }
 

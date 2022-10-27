@@ -1,7 +1,6 @@
 import commands.CommandLoader;
 import commands.games.blackjack.BlackjackPlayCmd;
 import events.OnReadyEvent;
-import events.OnSelectionMenu;
 import events.guild.OnGuildJoin;
 import events.guild.OnGuildLeave;
 import games.BlackjackGame;
@@ -42,7 +41,7 @@ public class MiloBot {
                         GatewayIntent.DIRECT_MESSAGES)
                 .setActivity(Activity.watching("Morbius"))
                 .addEventListeners(new OnGuildJoin(), new OnGuildLeave(),
-                        new OnReadyEvent(), new OnSelectionMenu())
+                        new OnReadyEvent())
                 .build().awaitReady();
 
         CommandLoader.loadAllCommands(bot);

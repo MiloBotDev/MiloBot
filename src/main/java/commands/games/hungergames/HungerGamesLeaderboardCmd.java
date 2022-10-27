@@ -2,6 +2,7 @@ package commands.games.hungergames;
 
 import commands.Command;
 import commands.SubCmd;
+import database.dao.HungerGamesDao;
 import database.dao.UserDao;
 import database.model.HungerGames;
 import database.util.DatabaseConnection;
@@ -10,10 +11,16 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utility.Paginator;
 import utility.Users;
 
 import java.awt.*;
@@ -26,6 +33,8 @@ import java.util.Objects;
 public class HungerGamesLeaderboardCmd extends Command implements SubCmd {
 
     private static final UserDao userDao = UserDao.getInstance();
+    private static final HungerGamesDao hungerGamesDao = HungerGamesDao.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(HungerGamesLeaderboardCmd.class);
     private static final Users userUtil = Users.getInstance();
 
     public HungerGamesLeaderboardCmd() {
@@ -33,6 +42,59 @@ public class HungerGamesLeaderboardCmd extends Command implements SubCmd {
         this.commandDescription = "View the hungergames leaderboards.";
         this.allowedChannelTypes.add(ChannelType.TEXT);
         this.allowedChannelTypes.add(ChannelType.PRIVATE);
+
+        this.listeners.add(new ListenerAdapter() {
+            @Override
+            public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
+                String[] id = event.getComponentId().split(":");
+                String authorId = id[0];
+                String type = id[1];
+                User user = event.getUser();
+
+                if (user.getId().equals(authorId) && type.equals("hgLeaderboard")) {
+                    event.deferEdit().queue();
+                    String option = Objects.requireNonNull(event.getSelectedOptions()).get(0).getValue();
+                    List<MessageEmbed> embeds = new ArrayList<>();
+                    try {
+                        switch (option) {
+                            case "totalKills" -> {
+                                List<HungerGames> topTotalKills = hungerGamesDao.getTopTotalKills();
+                                embeds = buildHgEmbeds(topTotalKills, "Total Kills", event.getJDA());
+                            }
+                            case "totalDamageDone" -> {
+                                List<HungerGames> topTotalDamageDone = hungerGamesDao.getTopTotalDamageDone();
+                                embeds = buildHgEmbeds(topTotalDamageDone, "Total Damage Done", event.getJDA());
+                            }
+                            case "totalDamageTaken" -> {
+                                List<HungerGames> topTotalDamageTaken = hungerGamesDao.getTopTotalDamageTaken();
+                                embeds = buildHgEmbeds(topTotalDamageTaken, "Total Damage Taken", event.getJDA());
+                            }
+                            case "totalHealingDone" -> {
+                                List<HungerGames> topTotalHealingDone = hungerGamesDao.getTopTotalHealingDone();
+                                embeds = buildHgEmbeds(topTotalHealingDone, "Total Healing Done", event.getJDA());
+                            }
+                            case "totalItemsCollected" -> {
+                                List<HungerGames> topTotalItemsCollected = hungerGamesDao.getTopTotalItemsCollected();
+                                embeds = buildHgEmbeds(topTotalItemsCollected, "Total Items Collected", event.getJDA());
+                            }
+                            case "totalGamesPlayed" -> {
+                                List<HungerGames> topTotalGames = hungerGamesDao.getTopTotalGamesPlayed();
+                                embeds = buildHgEmbeds(topTotalGames, "Total Games Played", event.getJDA());
+                            }
+                            case "totalWins" -> {
+                                List<HungerGames> topTotalWins = hungerGamesDao.getTopTotalWins();
+                                embeds = buildHgEmbeds(topTotalWins, "Total Wins", event.getJDA());
+                            }
+                        }
+                        Paginator paginator = new Paginator(user, embeds);
+                        event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
+                                .queue(paginator::initialize);
+                    } catch (SQLException e) {
+                        logger.error("Failed to get the hunger games leaderboard", e);
+                    }
+                }
+            }
+        });
     }
 
     @Override
