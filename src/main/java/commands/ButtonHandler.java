@@ -46,7 +46,13 @@ public class ButtonHandler extends ListenerAdapter {
                 } else if (record.deferType() == DeferType.EDIT) {
                     event.deferEdit().queue();
                 }
-                record.service().submit(() -> record.action().accept(event));
+                record.service().execute(() -> {
+                    try {
+                        record.action().accept(event);
+                    } catch (Exception e) {
+                        logger.error("An exception occurred while handling button type: " + type, e);
+                    }
+                });
             }
         }
     }
