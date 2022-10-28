@@ -77,7 +77,11 @@ public class BugListCmd extends Command implements SubCmd {
         int rowCount = 0;
         for (int i = 0; i < allBugs.size(); i++) {
             GHIssue ghIssue = allBugs.get(i);
-            description.append(String.format("`%s:` %s...\n", ghIssue.getNumber(), ghIssue.getTitle().substring(0, 50)));
+            String title = ghIssue.getTitle();
+            if (title.length() > 50) {
+                title = title.substring(0, 50) + "...";
+            }
+            description.append(String.format("`%s:` %s\n", ghIssue.getNumber(), title));
             if (i + 1 == allBugs.size()) {
                 page.setDescription(description.toString());
                 pages.add(page.build());
