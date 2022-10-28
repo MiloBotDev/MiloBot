@@ -185,7 +185,13 @@ public class CommandHandler extends ListenerAdapter {
             }
             // execute the command
             Command finalCommand = command;
-            executorService.submit(() -> finalCommand.executeCommand(event, messageParts));
+            executorService.execute(() -> {
+                try {
+                    finalCommand.executeCommand(event, messageParts);
+                } catch (Exception e) {
+                    logger.error("An exception occurred while handling text command: " + finalCommand.getFullCommandName(), e);
+                }
+            });
             logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
                     event.getAuthor().getName()));
         });
@@ -251,7 +257,13 @@ public class CommandHandler extends ListenerAdapter {
                 logger.error("Couldn't update user experience", e);
             }
             Command finalCommand = command;
-            executorService.submit(() -> finalCommand.executeSlashCommand(event));
+            executorService.execute(() -> {
+                try {
+                    finalCommand.executeSlashCommand(event);
+                } catch (Exception e) {
+                    logger.error("An exception occurred while handling slash command: " + finalCommand.getFullCommandName(), e);
+                }
+            });
             logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
                     event.getUser().getName()));
         });

@@ -61,7 +61,6 @@ public class HungerGamesStatsCmd extends Command implements SubCmd {
         embed.setTitle("HungerGames Statistics for " + user.getName());
 
         try(Connection con = DatabaseConnection.getConnection()) {
-            con.setAutoCommit(false);
             HungerGames hungerGames = hungerGamesDao.getByUserDiscordId(con, user.getIdLong(), RowLockType.NONE);
             if(hungerGames != null) {
                 int totalKills = hungerGames.getTotalKills();
@@ -82,7 +81,6 @@ public class HungerGamesStatsCmd extends Command implements SubCmd {
             } else {
                 embed.setDescription("No hungergames statistics on record.");
             }
-            con.commit();
         }
         return embed;
     }

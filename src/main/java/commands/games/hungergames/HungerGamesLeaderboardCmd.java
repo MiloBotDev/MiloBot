@@ -138,9 +138,7 @@ public class HungerGamesLeaderboardCmd extends Command implements SubCmd {
         final int[] counter = {1};
         hungerGames.forEach((hg) -> {
             try(Connection con = DatabaseConnection.getConnection()) {
-                con.setAutoCommit(false);
                 long discordId = Objects.requireNonNull(userDao.getUserById(con, hg.getUserId(), RowLockType.NONE)).getDiscordId();
-                con.commit();
                 String name = userUtil.getUserNameTag(discordId, jda).userName();
                 switch (title) {
                     case "Total Kills" -> desc[0].append(String.format("`%d.` %s - %d kills.\n", counter[0], name, hg.getTotalKills()));
