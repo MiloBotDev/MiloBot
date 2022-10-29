@@ -28,7 +28,6 @@ public class CommandLoader {
     public static void loadAllCommands(JDA jda) {
         CommandHandler handler = new CommandHandler(jda);
         ButtonHandler buttonHandler = new ButtonHandler();
-        handler.registerCommand(Executors.newSingleThreadExecutor(), new PokerCmd());
 
         // blackjack
         ExecutorService blackjackService = Executors.newSingleThreadExecutor();
