@@ -485,7 +485,7 @@ public class BlackjackGame {
         idleInstanceCleanupFuture = idleInstanceCleanupExecutorService.schedule(() -> {
             blackjackGames.remove(userDiscordId);
             message.delete().queue();
-        }, 5, TimeUnit.SECONDS);
+        }, 15, TimeUnit.MINUTES);
     }
 
     public static BlackjackGame getGameByAuthorId(long authorId) {
