@@ -61,6 +61,11 @@ public class BlackjackGame {
         long authorIdLong = event.getAuthor().getIdLong();
         String authorId = event.getAuthor().getId();
 
+        if (blackjackGames.containsKey(authorIdLong)) {
+            event.getChannel().sendMessage("You are already in a game of blackjack.").queue();
+            return;
+        }
+
         int bet = 0;
         if (args.size() > 0) {
             try {
