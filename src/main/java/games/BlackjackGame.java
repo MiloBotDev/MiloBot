@@ -1,17 +1,14 @@
 package games;
 
-import commands.games.blackjack.BlackjackPlayCmd;
+import database.dao.BlackjackDao;
+import database.dao.UserDao;
 import database.util.DatabaseConnection;
 import database.util.RowLockType;
 import models.cards.CardDeck;
 import models.cards.PlayingCard;
-import database.dao.BlackjackDao;
-import database.dao.UserDao;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -25,7 +22,10 @@ import utility.EmbedUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 public class BlackjackGame {
@@ -107,30 +107,30 @@ public class BlackjackGame {
             }
         }
 
-        BlackjackGame blackJack = new BlackjackGame(authorIdLong, bet);
-        blackJack.initializeGame();
+        BlackjackGame blackjack = new BlackjackGame(authorIdLong, bet);
+        blackjack.initializeGame();
 
 
-        BlackjackGame.BlackjackStates blackjackStates = blackJack.checkWin(false);
+        BlackjackGame.BlackjackStates blackjackStates = blackjack.checkWin(false);
         EmbedBuilder embed;
         if (blackjackStates.equals(BlackjackGame.BlackjackStates.PLAYER_BLACKJACK)) {
-            blackJack.dealerHit();
-            blackJack.setDealerStand(true);
-            blackjackStates = blackJack.checkWin(true);
-            embed = blackJack.generateBlackjackEmbed(event.getAuthor(), blackjackStates);
+            blackjack.dealerHit();
+            blackjack.dealerStand = true;
+            blackjackStates = blackjack.checkWin(true);
+            embed = blackjack.generateBlackjackEmbed(event.getAuthor(), blackjackStates);
             event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
                     Button.primary(authorId + ":replayBlackjack", "Replay"),
                     Button.secondary(authorId + ":delete", "Delete")
             )).queue();
         } else {
-            embed = blackJack.generateBlackjackEmbed(event.getAuthor(), null);
+            embed = blackjack.generateBlackjackEmbed(event.getAuthor(), null);
             event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
                     Button.primary(authorId + ":stand", "Stand"),
                     Button.primary(authorId + ":hit", "Hit")
             )).queue(msg -> {
-                blackJack.message = msg;
-                blackJack.setIdleInstanceCleanup();
-                blackjackGames.put(authorIdLong, blackJack);
+                blackjack.message = msg;
+                blackjack.setIdleInstanceCleanup();
+                blackjackGames.put(authorIdLong, blackjack);
             });
         }
     }
@@ -183,29 +183,29 @@ public class BlackjackGame {
             }
         }
 
-        BlackjackGame blackJack = new BlackjackGame(authorIdLong, bet);
-        blackJack.initializeGame();
+        BlackjackGame blackjack = new BlackjackGame(authorIdLong, bet);
+        blackjack.initializeGame();
 
-        BlackjackGame.BlackjackStates blackjackStates = blackJack.checkWin(false);
+        BlackjackGame.BlackjackStates blackjackStates = blackjack.checkWin(false);
         EmbedBuilder embed;
         if (blackjackStates.equals(BlackjackGame.BlackjackStates.PLAYER_BLACKJACK)) {
-            blackJack.dealerHit();
-            blackJack.setDealerStand(true);
-            blackjackStates = blackJack.checkWin(true);
-            embed = blackJack.generateBlackjackEmbed(event.getUser(), blackjackStates);
+            blackjack.dealerHit();
+            blackjack.dealerStand = true;
+            blackjackStates = blackjack.checkWin(true);
+            embed = blackjack.generateBlackjackEmbed(event.getUser(), blackjackStates);
             event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
                     Button.primary(authorId + ":replayBlackjack", "Replay"),
                     Button.secondary(authorId + ":delete", "Delete")
             )).queue();
         } else {
-            embed = blackJack.generateBlackjackEmbed(event.getUser(), null);
+            embed = blackjack.generateBlackjackEmbed(event.getUser(), null);
             event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
                     Button.primary(authorId + ":stand", "Stand"),
                     Button.primary(authorId + ":hit", "Hit")
             )).queue(msg -> {
-                blackJack.message = msg;
-                blackJack.setIdleInstanceCleanup();
-                blackjackGames.put(authorIdLong, blackJack);
+                blackjack.message = msg;
+                blackjack.setIdleInstanceCleanup();
+                blackjackGames.put(authorIdLong, blackjack);
             });
         }
     }
@@ -216,53 +216,53 @@ public class BlackjackGame {
             return;
         }
         String description = event.getMessage().getEmbeds().get(0).getDescription();
-        BlackjackGame value;
+        BlackjackGame blackjack;
         if (description == null) {
-            value = new BlackjackGame(event.getUser().getIdLong(), 0);
+            blackjack = new BlackjackGame(event.getUser().getIdLong(), 0);
         } else {
             String s = description.replaceAll("[^0-9]", "");
             int bet = Integer.parseInt(s);
             try (Connection con = DatabaseConnection.getConnection()) {
                 con.setAutoCommit(false);
-                database.model.User user2 = userDao.getUserByDiscordId(con, event.getUser().getIdLong(), RowLockType.FOR_UPDATE);
-                int playerWallet = Objects.requireNonNull(user2).getCurrency();
+                database.model.User user = userDao.getUserByDiscordId(con, event.getUser().getIdLong(), RowLockType.FOR_UPDATE);
+                int playerWallet = Objects.requireNonNull(user).getCurrency();
                 int newWallet = playerWallet - bet;
                 if (newWallet < 0) {
                     event.reply(String.format("You can't bet `%d` Morbcoins, you only have `%d` in your wallet.", bet, playerWallet)).queue();
                     con.commit();
                     return;
                 }
-                user2.setCurrency(newWallet);
-                userDao.update(con, user2);
+                user.setCurrency(newWallet);
+                userDao.update(con, user);
                 con.commit();
-                value = new BlackjackGame(event.getUser().getIdLong(), bet);
+                blackjack = new BlackjackGame(event.getUser().getIdLong(), bet);
             } catch (SQLException e) {
                 logger.error("Error updating blackjack data when user wanted to replay blackjack.", e);
                 return;
             }
         }
 
-        value.initializeGame();
-        BlackjackGame.BlackjackStates state = value.checkWin(false);
+        blackjack.initializeGame();
+        BlackjackGame.BlackjackStates state = blackjack.checkWin(false);
         EmbedBuilder embed;
         if (state.equals(BlackjackGame.BlackjackStates.PLAYER_BLACKJACK)) {
-            value.dealerHit();
-            value.setDealerStand(true);
-            BlackjackStates blackjackStates = value.checkWin(true);
-            embed = value.generateBlackjackEmbed(event.getUser(), blackjackStates);
+            blackjack.dealerHit();
+            blackjack.dealerStand = true;
+            BlackjackStates blackjackStates = blackjack.checkWin(true);
+            embed = blackjack.generateBlackjackEmbed(event.getUser(), blackjackStates);
             event.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
                     Button.primary(authorId + ":replayBlackjack", "Replay"),
                     Button.secondary(authorId + ":delete", "Delete")
             )).queue();
         } else {
-            embed = value.generateBlackjackEmbed(event.getUser(), null);
+            embed = blackjack.generateBlackjackEmbed(event.getUser(), null);
             event.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
                     Button.primary(authorId + ":stand", "Stand"),
                     Button.primary(authorId + ":hit", "Hit")
             )).queue();
-            value.message = event.getMessage();
-            value.setIdleInstanceCleanup();
-            blackjackGames.put(event.getUser().getIdLong(), value);
+            blackjack.message = event.getMessage();
+            blackjack.setIdleInstanceCleanup();
+            blackjackGames.put(event.getUser().getIdLong(), blackjack);
         }
     }
 
@@ -271,70 +271,68 @@ public class BlackjackGame {
         EmbedUtils.styleEmbed(embed, user);
         embed.setTitle("Blackjack");
 
-        if (getPlayerBet() > 0) {
-            embed.setDescription("You have bet `" + getPlayerBet() + "` Morbcoins.");
+        if (playerBet > 0) {
+            embed.setDescription("You have bet `" + playerBet + "` Morbcoins.");
         }
 
         embed.addField("------------", "**Dealer Hand**", false);
-        List<PlayingCard> dealerHand = getDealerHand();
         for (int i = 0; i < dealerHand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), dealerHand.get(i).getLabel(), true);
         }
         embed.addField("Total", String.format("%d", calculateHandValue(dealerHand)), false);
 
         embed.addField("------------", "**Player Hand**", false);
-        List<PlayingCard> playerHand = getPlayerHand();
         for (int i = 0; i < playerHand.size(); i++) {
             embed.addField(String.format("Card %d", i + 1), playerHand.get(i).getLabel(), true);
         }
         embed.addField("Total", String.format("%d", calculateHandValue(playerHand)), false);
 
         if (state != null) {
-            if (!isDealerStand()) {
+            if (!dealerStand) {
                 if (state.equals(BlackjackGame.BlackjackStates.DEALER_WIN)) {
                     String value = "**Dealer Wins!**\n";
-                    if (getPlayerBet() > 0) {
-                        value += String.format("You lose `%d` Morbcoins!\n", getWinnings());
+                    if (playerBet > 0) {
+                        value += String.format("You lose `%d` Morbcoins!\n", winnings);
                     }
                     embed.addField("------------", value, false);
-                    setFinished(true);
+                    finished = true;
                 }
             } else {
                 if (state.equals(BlackjackGame.BlackjackStates.PLAYER_WIN)) {
                     String format = String.format("**%s** wins!\n", user.getName());
-                    if (getPlayerBet() > 0) {
-                        format += String.format("You win `%d` Morbcoins!", getWinnings());
+                    if (playerBet > 0) {
+                        format += String.format("You win `%d` Morbcoins!", winnings);
                     }
                     embed.addField("------------", format, false);
-                    setFinished(true);
+                    finished = true;
                 } else if (state.equals(BlackjackGame.BlackjackStates.DRAW)) {
                     String value = "Its a draw!\n";
-                    if (getPlayerBet() > 0) {
+                    if (playerBet > 0) {
                         value += "You lose nothing.";
                     }
                     embed.addField("------------", value, false);
-                    setFinished(true);
+                    finished = true;
                 } else if (state.equals(BlackjackGame.BlackjackStates.DEALER_WIN)) {
                     String format = "Dealer wins!\n";
-                    if (getPlayerBet() > 0) {
-                        format += String.format("You lose `%d` Morbcoins!", getWinnings());
+                    if (playerBet > 0) {
+                        format += String.format("You lose `%d` Morbcoins!", winnings);
                     }
                     embed.addField("------------", format, false);
-                    setFinished(true);
+                    finished = true;
                 } else if (state.equals(BlackjackGame.BlackjackStates.DEALER_BLACKJACK)) {
                     String format = "Dealer wins with blackjack!\n";
-                    if (getPlayerBet() > 0) {
-                        format += String.format("You lose `%d` Morbcoins!", getWinnings());
+                    if (playerBet > 0) {
+                        format += String.format("You lose `%d` Morbcoins!", winnings);
                     }
                     embed.addField("------------", format, false);
-                    setFinished(true);
+                    finished = true;
                 } else if (state.equals(BlackjackGame.BlackjackStates.PLAYER_BLACKJACK)) {
                     String format = String.format("**%s** wins with blackjack!\n", user.getName());
-                    if (getPlayerBet() > 0) {
-                        format += String.format("You win `%d` Morbcoins!", getWinnings());
+                    if (playerBet > 0) {
+                        format += String.format("You win `%d` Morbcoins!", winnings);
                     }
                     embed.addField("------------", format, false);
-                    setFinished(true);
+                    finished = true;
                 }
             }
 
@@ -499,7 +497,7 @@ public class BlackjackGame {
             return;
         }
 
-        if (isFinished() || isPlayerStand()) {
+        if (finished || playerStand) {
             return;
         }
         playerHit();
@@ -524,58 +522,18 @@ public class BlackjackGame {
             return;
         }
 
-        if (isFinished() || isPlayerStand()) {
+        if (finished || playerStand) {
             return;
         }
-        setPlayerStand(true);
+        playerStand = true;
         dealerMoves();
-        setDealerStand(true);
+        dealerStand = true;
         BlackjackGame.BlackjackStates blackjackStates = checkWin(true);
         EmbedBuilder embedBuilder = generateBlackjackEmbed(event.getUser(), blackjackStates);
         event.editMessageEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
                 Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
                 Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
         blackjackGames.remove(event.getUser().getIdLong());
-    }
-
-    private List<PlayingCard> getPlayerHand() {
-        return playerHand;
-    }
-
-    private List<PlayingCard> getDealerHand() {
-        return dealerHand;
-    }
-
-    private boolean isPlayerStand() {
-        return playerStand;
-    }
-
-    private void setPlayerStand(boolean playerStand) {
-        this.playerStand = playerStand;
-    }
-
-    private boolean isDealerStand() {
-        return dealerStand;
-    }
-
-    private void setDealerStand(boolean dealerStand) {
-        this.dealerStand = dealerStand;
-    }
-
-    private boolean isFinished() {
-        return finished;
-    }
-
-    private void setFinished(boolean finished) {
-        this.finished = finished;
-    }
-
-    private int getPlayerBet() {
-        return playerBet;
-    }
-
-    private int getWinnings() {
-        return winnings;
     }
 
     public enum BlackjackStates {
