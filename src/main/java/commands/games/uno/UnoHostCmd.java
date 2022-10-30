@@ -22,7 +22,7 @@ public class UnoHostCmd extends Command implements SubCmd {
     public UnoHostCmd() {
         this.commandName = "host";
         this.commandDescription = "Host a game of Uno!";
-        this.aliases =  new String[]{"h", "start", "play"};
+        this.aliases =  new String[]{"start", "play", "h"};
         this.allowedChannelTypes.add(ChannelType.TEXT);
     }
 
