@@ -1,4 +1,3 @@
-import commands.CommandHandler;
 import commands.CommandLoader;
 import events.OnReadyEvent;
 import events.guild.OnGuildJoin;

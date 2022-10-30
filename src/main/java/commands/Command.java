@@ -321,7 +321,7 @@ public abstract class Command {
             StringBuilder aliasesText = new StringBuilder();
             for (int i = 0; i < aliases.length; i++) {
                 aliasesText.append('`').append(aliases[i]).append('`');
-                if (!(i + 1 == flags.length)) {
+                if (!(i + 1 == aliases.length)) {
                     aliasesText.append(", ");
                 }
             }
