@@ -64,7 +64,7 @@ public class Wordle {
             if (currentStreak > highestStreak) {
                 highestStreak = currentStreak;
             }
-            if (time > fastestTime) {
+            if (time < fastestTime) {
                 fastestTime = time;
             }
             wins++;

@@ -1,5 +1,6 @@
 package games.uno;
 
+import database.dao.UnoDao;
 import games.hungergames.models.LobbyEntry;
 import models.CustomEmoji;
 import models.cards.CardDeck;
@@ -28,6 +29,7 @@ public class UnoGame {
     private final CardDeck<UnoCard> deck = new CardDeck<>(List.of(UnoCard.values()));
     private final List<UnoCard> playedCards = new ArrayList<>();
     private final TimeTracker timeTracker = new TimeTracker();
+    private final UnoDao unoDao = UnoDao.getInstance();
     private MessageChannel channel;
 
     // game specific data
@@ -45,6 +47,7 @@ public class UnoGame {
 
     public UnoGame(List<LobbyEntry> players) {
         this.players.addAll(players);
+
     }
 
     /**

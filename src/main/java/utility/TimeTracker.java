@@ -27,6 +27,7 @@ public class TimeTracker {
     public void reset() {
         startTime = 0;
         endTime = 0;
+        isStarted = false;
     }
 
     public long getElapsedTime() {

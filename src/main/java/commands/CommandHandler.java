@@ -198,7 +198,7 @@ public class CommandHandler extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommand(SlashCommandEvent event) {
+    public void onSlashCommand(@NotNull SlashCommandEvent event) {
         if (event.getUser().isBot()) {
             return;
         }
