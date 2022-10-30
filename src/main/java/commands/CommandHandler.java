@@ -22,6 +22,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class CommandHandler extends ListenerAdapter {
 
@@ -297,5 +299,16 @@ public class CommandHandler extends ListenerAdapter {
         }
         prefixes.put(guildId, prefix);
         return true;
+    }
+
+    public static void generateDocumentation() {
+        StringBuilder md = new StringBuilder();
+        commands.forEach((s, commandRecord) -> {
+            Command command = commandRecord.command;
+            if (!(command instanceof SubCmd)) {
+                md.append(command.generateMarkdown());
+            }
+        });
+        System.out.println(md);
     }
 }

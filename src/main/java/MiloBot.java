@@ -1,3 +1,4 @@
+import commands.CommandHandler;
 import commands.CommandLoader;
 import events.OnReadyEvent;
 import events.guild.OnGuildJoin;
@@ -30,5 +31,8 @@ public class MiloBot {
                 .build().awaitReady();
 
         CommandLoader.loadAllCommands(bot);
+
+        // uncomment this line to generate documentation for all commands
+        // CommandHandler.generateDocumentation();
     }
 }

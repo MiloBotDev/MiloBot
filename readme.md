@@ -24,55 +24,36 @@ a pull request.
 
 ---
 
-<h3 id="wallet">wallet</h3>
+<h3 id="wordle">wordle</h3>
 
-Check your wallet.
-
-#### Usage
-
-`!wallet`
-
----
-
-<h3 id="hungergames">hungergames</h3>
-
-Hunger Games
+Wordle brought to discord.
 
 #### Usage
 
-`!hungergames`
+`!wordle`
 
 #### Sub Commands
 
-`!hungergames start {*maxPlayers}`
-Starts the Hunger Games
+`!wordle play`
+Play a game of wordle.
 
 
-`!hungergames stats`
-View your own hungergames statistics.
+`!wordle leaderboard`
+View the wordle leaderboards.
+
+
+`!wordle stats`
+View your own wordle statistics
 
 ---
 
-<h3 id="blackjackGame">blackjackGame</h3>
+<h3 id="server">server</h3>
 
-Blackjack brought to discord.
+Shows information on the guild you are using this command in.
 
 #### Usage
 
-`!blackjackGame`
-
-#### Sub Commands
-
-`!blackjackGame play {bet*}`
-Play a game of blackjackGame on discord.
-
-
-`!blackjackGame stats`
-View your own blackjackGame statistics.
-
-
-`!blackjackGame info`
-A simple tutorial on the rules of blackjackGame.
+`!server`
 
 ---
 
@@ -95,32 +76,6 @@ Change the prefix of the guild you're in.
 
 ---
 
-<h3 id="usage">usage</h3>
-
-See the amount of times each or a specific command has been used.
-
-#### Usage
-
-`!usage {*command}`
-
-
-#### Cooldown
-
-60 seconds.
-
----
-
-<h3 id="profile">profile</h3>
-
-View your own or someone else's profile.
-
-#### Usage
-
-`!profile {*user}`
-
-
----
-
 <h3 id="poker">poker</h3>
 
 5-card Poker brought to discord.
@@ -132,7 +87,22 @@ View your own or someone else's profile.
 #### Sub Commands
 
 `!poker play`
-Play a game of pokerGame on discord.
+Play a game of poker on discord.
+
+
+`!poker play`
+Play a game of poker on discord.
+
+---
+
+<h3 id="profile">profile</h3>
+
+View your own or someone else's profile.
+
+#### Usage
+
+`!profile {*user}`
+
 
 ---
 
@@ -151,6 +121,33 @@ Generate a random encounter for a given average party level, party size, difficu
 
 ---
 
+<h3 id="blackjack">blackjack</h3>
+
+Blackjack brought to discord.
+
+#### Usage
+
+`!blackjack`
+
+#### Sub Commands
+
+`!blackjack play {bet*}`
+Play a game of blackjack on discord.
+
+
+`!blackjack stats`
+View your own blackjack statistics.
+
+
+`!blackjack info`
+A simple tutorial on the rules of blackjack.
+
+
+`!blackjack leaderboard`
+View the blackjack leaderboards.
+
+---
+
 <h3 id="help">help</h3>
 
 Shows the user a list of available commands.
@@ -162,26 +159,22 @@ Shows the user a list of available commands.
 
 ---
 
-<h3 id="wordle">wordle</h3>
+<h3 id="bank">bank</h3>
 
-Wordle brought to discord.
+All commands related to your virtual bank.
 
 #### Usage
 
-`!wordle`
+`!bank`
 
 #### Sub Commands
 
-`!wordle play`
-Play a game of wordle.
+`!bank balance`
+Check your bank balance.
 
 
-`!wordle leaderboard`
-View the wordle leaderboards.
-
-
-`!wordle stats`
-View your own wordle statistics
+`!bank transfer {amount} {player}`
+Send some morbcoins to another user.
 
 ---
 
@@ -208,6 +201,25 @@ Shows a list of all reported bugs.
 
 ---
 
+<h3 id="uno">uno</h3>
+
+Play Uno with your friends!
+
+#### Usage
+
+`!uno`
+
+#### Sub Commands
+
+`!uno host`
+Host a game of Uno!
+
+
+`!uno info`
+A simple tutorial on how to play uno with milobot.
+
+---
+
 <h3 id="daily">daily</h3>
 
 Collect your daily reward.
@@ -225,6 +237,10 @@ View your current streak.
 `!daily claim`
 Claim your daily reward.
 
+
+`!daily stats`
+View your own daily statistics.
+
 ---
 
 <h3 id="invite">invite</h3>
@@ -234,6 +250,17 @@ Sends an invite link to add the bot to another server.
 #### Usage
 
 `!invite`
+
+---
+
+<h3 id="user">user</h3>
+
+Shows information about a user.
+
+#### Usage
+
+`!user {*user}`
+
 
 ---
 
@@ -251,10 +278,24 @@ The status of the bot.
 
 ---
 
-<h3 id="user">user</h3>
+<h3 id="hungergames">hungergames</h3>
 
-Shows information about a user.
+Hunger Games
 
 #### Usage
 
-`!user {*user}`
+`!hungergames`
+
+#### Sub Commands
+
+`!hungergames start {*maxPlayers}`
+Starts the Hunger Games
+
+
+`!hungergames stats`
+View your own hungergames statistics.
+
+
+`!hungergames leaderboard`
+View the hungergames leaderboards.
+

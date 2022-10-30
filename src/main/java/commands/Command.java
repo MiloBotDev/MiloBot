@@ -601,10 +601,6 @@ public abstract class Command {
                 markdown.append("`\n").append(subCommand.commandDescription).append("\n\n");
             }
         }
-        if(!allowedChannelTypes.isEmpty()) {
-            markdown.append("#### Allowed Channel Types\n\n");
-            markdown.append(allowedChannelTypes.stream().map(Enum::toString).collect(Collectors.joining(", "))).append("\n\n");
-        }
         return markdown.toString();
     }
 
