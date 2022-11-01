@@ -11,6 +11,8 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utility.TimeTracker;
 
 import java.awt.*;
@@ -23,14 +25,17 @@ import static games.uno.UnoCard.*;
 
 public class UnoGame {
 
+    private static final int BOT_MOVE_DELAY = 2;
+    private static final Logger logger = LoggerFactory.getLogger(UnoGame.class);
     private static final ArrayList<UnoGame> unoGames = new ArrayList<>();
     private final List<LobbyEntry> players = new ArrayList<>();
     private final Map<LobbyEntry, List<UnoCard>> playerData = new HashMap<>();
-    private final CardDeck<UnoCard> deck = new CardDeck<>(List.of(UnoCard.values()));
+    private  CardDeck<UnoCard> deck = new CardDeck<>(List.of(UnoCard.values()));
     private final List<UnoCard> playedCards = new ArrayList<>();
     private final TimeTracker timeTracker = new TimeTracker();
     private final UnoDao unoDao = UnoDao.getInstance();
     private MessageChannel channel;
+    private boolean awaitingResponse;
 
     // game specific data
     private UnoCard lastPlayedCard;
@@ -47,7 +52,6 @@ public class UnoGame {
 
     public UnoGame(List<LobbyEntry> players) {
         this.players.addAll(players);
-
     }
 
     /**
@@ -55,20 +59,25 @@ public class UnoGame {
      */
     public void setupGame() {
         this.deck.resetDeck();
+
         this.lastPlayedCard = null;
         // make sure the card on top is a number
         while (this.lastPlayedCard == null) {
-            UnoCard unoCard = this.deck.drawCard();
+            UnoCard unoCard = this.deck.drawCard().get();
             if (unoCard.getType().equals(UnoCard.UnoCardType.NUMBER)) {
                 this.lastPlayedCard = unoCard;
                 this.currentColour = unoCard.getColor();
             }
         }
+
         this.deck.resetDeck();
         this.deck.removeCard(this.lastPlayedCard);
         this.playedCards.add(this.lastPlayedCard);
-
-        this.distributeCards();
+        try {
+            this.distributeCards();
+        } catch (IllegalStateException e) {
+            logger.error("Error while distributing cards", e);
+        }
         this.turn = 1;
         this.maxTurns = players.size();
         this.amountToGrab = 0;
@@ -78,6 +87,7 @@ public class UnoGame {
         this.totalCardsPlayed = 0;
         this.totalTurnsPassed = 0;
         this.gameEnded = false;
+        this.awaitingResponse = false;
     }
 
     public void start(MessageChannel channel) {
@@ -98,17 +108,9 @@ public class UnoGame {
             this.channel = channel;
             MessageEmbed build = generateStatusEmbed(String.format("A new game has been started. The starting card is %s",
                     lastPlayedCard.getEmoji().getEmoji())).setThumbnail(lastPlayedCard.getEmoji().getCustomEmojiUrl()).build();
-            this.channel.sendMessageEmbeds(build).queue();
-            this.players.forEach(lobbyEntry -> {
-                if (!lobbyEntry.isBot()) {
-                    User user = lobbyEntry.getUser();
-                    user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessageEmbeds(build).queue());
-                }
-            });
+            sendEmbedToPlayers(build);
         }
-        if(this.playerToMove.isBot()) {
-            Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
-        }
+        checkForBotMove();
         this.timeTracker.start();
     }
 
@@ -171,8 +173,9 @@ public class UnoGame {
                 }
             });
         } else if (receivedMessage.get(0).startsWith("play")) {
-            if (!this.playerToMove.getUser().equals(author)) {
-                event.getChannel().sendMessage("You can only play a card in your own turn.").queue();
+            if (this.playerToMove.getUser() == null || !this.playerToMove.getUser().equals(author)) {
+                event.getChannel().sendMessage(String.format("You can only play a card in your own turn. Its currently %s's turn.",
+                        this.playerToMove.getMention())).queue();
                 return;
             }
             receivedMessage.remove(0);
@@ -217,9 +220,7 @@ public class UnoGame {
                             CustomEmoji emoji = cardToPlay.getEmoji();
                             EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", author.getAsMention(), emoji.getEmoji()));
                             generateCardPlayedEmbed(emoji, statusEmbed);
-                            if(this.playerToMove.isBot()) {
-                                Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
-                            }
+                            checkForBotMove();
                         } else {
                             event.getChannel().sendMessage("You can't play that card.").queue();
                         }
@@ -231,26 +232,58 @@ public class UnoGame {
                 event.getChannel().sendMessage("Please specify a card to play.").queue();
             }
         } else if (receivedMessage.get(0).startsWith("draw")) {
-            if (this.playerToMove.getUser() != null && !this.playerToMove.getUser().equals(author)) {
-                event.getChannel().sendMessage("You can only draw a card in your own turn.").queue();
+            if (this.playerToMove.getUser() == null || !this.playerToMove.getUser().equals(author)) {
+                event.getChannel().sendMessage(String.format("You can only draw a card in your own turn. Its currently %s's turn.",
+                        this.playerToMove.getMention())).queue();
                 return;
             }
-            drawCard(authorEntry);
+            try {
+                drawCard(authorEntry);
+            } catch (IllegalStateException e) {
+                event.getChannel().sendMessage("You cannot draw a card because there are no cards left to draw." +
+                        " Do you want to skip your turn? Type Y or N.").queue();
+                this.awaitingResponse = true;
+                return;
+            }
             nextRound();
             CustomEmoji emoji = lastPlayedCard.getEmoji();
             MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
                     author.getAsMention(), lastPlayedCard.getEmoji().getEmoji())).setThumbnail(emoji.getCustomEmojiUrl()).build();
-            this.channel.sendMessageEmbeds(build).queue();
-            this.players.forEach(lobbyEntry -> {
-                if (!lobbyEntry.isBot()) {
-                    User user = lobbyEntry.getUser();
-                    user.openPrivateChannel().queue(privateChannel -> privateChannel
-                            .sendMessageEmbeds(build).queue());
-                }
-            });
-            if(this.playerToMove.isBot()) {
-                Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
+            sendEmbedToPlayers(build);
+            checkForBotMove();
+        } else if (receivedMessage.get(0).toLowerCase().startsWith("y") && this.awaitingResponse) {
+            if (this.playerToMove.getUser() == null || !this.playerToMove.getUser().equals(author)) {
+                return;
             }
+            this.awaitingResponse = false;
+            nextRound();
+            CustomEmoji emoji = lastPlayedCard.getEmoji();
+            EmbedBuilder build = generateStatusEmbed(String.format("%s skipped their turn.\n\n The last played card was %s",
+                    author.getAsMention(), emoji.getEmoji()));
+            sendEmbedToPlayers(build.setThumbnail(emoji.getCustomEmojiUrl()).build());
+            checkForBotMove();
+        } else if (receivedMessage.get(0).toLowerCase().startsWith("n") && this.awaitingResponse) {
+            if (this.playerToMove.getUser() == null || !this.playerToMove.getUser().equals(author)) {
+                return;
+            }
+            this.awaitingResponse = false;
+        }
+    }
+
+    private void sendEmbedToPlayers(MessageEmbed build) {
+        this.channel.sendMessageEmbeds(build).queue();
+        this.players.forEach(lobbyEntry -> {
+            if (!lobbyEntry.isBot()) {
+                User user = lobbyEntry.getUser();
+                user.openPrivateChannel().queue(privateChannel -> privateChannel
+                        .sendMessageEmbeds(build).queue());
+            }
+        });
+    }
+
+    private void checkForBotMove() {
+        if(this.playerToMove.isBot()) {
+            Executors.newScheduledThreadPool(1).schedule(this::botMove, BOT_MOVE_DELAY, TimeUnit.SECONDS);
         }
     }
 
@@ -277,6 +310,7 @@ public class UnoGame {
      * Moves on to the next round.
      */
     public void nextRound() {
+        this.awaitingResponse = false;
         if(this.playerData.get(this.playerToMove).size() == 0) {
             this.endGame();
             return;
@@ -344,19 +378,22 @@ public class UnoGame {
             }
         }
         if (cardToPlay == null) {
-            drawCard(bot);
+            try {
+                drawCard(bot);
+            } catch (IllegalStateException e) {
+                nextRound();
+                CustomEmoji emoji = lastPlayedCard.getEmoji();
+                EmbedBuilder build = generateStatusEmbed(String.format("%s skipped their turn.\n\n The last played card was %s",
+                        bot.getMention(), emoji.getEmoji()));
+                sendEmbedToPlayers(build.setThumbnail(emoji.getCustomEmojiUrl()).build());
+                return;
+            }
+
             nextRound();
             CustomEmoji emoji = lastPlayedCard.getEmoji();
             MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
                     bot.getMention(), emoji.getEmoji())).setThumbnail(lastPlayedCard.getEmoji().getCustomEmojiUrl()).build();
-            this.channel.sendMessageEmbeds(build).queue();
-            this.players.forEach(lobbyEntry -> {
-                if (!lobbyEntry.isBot()) {
-                    User user = lobbyEntry.getUser();
-                    user.openPrivateChannel().queue(privateChannel -> privateChannel
-                            .sendMessageEmbeds(build).queue());
-                }
-            });
+            sendEmbedToPlayers(build);
         } else {
             if (cardToPlay.equals(UnoCard.UNO_WILD)) {
                 // find the most common color in the bots hand
@@ -369,10 +406,9 @@ public class UnoGame {
             EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", bot.getMention(), emoji.getEmoji()));
             generateCardPlayedEmbed(emoji, statusEmbed);
         }
-        if(this.playerToMove.isBot()) {
-            Executors.newScheduledThreadPool(1).schedule(this::botMove, 2, TimeUnit.SECONDS);
-        }
+        checkForBotMove();
     }
+
 
     private void generateCardPlayedEmbed(@NotNull CustomEmoji emoji, @NotNull EmbedBuilder statusEmbed) {
         statusEmbed.setThumbnail(emoji.getCustomEmojiUrl());
@@ -393,7 +429,7 @@ public class UnoGame {
      *                   The first number in the int[] is the amount of cars you want to draw.
      * @param userToDraw The user that needs to draw the cards.
      */
-    public void drawCard(LobbyEntry userToDraw, Integer... amount) {
+    public void drawCard(LobbyEntry userToDraw, Integer... amount) throws IllegalStateException {
         this.playerData.forEach((lobbyEntry, unoCards) -> {
             // find the user that needs to draw a card
             if (userToDraw.getUserId() == lobbyEntry.getUserId() || Objects.equals(userToDraw.getUserName(), lobbyEntry.getUserName())) {
@@ -414,17 +450,10 @@ public class UnoGame {
         embedBuilder.setColor(Color.RED);
         embedBuilder.setDescription(String.format("%s had to draw %d cards.", lobbyEntry.getMention(), amountToGrab));
         MessageEmbed build = embedBuilder.build();
-        this.channel.sendMessageEmbeds(build).queue();
-        this.players.forEach(player -> {
-            if (!player.isBot()) {
-                User user = player.getUser();
-                user.openPrivateChannel().queue(privateChannel -> privateChannel
-                        .sendMessageEmbeds(build).queue());
-            }
-        });
+        sendEmbedToPlayers(build);
     }
 
-    private void innerDraw(LobbyEntry user, List<UnoCard> unoCards, Integer @NotNull ... amount) {
+    private void innerDraw(LobbyEntry user, List<UnoCard> unoCards, Integer @NotNull ... amount) throws IllegalStateException{
         List<Optional<UnoCard>> drawnCards;
         List<UnoCard> cardsToDraw = new ArrayList<>();
         if (amount.length == 0) {
@@ -435,8 +464,15 @@ public class UnoGame {
         for (Optional<UnoCard> card : drawnCards) {
             if (card.isEmpty()) {
                 // the deck is empty so add the cards on the table to it refresh it
-                deck.refreshDeck(playedCards);
-                cardsToDraw.add(deck.drawCard());
+                deck.refresh(playedCards);
+                playedCards.clear();
+                Optional<UnoCard> unoCard = deck.drawCard();
+                if(unoCard.isEmpty()) {
+                    this.amountToGrab = 0;
+                    throw new IllegalStateException("The deck is empty and could not be refreshed.");
+                } else {
+                    cardsToDraw.add(unoCard.get());
+                }
             } else {
                 cardsToDraw.add(card.get());
             }
@@ -461,15 +497,22 @@ public class UnoGame {
     /**
      * Hands out 7 cards to each player participating.
      */
-    private void distributeCards() {
+    private void distributeCards() throws IllegalStateException {
         for (LobbyEntry participant : this.players) {
             List<Optional<UnoCard>> optionalCards = this.deck.drawCards(7);
             List<UnoCard> hand = new ArrayList<>();
             for (Optional<UnoCard> card : optionalCards) {
                 if (card.isEmpty()) {
                     // the deck is empty so add the cards on the table to it refresh it
-                    this.deck.refreshDeck(playedCards);
-                    hand.add(deck.drawCard());
+                    this.deck.refresh(playedCards);
+                    this.playedCards.clear();
+                    Optional<UnoCard> unoCard = deck.drawCard();
+                    if(unoCard.isEmpty()) {
+                        throw new IllegalStateException("The deck is empty and there are no cards to fill it with.");
+                    } else {
+                        hand.add(unoCard.get());
+                    }
+                    this.playedCards.clear();
                 } else {
                     hand.add(card.get());
                 }

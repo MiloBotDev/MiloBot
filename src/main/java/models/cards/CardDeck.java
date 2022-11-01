@@ -16,8 +16,11 @@ public class CardDeck<T> {
         resetDeck();
     }
 
-    public T drawCard() {
-        return deck.remove(0);
+    public Optional<T> drawCard() {
+        if(deck.size() == 0) {
+            return Optional.empty();
+        }
+        return Optional.of(deck.remove(0));
     }
 
     public List<Optional<T>> drawCards(int amount) {
@@ -32,25 +35,29 @@ public class CardDeck<T> {
         return drawnCards;
     }
 
-    public void fillDeck() {
+    public void fill() {
         this.deck.addAll(cards);
     }
 
-    public void refreshDeck(List<T> cardsToAdd) {
+    public void refresh(List<T> cardsToAdd) {
         this.deck.addAll(cardsToAdd);
     }
 
     public void resetDeck() {
         this.deck.clear();
-        fillDeck();
-        shuffleDeck();
+        fill();
+        shuffle();
     }
 
-    public void shuffleDeck() {
+    public void shuffle() {
         Collections.shuffle(this.deck);
     }
 
     public void removeCard(T card) {
         this.deck.remove(card);
+    }
+
+    public void clear() {
+        this.deck.clear();
     }
 }

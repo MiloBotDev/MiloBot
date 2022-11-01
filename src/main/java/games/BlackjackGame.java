@@ -346,9 +346,9 @@ public class BlackjackGame {
     }
 
     private void initializeGame() {
-        this.dealerHand.add(deck.drawCard());
-        this.playerHand.add(deck.drawCard());
-        this.playerHand.add(deck.drawCard());
+        this.dealerHand.add(deck.drawCard().get());
+        this.playerHand.add(deck.drawCard().get());
+        this.playerHand.add(deck.drawCard().get());
         this.playerStand = false;
         this.dealerStand = false;
         this.finished = false;
@@ -383,11 +383,11 @@ public class BlackjackGame {
     }
 
     private void playerHit() {
-        this.playerHand.add(deck.drawCard());
+        this.playerHand.add(deck.drawCard().get());
     }
 
     private void dealerHit() {
-        this.dealerHand.add(deck.drawCard());
+        this.dealerHand.add(deck.drawCard().get());
     }
 
     private void dealerMoves() {
