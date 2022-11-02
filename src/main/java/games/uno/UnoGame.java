@@ -43,8 +43,12 @@ public class UnoGame {
     private static final class TimeOutCleanup implements Runnable {
         @Override
         public void run() {
-            for (UnoGame unoGame : unoGames) {
-                unoGame.checkTurnTime();
+            try {
+                for (UnoGame unoGame : unoGames) {
+                    unoGame.checkTurnTime();
+                }
+            } catch (Exception e) {
+                logger.error("Error in UnoGame timeout cleanup", e);
             }
         }
     }
