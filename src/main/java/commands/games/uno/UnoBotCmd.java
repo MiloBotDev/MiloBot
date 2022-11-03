@@ -2,7 +2,7 @@ package commands.games.uno;
 
 import commands.Command;
 import commands.SubCmd;
-import games.hungergames.models.LobbyEntry;
+import games.hungergames.model.LobbyEntry;
 import games.uno.UnoGame;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;

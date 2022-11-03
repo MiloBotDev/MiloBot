@@ -1,7 +1,9 @@
 package games.uno;
 
 import database.dao.UnoDao;
-import games.hungergames.models.LobbyEntry;
+import games.hungergames.model.LobbyEntry;
+import games.uno.model.UnoCard;
+import games.uno.model.UnoPlayerData;
 import models.CustomEmoji;
 import models.cards.CardDeck;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -13,9 +15,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utility.observer.ObservableList;
-import utility.observer.Observer;
+import utility.EmbedUtils;
+import utility.Observer;
 import utility.TimeTracker;
+import utility.list.CircularLinkedList;
+import utility.list.ObservableList;
 
 import java.awt.*;
 import java.util.List;
@@ -25,7 +29,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static games.uno.UnoCard.getColorByName;
+import static games.uno.model.UnoCard.getColorByName;
 
 public class UnoGame {
 
@@ -38,31 +42,39 @@ public class UnoGame {
     private static final ObservableList<UnoGame> unoGames = new ObservableList<>();
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private static boolean schedulerOn = false;
-    private static ScheduledFuture<?> future = scheduler.scheduleWithFixedDelay(new TimeOutCleanup(),
-            TIMEOUT_CLEANUP_FREQUENCY, TIMEOUT_CLEANUP_FREQUENCY, TimeUnit.SECONDS);
+
     private static final class TimeOutCleanup implements Runnable {
+        @SuppressWarnings("WhileLoopReplaceableByForEach")
         @Override
         public void run() {
             try {
-                for (UnoGame unoGame : unoGames) {
-                    unoGame.checkTurnTime();
+                // using an iterator to prevent concurrent modification exceptions
+                Iterator<UnoGame> iterator = unoGames.iterator();
+                while (iterator.hasNext()) {
+                    UnoGame game = iterator.next();
+                    game.checkTurnTime();
                 }
             } catch (Exception e) {
                 logger.error("Error in UnoGame timeout cleanup", e);
             }
         }
     }
+
+    private static final TimeOutCleanup timeOutCleanup = new TimeOutCleanup();
+    private static ScheduledFuture<?> future = scheduler.scheduleWithFixedDelay(timeOutCleanup,
+            TIMEOUT_CLEANUP_FREQUENCY, TIMEOUT_CLEANUP_FREQUENCY, TimeUnit.SECONDS);
+
     private static final class UnoGameObserver implements Observer {
         @Override
         public void update() {
             if (unoGames.size() == 0) {
-                if(schedulerOn) {
+                if (schedulerOn) {
                     future.cancel(true);
                     schedulerOn = false;
                 }
             } else {
-                if(!schedulerOn) {
-                    future = scheduler.scheduleWithFixedDelay(new TimeOutCleanup(), TIMEOUT_CLEANUP_FREQUENCY,
+                if (!schedulerOn) {
+                    future = scheduler.scheduleWithFixedDelay(timeOutCleanup, TIMEOUT_CLEANUP_FREQUENCY,
                             TIMEOUT_CLEANUP_FREQUENCY, TimeUnit.SECONDS);
                     schedulerOn = true;
                 }
@@ -70,8 +82,8 @@ public class UnoGame {
         }
     }
 
-    private final List<LobbyEntry> players = new ArrayList<>();
-    private final Map<LobbyEntry, List<UnoCard>> playerData = new HashMap<>();
+    private final CircularLinkedList<LobbyEntry> playerList = new CircularLinkedList<>();
+    private final Map<LobbyEntry, UnoPlayerData> playerData = new HashMap<>();
     private final CardDeck<UnoCard> deck = new CardDeck<>(List.of(UnoCard.values()));
     private final List<UnoCard> playedCards = new ArrayList<>();
     private final TimeTracker gameTimeTracker = new TimeTracker();
@@ -83,8 +95,6 @@ public class UnoGame {
     // game specific data
     private UnoCard lastPlayedCard;
     private LobbyEntry playerToMove;
-    private int turn;
-    private int maxTurns;
     private int amountToGrab;
     private Color currentColour;
     private boolean isReversed;
@@ -97,8 +107,8 @@ public class UnoGame {
         unoGames.addObserver(new UnoGameObserver());
     }
 
-    public UnoGame(List<LobbyEntry> players) {
-        this.players.addAll(players);
+    public UnoGame(@NotNull List<LobbyEntry> players) {
+        players.forEach(playerList::append);
     }
 
     /**
@@ -125,10 +135,8 @@ public class UnoGame {
         } catch (IllegalStateException e) {
             logger.error("Error while distributing cards", e);
         }
-        this.turn = 1;
-        this.maxTurns = players.size();
         this.amountToGrab = 0;
-        this.playerToMove = players.get(0);
+        this.playerToMove = playerList.get();
         this.currentColour = this.lastPlayedCard.getColor();
         this.isReversed = false;
         this.totalCardsPlayed = 0;
@@ -140,13 +148,12 @@ public class UnoGame {
     }
 
     public void start(MessageChannel channel) {
-        if (players.size() < 2) {
+        if (playerList.size() < 2) {
             throw new IllegalStateException("Not enough players to start a game of uno.");
         } else {
             this.setupGame();
             unoGames.add(this);
-            channel.sendMessage(this.players.toString()).queue();
-            this.players.forEach(lobbyEntry -> {
+            this.playerList.toList().forEach(lobbyEntry -> {
                 if (!lobbyEntry.isBot()) {
                     User user = lobbyEntry.getUser();
                     user.openPrivateChannel().queue(privateChannel -> {
@@ -170,7 +177,7 @@ public class UnoGame {
         embedBuilder.setTitle("Your Cards");
         embedBuilder.setColor(Color.BLUE);
         StringBuilder hand = new StringBuilder();
-        playerData.get(lobbyEntry).forEach(card -> hand.append(String.format("%s - %s.\n", card.getEmoji().getEmoji(), card.getNames()[0])));
+        playerData.get(lobbyEntry).getHand().forEach(card -> hand.append(String.format("%s - %s.\n", card.getEmoji().getEmoji(), card.getNames()[0])));
         embedBuilder.setDescription(hand.toString());
         return embedBuilder;
     }
@@ -193,9 +200,24 @@ public class UnoGame {
     private @NotNull EmbedBuilder generateWinnerEmbed() {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setColor(this.currentColour);
-        embed.setDescription(String.format("The winner is %s!\nThis game lasted %d seconds.",
-                this.playerToMove.getMention(), this.gameTimeTracker.getElapsedTimeSecs()));
-        embed.setFooter(String.format("Total cards played: %d. Total turns passed: %d.", this.totalCardsPlayed, this.totalTurnsPassed));
+        embed.setDescription(String.format("""
+                        The winner is %s!
+                        This game lasted %d seconds.
+                        Total cards played: %d.
+                        Total cards drawn: %d.
+                        Total turns passed: %d.""",
+                this.playerToMove.getMention(), this.gameTimeTracker.getElapsedTimeSecs(),
+                this.totalCardsPlayed, this.totalCardsDrawn, this.totalTurnsPassed));
+        return embed;
+    }
+
+    private @NotNull EmbedBuilder generatePersonalStatsEmbed(@NotNull LobbyEntry lobbyEntry) {
+        EmbedBuilder embed = new EmbedBuilder();
+        EmbedUtils.styleEmbed(embed, lobbyEntry.getUser());
+        embed.setTitle("Your Uno Stats");
+        UnoPlayerData unoPlayerData = this.playerData.get(lobbyEntry);
+        embed.addField("Cards Played", String.valueOf(unoPlayerData.getTotalCardsPlayed()), true);
+        embed.addField("Cards Drawn", String.valueOf(unoPlayerData.getTotalCardsDrawn()), true);
         return embed;
     }
 
@@ -206,14 +228,14 @@ public class UnoGame {
         List<String> receivedMessage = new ArrayList<>(Arrays.stream(event.getMessage().getContentRaw().split("\\s+"))
                 .map(String::toLowerCase).toList());
         User author = event.getAuthor();
-        LobbyEntry authorEntry = players.stream().filter(lobbyEntry -> {
+        LobbyEntry authorEntry = playerList.toList().stream().filter(lobbyEntry -> {
             if (lobbyEntry.getUser() == null) {
                 return false;
             }
             return lobbyEntry.getUser().equals(author);
         }).findFirst().orElse(null);
         if (receivedMessage.get(0).startsWith("hand")) {
-            players.forEach(lobbyEntry -> {
+            playerList.toList().forEach(lobbyEntry -> {
                 if (lobbyEntry.isBot()) {
                     return;
                 }
@@ -240,7 +262,7 @@ public class UnoGame {
                 if (card.isEmpty()) {
                     event.getChannel().sendMessage("That is not a valid card.").queue();
                 } else {
-                    List<UnoCard> hand = this.playerData.get(this.playerToMove);
+                    List<UnoCard> hand = this.playerData.get(this.playerToMove).getHand();
                     UnoCard cardToPlay = card.get();
                     if (hand.contains(cardToPlay)) {
                         if (isValidMove(cardToPlay)) {
@@ -289,6 +311,7 @@ public class UnoGame {
             }
             try {
                 drawCard(authorEntry);
+
             } catch (IllegalStateException e) {
                 event.getChannel().sendMessage("You cannot draw a card because there are no cards left to draw." +
                         " Do you want to skip your turn? Type Y or N.").queue();
@@ -322,7 +345,7 @@ public class UnoGame {
 
     private void sendEmbedToPlayers(MessageEmbed build) {
         this.channel.sendMessageEmbeds(build).queue();
-        this.players.forEach(lobbyEntry -> {
+        this.playerList.toList().forEach(lobbyEntry -> {
             if (!lobbyEntry.isBot()) {
                 User user = lobbyEntry.getUser();
                 user.openPrivateChannel().queue(privateChannel -> privateChannel
@@ -363,47 +386,40 @@ public class UnoGame {
     public void nextRound() {
         this.turnTimeTracker.reset();
         this.awaitingResponse = false;
-        if (this.playerData.get(this.playerToMove).size() == 0) {
+        if (this.playerData.get(this.playerToMove).getHand().size() == 0) {
             this.endGame();
             return;
         }
         if (this.isReversed) {
-            this.turn--;
-            if (this.turn < 1) {
-                this.turn = this.maxTurns;
-            }
+            playerList.goToPrevious();
         } else {
-            this.turn++;
-            if (this.turn > this.maxTurns) {
-                this.turn = 1;
-            }
+            playerList.goToNext();
         }
         this.totalTurnsPassed++;
-        this.playerToMove = players.get(this.turn - 1);
+        this.playerToMove = playerList.get();
         this.turnTimeTracker.start();
     }
 
     private void checkTurnTime() {
         if (this.turnTimeTracker.getElapsedTimeSecs() >= TURN_TIME_LIMIT) {
             this.turnTimeTracker.reset();
+            this.awaitingResponse = false;
             LobbyEntry removedPlayer = this.playerToMove;
-            this.maxTurns--;
-            if(this.isReversed) {
-                if (this.turn < 1) {
-                    this.turn = this.maxTurns;
-                }
+            // shuffle the cards the kicked player had in his hands back in the deck
+            List<UnoCard> unoCards = this.playerData.get(this.playerToMove).getHand();
+            this.playedCards.addAll(unoCards);
+            if (this.isReversed) {
+                this.playerList.removeToPrevious();
             } else {
-                if (this.turn > this.maxTurns) {
-                    this.turn = 1;
-                }
+                this.playerList.removeToNext();
             }
-            this.nextRound();
+            this.playerToMove = playerList.get();
+            this.totalTurnsPassed++;
+            this.turnTimeTracker.start();
             CustomEmoji emoji = this.lastPlayedCard.getEmoji();
             sendEmbedToPlayers(generateStatusEmbed(String.format("%s took too long to play their turn. They have been skipped.",
                     removedPlayer.getMention())).setThumbnail(emoji.getCustomEmojiUrl()).build());
-            this.playerData.remove(removedPlayer);
-            this.players.remove(removedPlayer);
-            if (this.players.size() == 1) {
+            if (this.playerList.size() == 1) {
                 this.endGame();
             }
             checkForBotMove();
@@ -413,13 +429,16 @@ public class UnoGame {
     private void endGame() {
         gameTimeTracker.stop();
         this.channel.sendMessageEmbeds(generateWinnerEmbed().build()).queueAfter(1, TimeUnit.SECONDS);
-        this.players.forEach(lobbyEntry -> {
+        this.playerList.toList().forEach(lobbyEntry -> {
             if (!lobbyEntry.isBot()) {
                 User user = lobbyEntry.getUser();
                 user.openPrivateChannel().queue(privateChannel -> privateChannel
                         .sendMessageEmbeds(generateWinnerEmbed().build()).queueAfter(1, TimeUnit.SECONDS));
+                user.openPrivateChannel().queue(privateChannel -> privateChannel
+                        .sendMessageEmbeds(generatePersonalStatsEmbed(lobbyEntry).build()).queueAfter(1, TimeUnit.SECONDS));
             }
         });
+
         this.gameEnded = true;
         unoGames.remove(this);
     }
@@ -429,7 +448,7 @@ public class UnoGame {
             return;
         }
         LobbyEntry bot = this.playerToMove;
-        List<UnoCard> botHand = this.playerData.get(bot);
+        List<UnoCard> botHand = this.playerData.get(bot).getHand();
         UnoCard cardToPlay = null;
         if (((lastPlayedCard.getType().equals(UnoCard.UnoCardType.DRAW_TWO) ||
                 lastPlayedCard.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) && botHand.size() > 1)) {
@@ -493,7 +512,7 @@ public class UnoGame {
     private void generateCardPlayedEmbed(@NotNull CustomEmoji emoji, @NotNull EmbedBuilder statusEmbed) {
         statusEmbed.setThumbnail(emoji.getCustomEmojiUrl());
         this.channel.sendMessageEmbeds(statusEmbed.build()).queue();
-        players.forEach(lobbyEntry -> {
+        playerList.toList().forEach(lobbyEntry -> {
             if (!lobbyEntry.isBot()) {
                 User user = lobbyEntry.getUser();
                 user.openPrivateChannel().queue(privateChannel -> privateChannel
@@ -510,17 +529,17 @@ public class UnoGame {
      * @param userToDraw The user that needs to draw the cards.
      */
     public void drawCard(LobbyEntry userToDraw, Integer... amount) throws IllegalStateException {
-        this.playerData.forEach((lobbyEntry, unoCards) -> {
+        this.playerData.forEach((lobbyEntry, unoPlayerData) -> {
             // find the user that needs to draw a card
             if (userToDraw.getUserId() == lobbyEntry.getUserId() || Objects.equals(userToDraw.getUserName(), lobbyEntry.getUserName())) {
                 // check if the previously played card is a draw 2 or draw 4 card
                 if ((this.lastPlayedCard.getType().equals(UnoCard.UnoCardType.DRAW_TWO) ||
                         this.lastPlayedCard.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) && this.amountToGrab > 0) {
-                    innerDraw(lobbyEntry, unoCards, this.amountToGrab);
+                    innerDraw(lobbyEntry, unoPlayerData.getHand(), this.amountToGrab);
                     generateHadToDrawEmbed(lobbyEntry);
                     this.amountToGrab = 0;
                 }
-                innerDraw(lobbyEntry, unoCards, amount);
+                innerDraw(lobbyEntry, unoPlayerData.getHand(), amount);
             }
         });
     }
@@ -544,7 +563,7 @@ public class UnoGame {
         for (Optional<UnoCard> card : drawnCards) {
             if (card.isEmpty()) {
                 // the deck is empty so add the cards on the table to it refresh it
-                deck.refresh(playedCards);
+                deck.refill(playedCards);
                 playedCards.clear();
                 Optional<UnoCard> unoCard = deck.drawCard();
                 if (unoCard.isEmpty()) {
@@ -560,6 +579,7 @@ public class UnoGame {
         // add all cards the players hand
         unoCards.addAll(cardsToDraw);
         this.totalCardsDrawn += cardsToDraw.size();
+        this.playerData.get(user).incrementTotalCardsDrawn(cardsToDraw.size());
         if (!user.isBot()) {
             user.getUser().openPrivateChannel().queue(privateChannel -> {
                 EmbedBuilder embed = new EmbedBuilder();
@@ -578,13 +598,13 @@ public class UnoGame {
      * Hands out 7 cards to each player participating.
      */
     private void distributeCards() throws IllegalStateException {
-        for (LobbyEntry participant : this.players) {
+        for (LobbyEntry participant : this.playerList.toList()) {
             List<Optional<UnoCard>> optionalCards = this.deck.drawCards(7);
             List<UnoCard> hand = new ArrayList<>();
             for (Optional<UnoCard> card : optionalCards) {
                 if (card.isEmpty()) {
                     // the deck is empty so add the cards on the table to it refresh it
-                    this.deck.refresh(playedCards);
+                    this.deck.refill(playedCards);
                     this.playedCards.clear();
                     Optional<UnoCard> unoCard = deck.drawCard();
                     if (unoCard.isEmpty()) {
@@ -597,7 +617,11 @@ public class UnoGame {
                     hand.add(card.get());
                 }
             }
-            this.playerData.put(participant, hand);
+            if (participant.isBot()) {
+                this.playerData.put(participant, new UnoPlayerData(hand));
+            } else {
+                this.playerData.put(participant, new UnoPlayerData(hand, participant.getUser()));
+            }
         }
     }
 
@@ -636,7 +660,9 @@ public class UnoGame {
             return;
         }
         // remove the cards from the players hand
-        this.playerData.get(this.playerToMove).remove(cardToPlay);
+        UnoPlayerData unoPlayerData1 = this.playerData.get(this.playerToMove);
+        unoPlayerData1.getHand().remove(cardToPlay);
+        unoPlayerData1.incrementTotalCardsPlayed();
 
         UnoCard.UnoCardType lastPlayedCardType = this.lastPlayedCard.getType();
         UnoCard.UnoCardType cardToPlayType = cardToPlay.getType();
@@ -655,9 +681,9 @@ public class UnoGame {
                 return;
             } else if (this.amountToGrab > 0) {
                 generateHadToDrawEmbed(user);
-                this.playerData.forEach((participant, unoCards) -> {
+                this.playerData.forEach((participant, unoPlayerData) -> {
                     if ((user.getUser() != null && user.getUser().getIdLong() == participant.getUserId()) || user.getUserName().equals(participant.getUserName())) {
-                        innerDraw(participant, unoCards, this.amountToGrab);
+                        innerDraw(participant, unoPlayerData.getHand(), this.amountToGrab);
                     }
                 });
                 this.amountToGrab = 0;
@@ -717,16 +743,15 @@ public class UnoGame {
     }
 
     private void checkCardsLeft(LobbyEntry user) {
-        if (this.playerData.get(user).size() == 1) {
+        if (this.playerData.get(user).getHand().size() == 1) {
             EmbedBuilder embed = new EmbedBuilder();
             embed.setDescription(String.format("%s has one card left.", user.getMention()));
             embed.setColor(Color.BLUE);
             this.channel.sendMessageEmbeds(embed.build()).queueAfter(1, TimeUnit.SECONDS);
-            this.players.forEach(player -> {
+            this.playerList.toList().forEach(player -> {
                 if (!player.isBot()) {
-                    player.getUser().openPrivateChannel().queue(privateChannel -> {
-                        privateChannel.sendMessageEmbeds(embed.build()).queueAfter(1, TimeUnit.SECONDS);
-                    });
+                    player.getUser().openPrivateChannel().queue(privateChannel ->
+                            privateChannel.sendMessageEmbeds(embed.build()).queueAfter(1, TimeUnit.SECONDS));
                 }
             });
         }
@@ -774,39 +799,6 @@ public class UnoGame {
     public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
             new ArrayList<>(unoGames).forEach(game -> game.onMessage(event));
-        }
-    }
-
-    private class UnoPlayerData {
-
-        private final User user;
-        private int totalCardsPlayed;
-        private int totalCardsDrawn;
-
-        public UnoPlayerData(User user) {
-            this.user = user;
-            this.totalCardsPlayed = 0;
-            this.totalCardsDrawn = 0;
-        }
-
-        public User getUser() {
-            return user;
-        }
-
-        public int getTotalCardsPlayed() {
-            return totalCardsPlayed;
-        }
-
-        public int getTotalCardsDrawn() {
-            return totalCardsDrawn;
-        }
-
-        public void incrementTotalCardsPlayed() {
-            this.totalCardsPlayed++;
-        }
-
-        public void incrementTotalCardsDrawn() {
-            this.totalCardsDrawn++;
         }
     }
 

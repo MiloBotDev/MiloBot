@@ -1,4 +1,4 @@
-package games.hungergames.models;
+package games.hungergames.model;
 
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;

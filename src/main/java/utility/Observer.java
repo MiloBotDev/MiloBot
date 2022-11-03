@@ -1,4 +1,4 @@
-package utility.observer;
+package utility;
 
 public interface Observer {
     void update();

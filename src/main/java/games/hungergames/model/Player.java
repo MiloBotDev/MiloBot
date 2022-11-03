@@ -1,4 +1,4 @@
-package games.hungergames.models;
+package games.hungergames.model;
 
 import games.hungergames.HungerGames;
 import org.jetbrains.annotations.NotNull;

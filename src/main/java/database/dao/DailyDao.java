@@ -17,7 +17,7 @@ public class DailyDao {
 
     private DailyDao() {
         try {
-            creteTableIfNotExists();
+            createTableIfNotExists();
         } catch (SQLException e) {
             logger.error("Error creating table daily ", e);
         }
@@ -30,7 +30,7 @@ public class DailyDao {
         return instance;
     }
 
-    private void creteTableIfNotExists() throws SQLException {
+    private void createTableIfNotExists() throws SQLException {
         UserDao.getInstance();
         // TODO: add fk constraint for user_id
         String query = "CREATE TABLE IF NOT EXISTS daily (" +

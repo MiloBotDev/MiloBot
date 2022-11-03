@@ -1,4 +1,4 @@
-package games.uno;
+package games.uno.model;
 
 import models.CustomEmoji;
 import org.jetbrains.annotations.NotNull;
