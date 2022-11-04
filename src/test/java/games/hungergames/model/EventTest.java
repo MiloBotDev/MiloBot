@@ -1,8 +1,6 @@
-package games.hungergames.models;
+package games.hungergames.model;
 
 import games.hungergames.HungerGames;
-import games.hungergames.models.Event;
-import games.hungergames.models.Player;
 import org.junit.jupiter.api.*;
 
 @Disabled

@@ -156,7 +156,6 @@ public class CommandLoader {
             }
         });
 
-
         // generic buttons
         ExecutorService genericButtonHandler = Executors.newSingleThreadExecutor();
         buttonHandler.registerButton("delete", false, DeferType.NONE, genericButtonHandler,

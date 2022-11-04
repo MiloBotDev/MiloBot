@@ -1,9 +1,9 @@
 package games.hungergames;
 
-import games.hungergames.models.LobbyEntry;
-import games.hungergames.models.Event;
-import games.hungergames.models.Item;
-import games.hungergames.models.Player;
+import games.hungergames.model.LobbyEntry;
+import games.hungergames.model.Event;
+import games.hungergames.model.Item;
+import games.hungergames.model.Player;
 import org.jetbrains.annotations.NotNull;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
