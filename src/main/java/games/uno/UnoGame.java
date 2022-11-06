@@ -1,6 +1,10 @@
 package games.uno;
 
 import database.dao.UnoDao;
+import database.dao.UserDao;
+import database.model.Uno;
+import database.util.DatabaseConnection;
+import database.util.RowLockType;
 import games.hungergames.model.LobbyEntry;
 import games.uno.model.UnoCard;
 import games.uno.model.UnoPlayerData;
@@ -22,6 +26,8 @@ import utility.list.CircularLinkedList;
 import utility.list.ObservableList;
 
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -33,7 +39,7 @@ import static games.uno.model.UnoCard.getColorByName;
 
 public class UnoGame {
 
-    private static final int BOT_MOVE_DELAY = 2;
+    private static final int BOT_MOVE_DELAY = 3;
     private static final int TURN_TIME_LIMIT = 60;
     private static final int TIMEOUT_CLEANUP_FREQUENCY = 5;
 
@@ -214,10 +220,11 @@ public class UnoGame {
     private @NotNull EmbedBuilder generatePersonalStatsEmbed(@NotNull LobbyEntry lobbyEntry) {
         EmbedBuilder embed = new EmbedBuilder();
         EmbedUtils.styleEmbed(embed, lobbyEntry.getUser());
-        embed.setTitle("Your Uno Stats");
+        embed.setTitle("Post Game Stats");
         UnoPlayerData unoPlayerData = this.playerData.get(lobbyEntry);
         embed.addField("Cards Played", String.valueOf(unoPlayerData.getTotalCardsPlayed()), true);
         embed.addField("Cards Drawn", String.valueOf(unoPlayerData.getTotalCardsDrawn()), true);
+        embed.addField("Time Spent On Turn", String.format("%d seconds", unoPlayerData.getTimeSpentOnTurn()), true);
         return embed;
     }
 
@@ -311,7 +318,6 @@ public class UnoGame {
             }
             try {
                 drawCard(authorEntry);
-
             } catch (IllegalStateException e) {
                 event.getChannel().sendMessage("You cannot draw a card because there are no cards left to draw." +
                         " Do you want to skip your turn? Type Y or N.").queue();
@@ -384,6 +390,7 @@ public class UnoGame {
      * Moves on to the next round.
      */
     public void nextRound() {
+        this.playerData.get(this.playerToMove).incrementTimeSpentOnTurn((int) this.turnTimeTracker.getElapsedTimeSecs());
         this.turnTimeTracker.reset();
         this.awaitingResponse = false;
         if (this.playerData.get(this.playerToMove).getHand().size() == 0) {
@@ -436,6 +443,42 @@ public class UnoGame {
                         .sendMessageEmbeds(generateWinnerEmbed().build()).queueAfter(1, TimeUnit.SECONDS));
                 user.openPrivateChannel().queue(privateChannel -> privateChannel
                         .sendMessageEmbeds(generatePersonalStatsEmbed(lobbyEntry).build()).queueAfter(1, TimeUnit.SECONDS));
+                try (Connection con = DatabaseConnection.getConnection()) {
+                    con.setAutoCommit(false);
+                    long discordIdLong = user.getIdLong();
+                    UnoPlayerData unoPlayerData = playerData.get(lobbyEntry);
+                    unoDao.getByUserDiscordId(con, discordIdLong, RowLockType.FOR_UPDATE).ifPresentOrElse(uno -> {
+                        if(!this.playerToMove.isBot() && (playerToMove.getUser().getIdLong() == discordIdLong)) {
+                            // this user won
+                            uno.addGame(Uno.UnoGameResult.WIN, unoPlayerData.getTotalCardsPlayed(), unoPlayerData.getTotalCardsDrawn());
+                        } else {
+                            uno.addGame(Uno.UnoGameResult.LOSS, unoPlayerData.getTotalCardsPlayed(), unoPlayerData.getTotalCardsDrawn());
+                        }
+                        try {
+                            unoDao.update(con, uno);
+                        } catch (Exception e) {
+                            logger.error("Error while updating uno stats", e);
+                        }
+                    }, () -> {
+                        try {
+                            int userId = Objects.requireNonNull(UserDao.getInstance()
+                                    .getUserByDiscordId(con, discordIdLong, RowLockType.NONE)).getId();
+                            Uno uno = new Uno(userId);
+                            if(!this.playerToMove.isBot() && (playerToMove.getUser().getIdLong() == discordIdLong)) {
+                                // this user won
+                                uno.addGame(Uno.UnoGameResult.WIN, unoPlayerData.getTotalCardsPlayed(), unoPlayerData.getTotalCardsDrawn());
+                            } else {
+                                uno.addGame(Uno.UnoGameResult.LOSS, unoPlayerData.getTotalCardsPlayed(), unoPlayerData.getTotalCardsDrawn());
+                            }
+                            unoDao.add(con, uno);
+                        } catch (Exception e) {
+                            logger.error("Error while retrieving user id in uno game", e);
+                        }
+                    });
+                    con.commit();
+                } catch (SQLException e) {
+                    logger.error("Error while updating uno stats", e);
+                }
             }
         });
 
@@ -508,7 +551,6 @@ public class UnoGame {
         checkForBotMove();
     }
 
-
     private void generateCardPlayedEmbed(@NotNull CustomEmoji emoji, @NotNull EmbedBuilder statusEmbed) {
         statusEmbed.setThumbnail(emoji.getCustomEmojiUrl());
         this.channel.sendMessageEmbeds(statusEmbed.build()).queue();
@@ -531,7 +573,7 @@ public class UnoGame {
     public void drawCard(LobbyEntry userToDraw, Integer... amount) throws IllegalStateException {
         this.playerData.forEach((lobbyEntry, unoPlayerData) -> {
             // find the user that needs to draw a card
-            if (userToDraw.getUserId() == lobbyEntry.getUserId() || Objects.equals(userToDraw.getUserName(), lobbyEntry.getUserName())) {
+            if ((userToDraw.getUserId() == lobbyEntry.getUserId() && !userToDraw.isBot()) || Objects.equals(userToDraw.getUserName(), lobbyEntry.getUserName())) {
                 // check if the previously played card is a draw 2 or draw 4 card
                 if ((this.lastPlayedCard.getType().equals(UnoCard.UnoCardType.DRAW_TWO) ||
                         this.lastPlayedCard.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) && this.amountToGrab > 0) {
@@ -564,6 +606,7 @@ public class UnoGame {
             if (card.isEmpty()) {
                 // the deck is empty so add the cards on the table to it refresh it
                 deck.refill(playedCards);
+                deck.shuffle();
                 playedCards.clear();
                 Optional<UnoCard> unoCard = deck.drawCard();
                 if (unoCard.isEmpty()) {
@@ -591,7 +634,6 @@ public class UnoGame {
                 privateChannel.sendMessageEmbeds(embed.build()).queue();
             });
         }
-
     }
 
     /**
@@ -605,6 +647,7 @@ public class UnoGame {
                 if (card.isEmpty()) {
                     // the deck is empty so add the cards on the table to it refresh it
                     this.deck.refill(playedCards);
+                    this.deck.shuffle();
                     this.playedCards.clear();
                     Optional<UnoCard> unoCard = deck.drawCard();
                     if (unoCard.isEmpty()) {

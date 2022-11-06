@@ -10,6 +10,7 @@ public class UnoPlayerData {
     private final List<UnoCard> hand;
     private int totalCardsPlayed;
     private int totalCardsDrawn;
+    private int timeSpentOnTurn;
 
     public UnoPlayerData(List<UnoCard> hand, User user) {
         this.user = user;
@@ -38,7 +39,7 @@ public class UnoPlayerData {
     }
 
     public void incrementTotalCardsPlayed() {
-        this.totalCardsDrawn++;
+        this.totalCardsPlayed++;
     }
 
     public void incrementTotalCardsDrawn(int amount) {
@@ -47,5 +48,13 @@ public class UnoPlayerData {
 
     public List<UnoCard> getHand() {
         return hand;
+    }
+
+    public void incrementTimeSpentOnTurn(int time) {
+        this.timeSpentOnTurn += time;
+    }
+
+    public int getTimeSpentOnTurn() {
+        return timeSpentOnTurn;
     }
 }

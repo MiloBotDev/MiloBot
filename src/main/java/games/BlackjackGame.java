@@ -140,7 +140,7 @@ public class BlackjackGame {
         }
     }
 
-    public static void newGame(SlashCommandEvent event) {
+    public static void newGame(@NotNull SlashCommandEvent event) {
         long authorIdLong = event.getUser().getIdLong();
         String authorId = event.getUser().getId();
 
@@ -415,7 +415,7 @@ public class BlackjackGame {
         return total;
     }
 
-    private int getCardValue(PlayingCard card) {
+    private int getCardValue(@NotNull PlayingCard card) {
         PlayingCard.Rank rank = card.getRank();
         if (rank.toInt() <= 10) {
             // card with number on its face

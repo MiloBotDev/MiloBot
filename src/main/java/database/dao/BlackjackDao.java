@@ -19,7 +19,7 @@ public class BlackjackDao {
 
     private BlackjackDao() {
         try {
-            creteTableIfNotExists();
+            createTableIfNotExists();
         } catch (SQLException e) {
             logger.error("Error creating table prefixes ", e);
         }
@@ -32,7 +32,7 @@ public class BlackjackDao {
         return instance;
     }
 
-    private void creteTableIfNotExists() throws SQLException {
+    private void createTableIfNotExists() throws SQLException {
         UserDao.getInstance();
         String query = "CREATE TABLE IF NOT EXISTS blackjack (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +

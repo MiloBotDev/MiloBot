@@ -54,4 +54,14 @@ public class LobbyEntry {
     public User getUser() {
         return user;
     }
+
+    @Override
+    public String toString() {
+        return "LobbyEntry{" +
+                "userId=" + userId +
+                ", username='" + username + '\'' +
+                ", mention='" + mention + '\'' +
+                ", isBot=" + isBot +
+                '}';
+    }
 }
