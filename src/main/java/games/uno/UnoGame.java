@@ -35,6 +35,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static games.uno.model.UnoCard.UNO_WILD_DRAW_FOUR;
 import static games.uno.model.UnoCard.getColorByName;
 
 public class UnoGame {
@@ -96,7 +97,8 @@ public class UnoGame {
     private final TimeTracker turnTimeTracker = new TimeTracker();
     private final UnoDao unoDao = UnoDao.getInstance();
     private MessageChannel channel;
-    private boolean awaitingResponse;
+    private boolean awaitingSkipResponse;
+    private boolean awaitingColorSelection;
 
     // game specific data
     private UnoCard lastPlayedCard;
@@ -148,7 +150,7 @@ public class UnoGame {
         this.totalCardsPlayed = 0;
         this.totalTurnsPassed = 0;
         this.gameEnded = false;
-        this.awaitingResponse = false;
+        this.awaitingSkipResponse = false;
         this.gameTimeTracker.reset();
         this.turnTimeTracker.start();
     }
@@ -292,8 +294,13 @@ public class UnoGame {
                                 } else {
                                     playCard(cardToPlay, color.get(), authorEntry);
                                 }
+                            } else if (cardToPlay.equals(UNO_WILD_DRAW_FOUR)){
+                                event.getChannel().sendMessage("Type one of the following colors to change the " +
+                                        "color: red, green, yellow or blue.").queue();
+                                this.awaitingColorSelection = true;
+                                return;
                             } else {
-                                playCard(cardToPlay, null, authorEntry);
+                                this.playCard(cardToPlay, null, authorEntry);
                             }
                             this.totalCardsPlayed++;
                             CustomEmoji emoji = cardToPlay.getEmoji();
@@ -321,7 +328,7 @@ public class UnoGame {
             } catch (IllegalStateException e) {
                 event.getChannel().sendMessage("You cannot draw a card because there are no cards left to draw." +
                         " Do you want to skip your turn? Type Y or N.").queue();
-                this.awaitingResponse = true;
+                this.awaitingSkipResponse = true;
                 return;
             }
             this.nextRound();
@@ -330,22 +337,39 @@ public class UnoGame {
                     author.getAsMention(), lastPlayedCard.getEmoji().getEmoji())).setThumbnail(emoji.getCustomEmojiUrl()).build();
             sendEmbedToPlayers(build);
             checkForBotMove();
-        } else if (receivedMessage.get(0).toLowerCase().startsWith("y") && this.awaitingResponse) {
+        } else if (receivedMessage.get(0).toLowerCase().startsWith("y") && this.awaitingSkipResponse) {
             if (this.playerToMove.getUser() == null || !this.playerToMove.getUser().equals(author)) {
                 return;
             }
-            this.awaitingResponse = false;
+            this.awaitingSkipResponse = false;
             this.nextRound();
             CustomEmoji emoji = lastPlayedCard.getEmoji();
             EmbedBuilder build = generateStatusEmbed(String.format("%s skipped their turn.\n\n The last played card was %s",
                     author.getAsMention(), emoji.getEmoji()));
             sendEmbedToPlayers(build.setThumbnail(emoji.getCustomEmojiUrl()).build());
             checkForBotMove();
-        } else if (receivedMessage.get(0).toLowerCase().startsWith("n") && this.awaitingResponse) {
+        } else if (receivedMessage.get(0).toLowerCase().startsWith("n") && this.awaitingSkipResponse) {
             if (this.playerToMove.getUser() == null || !this.playerToMove.getUser().equals(author)) {
                 return;
             }
-            this.awaitingResponse = false;
+            this.awaitingSkipResponse = false;
+        } else if(this.awaitingColorSelection) {
+            if (this.playerToMove.getUser() == null || !this.playerToMove.getUser().equals(author)) {
+                return;
+            }
+            String colorName = String.join(" ", receivedMessage);
+            Optional<Color> color = getColorByName(colorName);
+            if (color.isEmpty()) {
+                event.getChannel().sendMessage("That is not a valid color.").queue();
+                return;
+            }
+            this.awaitingColorSelection = false;
+            this.playCard(UNO_WILD_DRAW_FOUR, color.get(), authorEntry);
+            this.totalCardsPlayed++;
+            CustomEmoji emoji = lastPlayedCard.getEmoji();
+            EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", author.getAsMention(), emoji.getEmoji()));
+            generateCardPlayedEmbed(emoji, statusEmbed);
+            checkForBotMove();
         }
     }
 
@@ -377,7 +401,6 @@ public class UnoGame {
             return "Yellow";
         }
         return null;
-
     }
 
     private Color getRandomColor() {
@@ -392,7 +415,8 @@ public class UnoGame {
     public void nextRound() {
         this.playerData.get(this.playerToMove).incrementTimeSpentOnTurn((int) this.turnTimeTracker.getElapsedTimeSecs());
         this.turnTimeTracker.reset();
-        this.awaitingResponse = false;
+        this.awaitingSkipResponse = false;
+        this.awaitingColorSelection = false;
         if (this.playerData.get(this.playerToMove).getHand().size() == 0) {
             this.endGame();
             return;
@@ -410,7 +434,7 @@ public class UnoGame {
     private void checkTurnTime() {
         if (this.turnTimeTracker.getElapsedTimeSecs() >= TURN_TIME_LIMIT) {
             this.turnTimeTracker.reset();
-            this.awaitingResponse = false;
+            this.awaitingSkipResponse = false;
             LobbyEntry removedPlayer = this.playerToMove;
             // shuffle the cards the kicked player had in his hands back in the deck
             List<UnoCard> unoCards = this.playerData.get(this.playerToMove).getHand();
@@ -530,7 +554,6 @@ public class UnoGame {
                 sendEmbedToPlayers(build.setThumbnail(emoji.getCustomEmojiUrl()).build());
                 return;
             }
-
             this.nextRound();
             CustomEmoji emoji = lastPlayedCard.getEmoji();
             MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
@@ -538,7 +561,8 @@ public class UnoGame {
             sendEmbedToPlayers(build);
         } else {
             if (cardToPlay.equals(UnoCard.UNO_WILD)) {
-                // find the most common color in the bots hand
+                playCard(cardToPlay, getRandomColor(), bot);
+            } else if(cardToPlay.equals(UnoCard.UNO_WILD_DRAW_FOUR)) {
                 playCard(cardToPlay, getRandomColor(), bot);
             } else {
                 playCard(cardToPlay, null, bot);
@@ -565,7 +589,6 @@ public class UnoGame {
 
     /**
      * Draws a variable amount of cards for the player whose turn it currently is.
-     *
      * @param amount     Optional int[] amount of cards you want to draw.
      *                   The first number in the int[] is the amount of cars you want to draw.
      * @param userToDraw The user that needs to draw the cards.
@@ -718,7 +741,7 @@ public class UnoGame {
                 if (cardToPlayType.equals(UnoCard.UnoCardType.DRAW_TWO)) {
                     drawTwoCard(cardToPlay);
                 } else {
-                    wildDrawFourCard(cardToPlay, lastPlayedCard);
+                    wildDrawFourCard(cardToPlay, color);
                 }
                 checkCardsLeft(user);
                 return;
@@ -773,7 +796,7 @@ public class UnoGame {
                 skipCard(cardToPlay);
                 // the card is a wild draw 4
             } else if (cardToPlay.equals(UnoCard.UNO_WILD_DRAW_FOUR)) {
-                wildDrawFourCard(cardToPlay, lastPlayedCard);
+                wildDrawFourCard(cardToPlay, color);
                 // the card is a reverse
             } else if (cardToPlayType.equals(UnoCard.UnoCardType.REVERSE)) {
                 reverseCard(cardToPlay);
@@ -816,14 +839,6 @@ public class UnoGame {
         this.playedCards.add(cardToPlay);
     }
 
-    private void wildDrawFourCard(@NotNull UnoCard cardToPlay, @NotNull UnoCard lastPlayedCard) {
-        this.currentColour = lastPlayedCard.getColor();
-        this.lastPlayedCard = cardToPlay;
-        this.amountToGrab += 4;
-        this.nextRound();
-        this.playedCards.add(cardToPlay);
-    }
-
     private void reverseCard(@NotNull UnoCard cardToPlay) {
         this.lastPlayedCard = cardToPlay;
         this.currentColour = cardToPlay.getColor();
@@ -835,6 +850,13 @@ public class UnoGame {
     private void wildCard(@NotNull UnoCard cardToPlay, @NotNull Color color) {
         this.lastPlayedCard = cardToPlay;
         this.currentColour = color;
+        this.nextRound();
+        this.playedCards.add(cardToPlay);
+    }
+
+    private void wildDrawFourCard(@NotNull UnoCard cardToPlay, @NotNull Color color) {
+        this.currentColour = color;
+        this.amountToGrab += 4;
         this.nextRound();
         this.playedCards.add(cardToPlay);
     }
