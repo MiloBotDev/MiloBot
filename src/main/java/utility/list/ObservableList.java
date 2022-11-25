@@ -31,7 +31,6 @@ public class ObservableList<T> extends ArrayList<T> {
         return result;
     }
 
-
     private void notifyObservers() {
         for (Observer observer : observers) {
             observer.update();
