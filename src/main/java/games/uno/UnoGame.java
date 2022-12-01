@@ -35,8 +35,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static games.uno.model.UnoCard.UNO_WILD_DRAW_FOUR;
-import static games.uno.model.UnoCard.getColorByName;
+import static games.uno.model.UnoCard.*;
 
 public class UnoGame {
 
@@ -171,6 +170,7 @@ public class UnoGame {
                 }
             });
             this.channel = channel;
+            sendHelpEmbed();
             MessageEmbed build = generateStatusEmbed(String.format("A new game has been started. The starting card is %s",
                     lastPlayedCard.getEmoji().getEmoji())).setThumbnail(lastPlayedCard.getEmoji().getCustomEmojiUrl()).build();
             sendEmbedToPlayers(build);
@@ -364,12 +364,16 @@ public class UnoGame {
                 return;
             }
             this.awaitingColorSelection = false;
+
             this.playCard(UNO_WILD_DRAW_FOUR, color.get(), authorEntry);
             this.totalCardsPlayed++;
             CustomEmoji emoji = lastPlayedCard.getEmoji();
             EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", author.getAsMention(), emoji.getEmoji()));
             generateCardPlayedEmbed(emoji, statusEmbed);
             checkForBotMove();
+        } else if(receivedMessage.get(0).startsWith("help")) {
+            EmbedBuilder helpEmbed = generateHelpEmbed();
+            event.getChannel().sendMessageEmbeds(helpEmbed.build()).queue();
         }
     }
 
@@ -505,7 +509,6 @@ public class UnoGame {
                 }
             }
         });
-
         this.gameEnded = true;
         unoGames.remove(this);
     }
@@ -601,7 +604,7 @@ public class UnoGame {
                 if ((this.lastPlayedCard.getType().equals(UnoCard.UnoCardType.DRAW_TWO) ||
                         this.lastPlayedCard.getType().equals(UnoCard.UnoCardType.WILD_DRAW_FOUR)) && this.amountToGrab > 0) {
                     innerDraw(lobbyEntry, unoPlayerData.getHand(), this.amountToGrab);
-                    generateHadToDrawEmbed(lobbyEntry);
+                    sendHadToDrawEmbed(lobbyEntry);
                     this.amountToGrab = 0;
                 }
                 innerDraw(lobbyEntry, unoPlayerData.getHand(), amount);
@@ -609,11 +612,39 @@ public class UnoGame {
         });
     }
 
-    private void generateHadToDrawEmbed(@NotNull LobbyEntry lobbyEntry) {
+    private void sendHadToDrawEmbed(@NotNull LobbyEntry lobbyEntry) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setColor(Color.RED);
         embedBuilder.setDescription(String.format("%s had to draw %d cards.", lobbyEntry.getMention(), amountToGrab));
         MessageEmbed build = embedBuilder.build();
+        sendEmbedToPlayers(build);
+    }
+
+    private @NotNull EmbedBuilder generateHelpEmbed() {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setColor(Color.BLUE);
+        embedBuilder.setTitle("Uno Help");
+        embedBuilder.setTimestamp(new Date().toInstant());
+        StringBuilder desc = new StringBuilder();
+        desc.append("The goal of the game is to get rid of all your cards before your opponents.\n");
+        desc.append("The first player to get rid of all their cards wins the game.\n");
+        embedBuilder.setDescription(desc);
+        embedBuilder.addField("Commands", """
+                ```
+                play <card> - Play a card from your hand.
+                To play a red 2 type: play r2 or play red 2
+                To play a blue reverse type: play br or play blue reverse
+                To play a yellow draw 2 type: play yd2 or play yellow draw 2
+                To play a wild card type: play wild green or play w green
+                To play a wild draw 4 card type: play wd4
+                draw - Draw a card from the deck.
+                help - Shows this message.
+                ```""", false);
+        return embedBuilder;
+    }
+
+    private void sendHelpEmbed() {
+        MessageEmbed build = generateHelpEmbed().build();
         sendEmbedToPlayers(build);
     }
 
@@ -683,6 +714,7 @@ public class UnoGame {
                     hand.add(card.get());
                 }
             }
+            hand.add(UNO_WILD_DRAW_FOUR);
             if (participant.isBot()) {
                 this.playerData.put(participant, new UnoPlayerData(hand));
             } else {
@@ -746,7 +778,7 @@ public class UnoGame {
                 checkCardsLeft(user);
                 return;
             } else if (this.amountToGrab > 0) {
-                generateHadToDrawEmbed(user);
+                sendHadToDrawEmbed(user);
                 this.playerData.forEach((participant, unoPlayerData) -> {
                     if ((user.getUser() != null && user.getUser().getIdLong() == participant.getUserId()) || user.getUserName().equals(participant.getUserName())) {
                         innerDraw(participant, unoPlayerData.getHand(), this.amountToGrab);
@@ -855,6 +887,7 @@ public class UnoGame {
     }
 
     private void wildDrawFourCard(@NotNull UnoCard cardToPlay, @NotNull Color color) {
+        this.lastPlayedCard = cardToPlay;
         this.currentColour = color;
         this.amountToGrab += 4;
         this.nextRound();
