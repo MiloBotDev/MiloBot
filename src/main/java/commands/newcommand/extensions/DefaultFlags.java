@@ -1,10 +1,7 @@
 package commands.newcommand.extensions;
 
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
 
-import java.util.List;
 import java.util.Set;
 
 public interface DefaultFlags extends Flags {
