@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
+import java.util.Objects;
+
 public interface Permissions {
     boolean hasPermission(IPermissionHolder permissionHolder);
     String getPermissionsText();
@@ -29,7 +31,7 @@ public interface Permissions {
     }
 
     default void sendMissingPermissions(@NotNull SlashCommandEvent event) {
-        String prefix = CommandHandler.prefixes.get(event.getGuild().getIdLong());
+        String prefix = CommandHandler.prefixes.get(Objects.requireNonNull(event.getGuild()).getIdLong());
         User user = event.getUser();
         EmbedBuilder embed = new EmbedBuilder();
         String commandName = ((TextCommand) this).getCommandName();
