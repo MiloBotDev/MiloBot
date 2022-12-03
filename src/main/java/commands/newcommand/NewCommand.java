@@ -18,7 +18,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 abstract class NewCommand implements INewCommand {
-    private Logger logger = LoggerFactory.getLogger(NewCommand.class);
+    private final Logger logger = LoggerFactory.getLogger(NewCommand.class);
 
     public final void onCommand(@NotNull MessageReceivedEvent event, List<String> args) {
         if (this instanceof TextCommand textCommand) {

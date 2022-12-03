@@ -33,6 +33,7 @@ public interface TextCommand extends INewCommand {
     List<String> getCommandArgs();
     Set<String> getCommandAliases();
     boolean checkRequiredArgs(List<String> args);
+    Set<ChannelType> getAllowedChannelTypes();
 
     default void generateHelp(MessageReceivedEvent event) {
         String prefix = CommandHandler.prefixes.get(event.getGuild().getIdLong());
@@ -165,6 +166,17 @@ public interface TextCommand extends INewCommand {
 
         event.getChannel().sendTyping().queue();
         event.getChannel().sendMessageEmbeds(info.build()).setActionRow(
+                Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+    }
+
+    default void sendInvalidChannelMessage(@NotNull MessageReceivedEvent event) {
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setTitle(String.format("Invalid channel type for: %s", ((TextCommand) this).getCommandName()));
+        // allowed channels esparate by spaces
+        embed.setDescription("This command can only be run in the following channel types: " +
+                getAllowedChannelTypes().stream().map(Enum::toString).collect(Collectors.joining(", ")));
+        EmbedUtils.styleEmbed(embed, event.getAuthor());
+        event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }
 }

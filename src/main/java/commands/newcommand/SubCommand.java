@@ -6,12 +6,8 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 import java.util.Set;
 
-public abstract class SubCommand extends NewCommand {
+public abstract class SubCommand extends NewCommand implements ISubCommand {
     private ParentCommand parentCommand = null;
-
-    public SubcommandData getCommandData() {
-        throw new UnsupportedOperationException("This command does not have slash commands.");
-    }
 
     void assignParentCommand(ParentCommand parentCommand) {
         if (this.parentCommand == null) {
@@ -21,6 +17,7 @@ public abstract class SubCommand extends NewCommand {
         }
     }
 
+    @Override
     public ParentCommand getParentCommand() {
         return parentCommand;
     }

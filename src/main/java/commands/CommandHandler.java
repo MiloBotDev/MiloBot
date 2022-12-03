@@ -21,6 +21,7 @@ import utility.Users;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 public class CommandHandler extends ListenerAdapter {
@@ -76,24 +77,7 @@ public class CommandHandler extends ListenerAdapter {
         String message = event.getMessage().getContentRaw();
         String prefix;
         if (event.isFromGuild()) {
-            long guildId = event.getGuild().getIdLong();
-            if (!prefixes.containsKey(guildId)) {
-                String dbPrefix;
-                try (Connection con = DatabaseConnection.getConnection()) {
-                    Prefix prefixObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.NONE);
-                    if (prefixObj == null) {
-                        dbPrefix = Config.getInstance().getDefaultPrefix();
-                    } else {
-                        dbPrefix = prefixObj.getPrefix();
-                    }
-                    prefixes.put(guildId, dbPrefix);
-                } catch (SQLException e) {
-                    logger.error("Error while getting prefix from database", e);
-                    return;
-                }
-            }
-
-            prefix = prefixes.get(guildId);
+            prefix = getGuildPrefix(event.getGuild().getIdLong());
         } else if (event.getChannelType() == ChannelType.PRIVATE) {
             prefix = Config.getInstance().getPrivateChannelPrefix();
         } else {
@@ -271,31 +255,46 @@ public class CommandHandler extends ListenerAdapter {
 
     @Override
     public void onGuildLeave(@NotNull GuildLeaveEvent event) {
-        // remove from prefixes using prefixdao from database
-        try (Connection con = DatabaseConnection.getConnection()) {
-            prefixDao.deleteByGuildId(con, event.getGuild().getIdLong());
-            setGuildPrefix(event.getGuild().getIdLong(), null);
-        } catch (SQLException e) {
-            logger.error("Couldn't delete guild from database", e);
-        }
+        setGuildPrefix(event.getGuild().getIdLong(), null);
     }
 
     public boolean setGuildPrefix(long guildId, String prefix) {
         try (Connection con = DatabaseConnection.getConnection()) {
-            con.setAutoCommit(false);
-            Prefix prefixDbObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.FOR_UPDATE);
-            if (prefixDbObj != null) {
-                prefixDbObj.setPrefix(prefix);
-                prefixDao.update(con, prefixDbObj);
+            if (prefix == null) {
+                prefixDao.deleteByGuildId(con, guildId);
+                return true;
             } else {
-                prefixDao.add(con, new Prefix(guildId, prefix));
+                con.setAutoCommit(false);
+                Prefix prefixDbObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.FOR_UPDATE);
+                if (prefixDbObj != null) {
+                    prefixDbObj.setPrefix(prefix);
+                    prefixDao.update(con, prefixDbObj);
+                } else {
+                    prefixDao.add(con, new Prefix(guildId, prefix));
+                }
+                con.commit();
             }
-            con.commit();
         } catch (SQLException e) {
             logger.error("Could not update prefix for guild", e);
             return false;
         }
-        prefixes.put(guildId, prefix);
         return true;
+    }
+
+    public String getGuildPrefix(long guildId) {
+        String dbPrefix;
+        try (Connection con = DatabaseConnection.getConnection()) {
+            Prefix prefixObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.NONE);
+            if (prefixObj == null) {
+                dbPrefix = Config.getInstance().getDefaultPrefix();
+            } else {
+                dbPrefix = prefixObj.getPrefix();
+            }
+        } catch (SQLException e) {
+            logger.error("Error while getting prefix from database", e);
+            return null;
+        }
+
+        return dbPrefix;
     }
 }
