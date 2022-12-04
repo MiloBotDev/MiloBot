@@ -22,7 +22,7 @@ public class GuildPrefixManager {
         return instance;
     }
 
-    public void setGuildPrefix(long guildId, String prefix) {
+    public void setPrefix(long guildId, String prefix) {
         prefixes.compute(guildId, (id, oldPrefix) -> {
             try (Connection con = DatabaseConnection.getConnection()) {
                 if (prefix == null) {
@@ -46,10 +46,10 @@ public class GuildPrefixManager {
     }
 
     public String getPrefix(long guildId) {
-        return prefixes.computeIfAbsent(guildId, this::getGuildPrefix);
+        return prefixes.computeIfAbsent(guildId, this::getGuildPrefixFromDb);
     }
 
-    private String getGuildPrefix(long guildId) {
+    private String getGuildPrefixFromDb(long guildId) {
         String dbPrefix;
         try (Connection con = DatabaseConnection.getConnection()) {
             Prefix prefixObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.NONE);
