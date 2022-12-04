@@ -1,6 +1,7 @@
 package commands.newcommand.extensions;
 
 import commands.CommandHandler;
+import commands.GuildPrefixManager;
 import commands.newcommand.IParentCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -23,6 +24,6 @@ public interface DefaultTextParentCommand extends TextCommand, IParentCommand {
 
     @Override
     default void executeCommand(MessageReceivedEvent event, List<String> args) {
-        sendCommandExplanation(event, CommandHandler.prefixes.get(event.getGuild().getIdLong()));
+        sendCommandExplanation(event, GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong()));
     }
 }

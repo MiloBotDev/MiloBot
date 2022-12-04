@@ -1,6 +1,7 @@
 package commands.newcommand.extensions;
 
 import commands.CommandHandler;
+import commands.GuildPrefixManager;
 import commands.newcommand.INewCommand;
 import commands.newcommand.ParentCommand;
 import commands.newcommand.SubCommand;
@@ -36,7 +37,7 @@ public interface TextCommand extends INewCommand {
     Set<ChannelType> getAllowedChannelTypes();
 
     default void generateHelp(MessageReceivedEvent event) {
-        String prefix = CommandHandler.prefixes.get(event.getGuild().getIdLong());
+        String prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
 
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(info, event.getAuthor());
@@ -157,7 +158,7 @@ public interface TextCommand extends INewCommand {
     }
 
     default void sendCommandUsage(@NotNull MessageReceivedEvent event) {
-        String prefix = CommandHandler.prefixes.get(event.getGuild().getIdLong());
+        String prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
 
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(info, event.getAuthor());

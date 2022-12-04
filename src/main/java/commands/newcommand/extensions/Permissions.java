@@ -1,6 +1,7 @@
 package commands.newcommand.extensions;
 
 import commands.CommandHandler;
+import commands.GuildPrefixManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.IPermissionHolder;
 import net.dv8tion.jda.api.entities.User;
@@ -17,7 +18,7 @@ public interface Permissions {
     String getPermissionsText();
 
     default void sendMissingPermissions(@NotNull MessageReceivedEvent event) {
-        String prefix = CommandHandler.prefixes.get(event.getGuild().getIdLong());
+        String prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
         User user = event.getAuthor();
         EmbedBuilder embed = new EmbedBuilder();
         String commandName = ((TextCommand) this).getCommandName();
@@ -31,7 +32,7 @@ public interface Permissions {
     }
 
     default void sendMissingPermissions(@NotNull SlashCommandEvent event) {
-        String prefix = CommandHandler.prefixes.get(Objects.requireNonNull(event.getGuild()).getIdLong());
+        String prefix = GuildPrefixManager.getInstance().getPrefix(Objects.requireNonNull(event.getGuild()).getIdLong());
         User user = event.getUser();
         EmbedBuilder embed = new EmbedBuilder();
         String commandName = ((TextCommand) this).getCommandName();
