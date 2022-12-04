@@ -47,6 +47,7 @@ public class NewCommandHandler extends ListenerAdapter {
     public void initialize() {
         // register event listener
         jda.addEventListener(this);
+        // TODO: add event listener for command rework
         /*jda.addEventListener((EventListener) genericEvent -> commands.forEach((name, record) -> {
             record.command.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent)));
             record.command.subCommands.forEach(subCommand ->
