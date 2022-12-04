@@ -7,12 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ParentCommand extends NewCommand implements IParentCommand {
-    private List<SubCommand> subCommands = new ArrayList<>();
+    private final List<SubCommand> subCommands = new ArrayList<>();
 
     @Override
-    public void addSubCommand(SubCommand subCommand) {
+    public ParentCommand addSubCommand(SubCommand subCommand) {
         subCommand.assignParentCommand(this);
         this.subCommands.add(subCommand);
+        return this;
     }
 
     @Override

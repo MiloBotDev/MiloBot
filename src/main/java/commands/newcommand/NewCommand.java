@@ -40,8 +40,7 @@ public abstract class NewCommand implements INewCommand {
                 }
             }
 
-            if (!textCommand.checkRequiredArgs(args)) {
-                textCommand.sendCommandUsage(event);
+            if (!textCommand.checkRequiredArgs(event, args)) {
                 return;
             }
 

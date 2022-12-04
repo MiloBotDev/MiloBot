@@ -1,10 +1,8 @@
 package commands.newcommand.extensions;
 
-import commands.CommandHandler;
 import commands.GuildPrefixManager;
 import commands.newcommand.INewCommand;
 import commands.newcommand.ParentCommand;
-import commands.newcommand.SubCommand;
 import database.dao.CommandTrackerDao;
 import database.dao.UserDao;
 import database.util.DatabaseConnection;
@@ -15,6 +13,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
+import utility.Config;
 import utility.EmbedUtils;
 
 import java.sql.Connection;
@@ -29,11 +28,8 @@ public interface TextCommand extends INewCommand {
 
     void executeCommand(MessageReceivedEvent event, List<String> args);
 
-    String getCommandName();
-    String getCommandDescription();
     List<String> getCommandArgs();
-    Set<String> getCommandAliases();
-    boolean checkRequiredArgs(List<String> args);
+    boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args);
     Set<ChannelType> getAllowedChannelTypes();
 
     default void generateHelp(MessageReceivedEvent event) {
@@ -52,10 +48,11 @@ public interface TextCommand extends INewCommand {
             info.addField("Sub Commands", subCommandsText, false);
         }
 
-        Set<String> aliases = getCommandAliases();
+        // TODO: implement aliases
+        /*Set<String> aliases = getCommandAliases();
         if (!aliases.isEmpty()) {
             info.addField("Aliases", aliases.stream().map(s -> "`" + s + "`").collect(Collectors.joining(", ")), false);
-        }
+        }*/
 
         Set<ChannelType> allowedChannelTypes = getAllowedChannelTypes();
         if(!(allowedChannelTypes.size() == 0)) {
@@ -139,40 +136,53 @@ public interface TextCommand extends INewCommand {
         return argumentsText.toString();
     }
 
-    @Override
-    default String getFullCommandName() {
-        if (this instanceof ParentCommand) {
-            return getCommandName();
-        } else if (this instanceof SubCommand subCommand) {
-            ParentCommand parentCommand = subCommand.getParentCommand();
-            if (parentCommand instanceof TextCommand tParentCommand) {
-                return String.format("%s %s", tParentCommand.getCommandName(), getCommandName());
-            } else if (parentCommand instanceof SlashCommand sParentCommand) {
-                return String.format("%s %s", sParentCommand.getCommandData().getName(), getCommandName());
-            } else {
-                throw new IllegalStateException("Parent command is not a text or slash command.");
-            }
+    default void sendMissingArgs(@NotNull MessageReceivedEvent event) {
+        String prefix;
+        if (event.isFromGuild()) {
+            prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
         } else {
-            throw new IllegalStateException("This command is not a parent or sub command.");
+            prefix = Config.getInstance().getPrivateChannelPrefix();
         }
-    }
-
-    default void sendCommandUsage(@NotNull MessageReceivedEvent event) {
-        String prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
 
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(info, event.getAuthor());
         info.setTitle("Missing required arguments");
         info.setDescription(getArgumentsText(prefix));
 
-        event.getChannel().sendTyping().queue();
+        event.getChannel().sendMessageEmbeds(info.build()).setActionRow(
+                Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+    }
+
+    default void sendTooManyArgs(@NotNull MessageReceivedEvent event) {
+        String prefix;
+        if (event.isFromGuild()) {
+            prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
+        } else {
+            prefix = Config.getInstance().getPrivateChannelPrefix();
+        }
+
+        EmbedBuilder info = new EmbedBuilder();
+        EmbedUtils.styleEmbed(info, event.getAuthor());
+        info.setTitle("Too many arguments");
+        info.setDescription(getArgumentsText(prefix));
+
+        event.getChannel().sendMessageEmbeds(info.build()).setActionRow(
+                Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+    }
+
+    default void sendInvalidArgs(@NotNull MessageReceivedEvent event, String message) {
+        EmbedBuilder info = new EmbedBuilder();
+        EmbedUtils.styleEmbed(info, event.getAuthor());
+        info.setTitle("Arguments error");
+        info.setDescription(message);
+
         event.getChannel().sendMessageEmbeds(info.build()).setActionRow(
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }
 
     default void sendInvalidChannelMessage(@NotNull MessageReceivedEvent event) {
         EmbedBuilder embed = new EmbedBuilder();
-        embed.setTitle(String.format("Invalid channel type for: %s", ((TextCommand) this).getCommandName()));
+        embed.setTitle(String.format("Invalid channel type for: %s", this.getCommandName()));
         // allowed channels esparate by spaces
         embed.setDescription("This command can only be run in the following channel types: " +
                 getAllowedChannelTypes().stream().map(Enum::toString).collect(Collectors.joining(", ")));

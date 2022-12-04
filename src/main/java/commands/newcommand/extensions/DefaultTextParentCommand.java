@@ -1,6 +1,5 @@
 package commands.newcommand.extensions;
 
-import commands.CommandHandler;
 import commands.GuildPrefixManager;
 import commands.newcommand.IParentCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -25,5 +24,15 @@ public interface DefaultTextParentCommand extends TextCommand, IParentCommand {
     @Override
     default void executeCommand(MessageReceivedEvent event, List<String> args) {
         sendCommandExplanation(event, GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong()));
+    }
+
+    @Override
+    default boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args) {
+        return true;
+    }
+
+    @Override
+    default List<String> getCommandArgs() {
+        return List.of();
     }
 }

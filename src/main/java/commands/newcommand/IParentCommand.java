@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface IParentCommand {
     String getSubCommandsText(String prefix);
-    void addSubCommand(SubCommand subCommand);
+    IParentCommand addSubCommand(SubCommand subCommand);
     List<SubCommand> getSubCommands();
 }

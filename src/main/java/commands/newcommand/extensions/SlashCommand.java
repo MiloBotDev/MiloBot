@@ -1,8 +1,6 @@
 package commands.newcommand.extensions;
 
 import commands.newcommand.INewCommand;
-import commands.newcommand.ParentCommand;
-import commands.newcommand.SubCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -21,6 +19,9 @@ public interface SlashCommand extends INewCommand {
     default String getCommandName() {
         return getCommandData().getName();
     }
+    default String getCommandDescription() {
+        return getCommandData().getDescription();
+    }
 
     // this will be removed in the future, JDA 5 will support setting if a command is guild-only in the CommandData
     Set<ChannelType> getAllowedChannelTypes();
@@ -32,23 +33,5 @@ public interface SlashCommand extends INewCommand {
         EmbedUtils.styleEmbed(embed, event.getUser());
         event.replyEmbeds(embed.build()).addActionRow(
                 Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
-    }
-
-    @Override
-    default String getFullCommandName() {
-        if (this instanceof ParentCommand) {
-            return getCommandData().getName();
-        } else if (this instanceof SubCommand subCommand) {
-            ParentCommand parentCommand = subCommand.getParentCommand();
-            if (parentCommand instanceof TextCommand tParentCommand) {
-                return String.format("%s %s", tParentCommand.getCommandName(), getCommandData().getName());
-            } else if (parentCommand instanceof SlashCommand sParentCommand) {
-                return String.format("%s %s", sParentCommand.getCommandData().getName(), getCommandData().getName());
-            } else {
-                throw new IllegalStateException("Parent command is not a text or slash command.");
-            }
-        } else {
-            throw new IllegalStateException("This command is not a parent or sub command.");
-        }
     }
 }
