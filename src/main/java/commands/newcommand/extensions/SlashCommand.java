@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import utility.EmbedUtils;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,6 +18,9 @@ public interface SlashCommand extends INewCommand {
 
     void executeCommand(SlashCommandEvent event);
     BaseCommand<?> getCommandData();
+    default String getCommandName() {
+        return getCommandData().getName();
+    }
 
     // this will be removed in the future, JDA 5 will support setting if a command is guild-only in the CommandData
     Set<ChannelType> getAllowedChannelTypes();
