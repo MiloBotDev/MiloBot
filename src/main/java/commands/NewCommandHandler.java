@@ -7,7 +7,6 @@ import commands.newcommand.extensions.EventListeners;
 import commands.newcommand.extensions.SlashCommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -166,10 +165,5 @@ public class NewCommandHandler extends ListenerAdapter {
                 logger.error("Error while slash executing command " + command.getFullCommandName(), e);
             }
         });
-    }
-
-    @Override
-    public void onGuildLeave(@NotNull GuildLeaveEvent event) {
-        GuildPrefixManager.getInstance().setPrefix(event.getGuild().getIdLong(), null);
     }
 }

@@ -4,6 +4,10 @@ import database.dao.PrefixDao;
 import database.model.Prefix;
 import database.util.DatabaseConnection;
 import database.util.RowLockType;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 import utility.Config;
 
 import java.sql.Connection;
@@ -20,6 +24,15 @@ public class GuildPrefixManager {
             instance = new GuildPrefixManager();
         }
         return instance;
+    }
+
+    public EventListener getEventListener() {
+        return new ListenerAdapter() {
+            @Override
+            public void onGuildLeave(@NotNull GuildLeaveEvent event) {
+                setPrefix(event.getGuild().getIdLong(), null);
+            }
+        };
     }
 
     public void setPrefix(long guildId, String prefix) {

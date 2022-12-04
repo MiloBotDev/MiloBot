@@ -1,4 +1,5 @@
 import commands.CommandLoader;
+import commands.GuildPrefixManager;
 import events.OnReadyEvent;
 import events.guild.OnGuildJoin;
 import events.guild.OnGuildLeave;
@@ -26,7 +27,7 @@ public class MiloBot {
                         GatewayIntent.DIRECT_MESSAGES)
                 .setActivity(Activity.watching("Morbius"))
                 .addEventListeners(new OnGuildJoin(), new OnGuildLeave(),
-                        new OnReadyEvent())
+                        new OnReadyEvent(), GuildPrefixManager.getInstance().getEventListener())
                 .build().awaitReady();
 
         CommandLoader.loadAllCommands(bot);
