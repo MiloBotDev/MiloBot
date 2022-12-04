@@ -140,7 +140,7 @@ public class BlackjackGame {
         }
     }
 
-    public static void newGame(SlashCommandEvent event) {
+    public static void newGame(@NotNull SlashCommandEvent event) {
         long authorIdLong = event.getUser().getIdLong();
         String authorId = event.getUser().getId();
 
@@ -346,9 +346,9 @@ public class BlackjackGame {
     }
 
     private void initializeGame() {
-        this.dealerHand.add(deck.drawCard());
-        this.playerHand.add(deck.drawCard());
-        this.playerHand.add(deck.drawCard());
+        this.dealerHand.add(deck.drawCard().get());
+        this.playerHand.add(deck.drawCard().get());
+        this.playerHand.add(deck.drawCard().get());
         this.playerStand = false;
         this.dealerStand = false;
         this.finished = false;
@@ -383,11 +383,11 @@ public class BlackjackGame {
     }
 
     private void playerHit() {
-        this.playerHand.add(deck.drawCard());
+        this.playerHand.add(deck.drawCard().get());
     }
 
     private void dealerHit() {
-        this.dealerHand.add(deck.drawCard());
+        this.dealerHand.add(deck.drawCard().get());
     }
 
     private void dealerMoves() {
@@ -415,7 +415,7 @@ public class BlackjackGame {
         return total;
     }
 
-    private int getCardValue(PlayingCard card) {
+    private int getCardValue(@NotNull PlayingCard card) {
         PlayingCard.Rank rank = card.getRank();
         if (rank.toInt() <= 10) {
             // card with number on its face

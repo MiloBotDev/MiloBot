@@ -70,7 +70,7 @@ public class PokerGame {
                 playerData.put(player, new PlayerData());
                 List<PlayingCard> hand = new ArrayList<>();
                 for (int i = 0; i < 5; i++) {
-                    hand.add(mainDeck.drawCard());
+                    hand.add(mainDeck.drawCard().get());
                 }
                 sortHand(hand);
                 playerData.get(player).hand = hand;
@@ -296,7 +296,7 @@ public class PokerGame {
                     }
                     List<PlayingCard> hand = playerData.get(event.getAuthor()).hand;
                     for (Integer cardNumber : cardsToReplace) {
-                        hand.set(cardNumber - 1, mainDeck.drawCard());
+                        hand.set(cardNumber - 1, mainDeck.drawCard().get());
                     }
                     sortHand(hand);
                     playerData.get(event.getAuthor()).embed.editMessageEmbeds(

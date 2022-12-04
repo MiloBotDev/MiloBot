@@ -23,6 +23,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 // moving to NewCommandHandler
 @Deprecated(since="12/4/22", forRemoval=true)
@@ -182,7 +184,7 @@ public class CommandHandler extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommand(SlashCommandEvent event) {
+    public void onSlashCommand(@NotNull SlashCommandEvent event) {
         if (event.getUser().isBot()) {
             return;
         }

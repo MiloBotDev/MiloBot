@@ -4,6 +4,7 @@ import commands.Command;
 import commands.ParentCmd;
 import commands.games.GamesCmd;
 import games.uno.UnoGame;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -23,5 +24,7 @@ public class UnoCmd extends Command implements GamesCmd, ParentCmd {
             }
         });
         this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 }

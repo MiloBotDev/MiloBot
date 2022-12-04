@@ -2,8 +2,9 @@ package commands.games.uno;
 
 import commands.Command;
 import commands.SubCmd;
-import games.hungergames.models.LobbyEntry;
+import games.hungergames.model.LobbyEntry;
 import games.uno.UnoGame;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +22,8 @@ public class UnoHostCmd extends Command implements SubCmd {
     public UnoHostCmd() {
         this.commandName = "host";
         this.commandDescription = "Host a game of Uno!";
-        this.aliases =  new String[]{"h", "start", "play"};
+        this.aliases =  new String[]{"start", "play", "h"};
+        this.allowedChannelTypes.add(ChannelType.TEXT);
     }
 
     @Override

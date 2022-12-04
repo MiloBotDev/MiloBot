@@ -31,5 +31,8 @@ public class MiloBot {
                 .build().awaitReady();
 
         CommandLoader.loadAllCommands(bot);
+
+        // uncomment this line to generate documentation for all commands
+        // CommandHandler.generateDocumentation();
     }
 }

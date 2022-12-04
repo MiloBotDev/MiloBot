@@ -323,7 +323,7 @@ public abstract class Command {
             StringBuilder aliasesText = new StringBuilder();
             for (int i = 0; i < aliases.length; i++) {
                 aliasesText.append('`').append(aliases[i]).append('`');
-                if (!(i + 1 == flags.length)) {
+                if (!(i + 1 == aliases.length)) {
                     aliasesText.append(", ");
                 }
             }
@@ -602,10 +602,6 @@ public abstract class Command {
                 }
                 markdown.append("`\n").append(subCommand.commandDescription).append("\n\n");
             }
-        }
-        if(!allowedChannelTypes.isEmpty()) {
-            markdown.append("#### Allowed Channel Types\n\n");
-            markdown.append(allowedChannelTypes.stream().map(Enum::toString).collect(Collectors.joining(", "))).append("\n\n");
         }
         return markdown.toString();
     }

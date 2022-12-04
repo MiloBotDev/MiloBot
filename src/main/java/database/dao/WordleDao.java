@@ -121,7 +121,7 @@ public class WordleDao {
 
     @Nullable
     public Wordle getByUserId(@NotNull Connection con, int userId, @NotNull RowLockType lockType) throws SQLException {
-        String query = lockType.getQueryWithLock("SELECT * FROM wordle WHERE user_id = ?;");
+        String query = lockType.getQueryWithLock("SELECT * FROM wordle WHERE user_id = ?");
         try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -136,7 +136,7 @@ public class WordleDao {
 
     @Nullable
     public Wordle getByUserDiscordId(@NotNull Connection con, long userDiscordId, @NotNull RowLockType lockType) throws SQLException {
-        String query = lockType.getQueryWithLock("SELECT * FROM wordle WHERE user_id = (SELECT id FROM users WHERE discord_id = ?);");
+        String query = lockType.getQueryWithLock("SELECT * FROM wordle WHERE user_id = (SELECT id FROM users WHERE discord_id = ?)");
         try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setLong(1, userDiscordId);
             try (ResultSet rs = ps.executeQuery()) {

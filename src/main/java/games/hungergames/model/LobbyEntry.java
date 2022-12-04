@@ -1,4 +1,4 @@
-package games.hungergames.models;
+package games.hungergames.model;
 
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
@@ -53,5 +53,15 @@ public class LobbyEntry {
 
     public User getUser() {
         return user;
+    }
+
+    @Override
+    public String toString() {
+        return "LobbyEntry{" +
+                "userId=" + userId +
+                ", username='" + username + '\'' +
+                ", mention='" + mention + '\'' +
+                ", isBot=" + isBot +
+                '}';
     }
 }

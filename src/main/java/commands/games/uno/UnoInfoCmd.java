@@ -3,6 +3,7 @@ package commands.games.uno;
 import commands.Command;
 import commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -18,6 +19,8 @@ public class UnoInfoCmd extends Command implements SubCmd {
         this.commandName = "info";
         this.commandDescription = "A simple tutorial on how to play uno with milobot.";
         this.aliases = new String[]{"i"};
+        this.allowedChannelTypes.add(ChannelType.TEXT);
+        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override
