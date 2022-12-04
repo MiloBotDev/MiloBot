@@ -51,7 +51,7 @@ public abstract class NewCommand implements INewCommand {
         }
     }
 
-    public final void onCommand(@NotNull SlashCommandEvent event, List<String> args) {
+    public final void onCommand(@NotNull SlashCommandEvent event) {
         if (this instanceof SlashCommand slashCommand) {
             if (!slashCommand.getAllowedChannelTypes().contains(event.getChannelType())) {
                 slashCommand.sendInvalidChannelMessage(event);
@@ -65,7 +65,7 @@ public abstract class NewCommand implements INewCommand {
 
             doUserCommandUpdates(event.getUser(), event.getChannel());
 
-            ((SlashCommand) this).executeCommand(event, args);
+            ((SlashCommand) this).executeCommand(event);
         }
     }
 
