@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 /**
  * Basic implementation of a command.
  */
+// moving to NewCommand
+@Deprecated(since="12/4/22", forRemoval=true)
 public abstract class Command {
 
     private static final Logger logger = LoggerFactory.getLogger(Command.class);

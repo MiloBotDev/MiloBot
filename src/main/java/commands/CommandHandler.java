@@ -24,6 +24,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
+// moving to NewCommandHandler
+@Deprecated(since="12/4/22", forRemoval=true)
 public class CommandHandler extends ListenerAdapter {
 
     public record CommandRecord(Command command, ExecutorService executor) {
