@@ -3,6 +3,7 @@ package commands;
 import commands.newcommand.NewCommand;
 import commands.newcommand.ParentCommand;
 import commands.newcommand.SubCommand;
+import commands.newcommand.extensions.EventListeners;
 import commands.newcommand.extensions.SlashCommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -39,12 +40,17 @@ public class NewCommandHandler extends ListenerAdapter {
     public void initialize() {
         // register event listener
         jda.addEventListener(this);
-        // TODO: add event listener for command rework
-        /*jda.addEventListener((EventListener) genericEvent -> commands.forEach((name, record) -> {
-            record.command.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent)));
-            record.command.subCommands.forEach(subCommand ->
-                    subCommand.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent))));
-        }));*/
+
+        commands.forEach((name, record) -> {
+            if (record.command() instanceof EventListeners listeners) {
+                jda.addEventListener(listeners);
+            }
+            record.command().getSubCommands().forEach(subCommand -> {
+                if (subCommand instanceof EventListeners subListeners) {
+                    jda.addEventListener(subListeners);
+                }
+            });
+        });
 
         // slash commands
         ArrayList<CommandData> commandDatas = new ArrayList<>();
