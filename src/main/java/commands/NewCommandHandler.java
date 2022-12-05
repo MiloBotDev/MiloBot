@@ -17,14 +17,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utility.Config;
 
-import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class NewCommandHandler extends ListenerAdapter {
 
-    public record CommandRecord(ParentCommand command, ExecutorService executor) {
-    }
-    public static final Map<String, CommandRecord> commands = new HashMap<>();
+    private final List<ParentCommand> commands = new ArrayList<>();
     private final Logger logger = LoggerFactory.getLogger(NewCommandHandler.class);
     private final JDA jda;
 
@@ -32,19 +31,19 @@ public class NewCommandHandler extends ListenerAdapter {
         this.jda = jda;
     }
 
-    public void registerCommand(ExecutorService service, @NotNull ParentCommand command) {
-        commands.put(command.getCommandName(), new CommandRecord(command, service));
+    public void registerCommand(@NotNull ParentCommand command) {
+        commands.add(command);
     }
 
     public void initialize() {
         // register event listener
         jda.addEventListener(this);
 
-        commands.forEach((name, record) -> {
-            if (record.command() instanceof EventListeners listeners) {
+        commands.forEach(command -> {
+            if (command instanceof EventListeners listeners) {
                 jda.addEventListener(listeners);
             }
-            record.command().getSubCommands().forEach(subCommand -> {
+            command.getSubCommands().forEach(subCommand -> {
                 if (subCommand instanceof EventListeners subListeners) {
                     jda.addEventListener(subListeners);
                 }
@@ -53,8 +52,7 @@ public class NewCommandHandler extends ListenerAdapter {
 
         // slash commands
         ArrayList<CommandData> commandDatas = new ArrayList<>();
-        for (CommandRecord commandRecord : commands.values()) {
-            ParentCommand command = commandRecord.command;
+        for (ParentCommand command : commands) {
             if (command instanceof SlashCommand slashCommand) {
                 CommandData commandData;
                 try {
@@ -105,30 +103,24 @@ public class NewCommandHandler extends ListenerAdapter {
             return;
         }
 
-        CommandRecord commandRecord = commands.get(messageParts.get(0).toLowerCase());
-        if (commandRecord == null) {
-            return;
-        }
-
-        ExecutorService executorService = commandRecord.executor;
-        messageParts.remove(0);
-        executorService.submit(() -> {
-            ParentCommand parentCommand = commandRecord.command;
-            NewCommand command = commandRecord.command;
-
-            if (messageParts.size() > 0) {
-                for (SubCommand subCommand : parentCommand.getSubCommands()) {
-                    if (subCommand.getCommandName().equals(messageParts.get(0).toLowerCase())) {
-                        messageParts.remove(0);
-                        command = subCommand;
-                        break;
-                    }
-                }
+        commands.stream().filter(cmd -> cmd.getCommandName().equals(messageParts.get(0))).findFirst().ifPresentOrElse(command -> {
+            if (messageParts.size() == 1) {
+                executeCommand(command, event, messageParts);
+            } else {
+                messageParts.remove(0);
+                command.getSubCommands().stream().filter(subCommand -> subCommand.getCommandName().equals(messageParts.get(0))).findFirst().ifPresentOrElse(subCommand -> {
+                    messageParts.remove(0);
+                    executeCommand(subCommand, event, messageParts);
+                }, () -> executeCommand(command, event, messageParts));
             }
+        }, () -> logger.trace("Command not found: " + messageParts.get(0)));
+    }
 
+    private void executeCommand(NewCommand command, MessageReceivedEvent event, List<String> args) {
+        logger.trace("Executing text command " + command.getFullCommandName());
+        command.getExecutorService().execute(() -> {
             try {
-                logger.trace("Executing text command " + command.getFullCommandName());
-                command.onCommand(event, messageParts);
+                command.onCommand(event, args);
             } catch (Exception e) {
                 logger.error("Error while executing text command " + command.getFullCommandName(), e);
             }
@@ -140,31 +132,24 @@ public class NewCommandHandler extends ListenerAdapter {
         if (event.getUser().isBot()) {
             return;
         }
-        String commandName = event.getName();
-        CommandRecord commandRecord = commands.get(commandName);
-        if (commandRecord == null) {
-            return;
-        }
 
-        ExecutorService executorService = commandRecord.executor;
-        executorService.submit(() -> {
-            ParentCommand parentCommand = commandRecord.command;
-            NewCommand command = commandRecord.command;
-
-            if (event.getSubcommandName() != null) {
-                for (SubCommand subCommand : parentCommand.getSubCommands()) {
-                    if (subCommand.getCommandName().equals(event.getSubcommandName())) {
-                        command = subCommand;
-                        break;
-                    }
-                }
+        commands.stream().filter(cmd -> cmd.getCommandName().equals(event.getName())).findFirst().ifPresentOrElse(command -> {
+            if (event.getSubcommandName() == null || event.getSubcommandName() == null) {
+                executeCommand(command, event);
+            } else {
+                command.getSubCommands().stream().filter(subCommand -> subCommand.getCommandName().equals(event.getSubcommandName())).findFirst().ifPresentOrElse(subCommand -> {
+                    executeCommand(subCommand, event);
+                }, () -> executeCommand(command, event));
             }
+        }, () -> logger.trace("Command not found: " + event.getName()));
+    }
 
+    private void executeCommand(NewCommand command, SlashCommandEvent event) {
+        command.getExecutorService().execute(() -> {
             try {
-                logger.trace("Executing slash command " + command.getFullCommandName());
                 command.onCommand(event);
             } catch (Exception e) {
-                logger.error("Error while slash executing command " + command.getFullCommandName(), e);
+                logger.error("Error while executing text command " + command.getFullCommandName(), e);
             }
         });
     }

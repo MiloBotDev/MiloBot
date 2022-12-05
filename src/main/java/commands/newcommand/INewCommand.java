@@ -3,6 +3,8 @@ package commands.newcommand;
 import commands.newcommand.extensions.SlashCommand;
 import commands.newcommand.extensions.TextCommand;
 
+import java.util.concurrent.ExecutorService;
+
 public interface INewCommand {
 
     String getCommandName();
@@ -23,4 +25,6 @@ public interface INewCommand {
             throw new IllegalStateException("This command is not a parent or sub command.");
         }
     }
+
+    ExecutorService getExecutorService();
 }
