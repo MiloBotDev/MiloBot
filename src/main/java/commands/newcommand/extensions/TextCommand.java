@@ -33,11 +33,16 @@ public interface TextCommand extends INewCommand {
     Set<ChannelType> getAllowedChannelTypes();
 
     default void generateHelp(MessageReceivedEvent event) {
-        String prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
+        String prefix;
+        if (event.isFromGuild()) {
+            prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
+        } else {
+            prefix = Config.getInstance().getPrivateChannelPrefix();
+        }
 
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(info, event.getAuthor());
-        info.setTitle(getCommandName());
+        info.setTitle(getFullCommandName());
         info.setDescription(getCommandDescription());
 
         String argumentsText = getArgumentsText(prefix);
@@ -48,11 +53,11 @@ public interface TextCommand extends INewCommand {
             info.addField("Sub Commands", subCommandsText, false);
         }
 
-        // TODO: implement aliases
-        /*Set<String> aliases = getCommandAliases();
-        if (!aliases.isEmpty()) {
-            info.addField("Aliases", aliases.stream().map(s -> "`" + s + "`").collect(Collectors.joining(", ")), false);
-        }*/
+        if (this instanceof Aliases) {
+            String aliasesText = ((Aliases) this).getAliases().stream().map(s -> "`" + s + "`")
+                    .collect(Collectors.joining(", "));
+            info.addField("Aliases", aliasesText, false);
+        }
 
         Set<ChannelType> allowedChannelTypes = getAllowedChannelTypes();
         if(!(allowedChannelTypes.size() == 0)) {
@@ -120,9 +125,9 @@ public interface TextCommand extends INewCommand {
         StringBuilder argumentsText = new StringBuilder();
         List<String> commandArgs = getCommandArgs();
         if (commandArgs.size() == 0) {
-            argumentsText.append("`").append(prefix).append(getCommandName()).append("`");
+            argumentsText.append("`").append(prefix).append(getFullCommandName()).append("`");
         } else {
-            argumentsText.append("`").append(prefix).append(getCommandName()).append(" ");
+            argumentsText.append("`").append(prefix).append(getFullCommandName()).append(" ");
             for (int i = 0; i < commandArgs.size(); i++) {
                 argumentsText.append("{").append(commandArgs.get(i)).append("}");
                 if (!(i + 1 == commandArgs.size())) {

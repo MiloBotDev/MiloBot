@@ -3,6 +3,7 @@ package commands;
 import commands.newcommand.NewCommand;
 import commands.newcommand.ParentCommand;
 import commands.newcommand.SubCommand;
+import commands.newcommand.extensions.Aliases;
 import commands.newcommand.extensions.EventListeners;
 import commands.newcommand.extensions.SlashCommand;
 import net.dv8tion.jda.api.JDA;
@@ -103,12 +104,17 @@ public class NewCommandHandler extends ListenerAdapter {
             return;
         }
 
-        commands.stream().filter(cmd -> cmd.getCommandName().equals(messageParts.get(0))).findFirst().ifPresentOrElse(command -> {
+        commands.stream().filter(cmd -> cmd.getCommandName().equals(messageParts.get(0)) ||
+                (cmd instanceof Aliases &&
+                        (((Aliases) cmd).getAliases().contains(messageParts.get(0)))))
+                .findFirst().ifPresentOrElse(command -> {
             if (messageParts.size() == 1) {
                 executeCommand(command, event, messageParts);
             } else {
                 messageParts.remove(0);
-                command.getSubCommands().stream().filter(subCommand -> subCommand.getCommandName().equals(messageParts.get(0))).findFirst().ifPresentOrElse(subCommand -> {
+                command.getSubCommands().stream().filter(subCommand -> subCommand.getCommandName().equals(messageParts.get(0)) ||
+                        subCommand instanceof Aliases &&
+                                ((Aliases) subCommand).getAliases().contains(messageParts.get(0))).findFirst().ifPresentOrElse(subCommand -> {
                     messageParts.remove(0);
                     executeCommand(subCommand, event, messageParts);
                 }, () -> executeCommand(command, event, messageParts));
@@ -137,9 +143,8 @@ public class NewCommandHandler extends ListenerAdapter {
             if (event.getSubcommandName() == null || event.getSubcommandName() == null) {
                 executeCommand(command, event);
             } else {
-                command.getSubCommands().stream().filter(subCommand -> subCommand.getCommandName().equals(event.getSubcommandName())).findFirst().ifPresentOrElse(subCommand -> {
-                    executeCommand(subCommand, event);
-                }, () -> executeCommand(command, event));
+                command.getSubCommands().stream().filter(subCommand -> subCommand.getCommandName().equals(event.getSubcommandName()))
+                        .findFirst().ifPresentOrElse(subCommand -> executeCommand(subCommand, event), () -> executeCommand(command, event));
             }
         }, () -> logger.trace("Command not found: " + event.getName()));
     }

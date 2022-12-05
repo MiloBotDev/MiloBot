@@ -5,6 +5,7 @@ import commands.newcommand.IParentCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
+import utility.Config;
 import utility.EmbedUtils;
 
 import java.util.List;
@@ -23,7 +24,9 @@ public interface DefaultTextParentCommand extends TextCommand, IParentCommand {
 
     @Override
     default void executeCommand(MessageReceivedEvent event, List<String> args) {
-        sendCommandExplanation(event, GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong()));
+        sendCommandExplanation(event, event.isFromGuild() ?
+                GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong()) :
+                Config.getInstance().getPrivateChannelPrefix());
     }
 
     @Override
