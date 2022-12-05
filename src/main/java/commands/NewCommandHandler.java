@@ -25,7 +25,7 @@ public class NewCommandHandler extends ListenerAdapter {
     public record CommandRecord(ParentCommand command, ExecutorService executor) {
     }
     public static final Map<String, CommandRecord> commands = new HashMap<>();
-    private final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(NewCommandHandler.class);
     private final JDA jda;
 
     public NewCommandHandler(JDA jda) {
@@ -127,6 +127,7 @@ public class NewCommandHandler extends ListenerAdapter {
             }
 
             try {
+                logger.trace("Executing text command " + command.getFullCommandName());
                 command.onCommand(event, messageParts);
             } catch (Exception e) {
                 logger.error("Error while executing text command " + command.getFullCommandName(), e);
@@ -160,6 +161,7 @@ public class NewCommandHandler extends ListenerAdapter {
             }
 
             try {
+                logger.trace("Executing slash command " + command.getFullCommandName());
                 command.onCommand(event);
             } catch (Exception e) {
                 logger.error("Error while slash executing command " + command.getFullCommandName(), e);
