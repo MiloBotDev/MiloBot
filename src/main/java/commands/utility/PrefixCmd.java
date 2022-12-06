@@ -2,6 +2,7 @@ package commands.utility;
 
 import commands.Command;
 import commands.CommandHandler;
+import commands.GuildPrefixManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -37,9 +38,8 @@ public class PrefixCmd extends Command implements UtilityCmd {
         } else {
             if (isValidPrefix(prefix)) {
                 long id = event.getGuild().getIdLong();
-                if (updatePrefix(prefix, id)) {
-                    event.getChannel().sendMessage(String.format("Prefix successfully changed to: %s", prefix)).queue();
-                }
+                updatePrefix(prefix, id);
+                event.getChannel().sendMessage(String.format("Prefix successfully changed to: %s", prefix)).queue();
             } else {
                 event.getChannel().sendMessage(String.format("`%s` is not a valid prefix", prefix)).queue();
             }
@@ -54,17 +54,16 @@ public class PrefixCmd extends Command implements UtilityCmd {
         } else {
             if (isValidPrefix(prefix)) {
                 long id = Objects.requireNonNull(event.getGuild()).getIdLong();
-                if (updatePrefix(prefix, id)) {
-                    event.reply(String.format("Prefix successfully changed to: %s", prefix)).queue();
-                }
+                updatePrefix(prefix, id);
+                event.reply(String.format("Prefix successfully changed to: %s", prefix)).queue();
             } else {
                 event.reply(String.format("`%s` is not a valid prefix", prefix)).queue();
             }
         }
     }
 
-    private boolean updatePrefix(String prefix, long id) {
-        return handler.setGuildPrefix(id, prefix);
+    private void updatePrefix(String prefix, long id) {
+        GuildPrefixManager.getInstance().setPrefix(id, prefix);
     }
 
     private boolean isValidPrefix(@NotNull String prefix) {

@@ -23,6 +23,8 @@ import utility.lobby.BotLobby;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+// moving to NewCommandLoader
+@Deprecated(since="12/4/22", forRemoval = true)
 public class CommandLoader {
 
     public static void loadAllCommands(JDA jda) {

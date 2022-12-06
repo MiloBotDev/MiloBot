@@ -2,6 +2,7 @@ package commands.utility;
 
 import commands.Command;
 import commands.CommandHandler;
+import commands.GuildPrefixManager;
 import commands.bot.BotCmd;
 import commands.games.GamesCmd;
 import commands.games.dnd.DndCmd;
@@ -101,7 +102,7 @@ public class HelpCmd extends Command implements UtilityCmd {
      * Builds the embeds for the help command.
      */
     private void createEmbed(@NotNull User author, @NotNull Guild guild) {
-        String prefix = handler.prefixes.get(guild.getIdLong());
+        String prefix = GuildPrefixManager.getInstance().getPrefix(guild.getIdLong());
 
         StringBuilder utility = new StringBuilder();
         StringBuilder morbconomy = new StringBuilder();

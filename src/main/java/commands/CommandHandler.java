@@ -21,17 +21,18 @@ import utility.Users;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+// moving to NewCommandHandler
+@Deprecated(since="12/4/22", forRemoval=true)
 public class CommandHandler extends ListenerAdapter {
 
     public record CommandRecord(Command command, ExecutorService executor) {
     }
     public static final Map<String, CommandRecord> commands = new HashMap<>();
-    public static final Map<Long, String> prefixes = new HashMap<>();
-    private final PrefixDao prefixDao = PrefixDao.getInstance();
     private final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
     private final JDA jda;
 
@@ -78,24 +79,7 @@ public class CommandHandler extends ListenerAdapter {
         String message = event.getMessage().getContentRaw();
         String prefix;
         if (event.isFromGuild()) {
-            long guildId = event.getGuild().getIdLong();
-            if (!prefixes.containsKey(guildId)) {
-                String dbPrefix;
-                try (Connection con = DatabaseConnection.getConnection()) {
-                    Prefix prefixObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.NONE);
-                    if (prefixObj == null) {
-                        dbPrefix = Config.getInstance().getDefaultPrefix();
-                    } else {
-                        dbPrefix = prefixObj.getPrefix();
-                    }
-                    prefixes.put(guildId, dbPrefix);
-                } catch (SQLException e) {
-                    logger.error("Error while getting prefix from database", e);
-                    return;
-                }
-            }
-
-            prefix = prefixes.get(guildId);
+            prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
         } else if (event.getChannelType() == ChannelType.PRIVATE) {
             prefix = Config.getInstance().getPrivateChannelPrefix();
         } else {
@@ -269,46 +253,5 @@ public class CommandHandler extends ListenerAdapter {
             logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
                     event.getUser().getName()));
         });
-    }
-
-    @Override
-    public void onGuildLeave(@NotNull GuildLeaveEvent event) {
-        // remove from prefixes using prefixdao from database
-        try (Connection con = DatabaseConnection.getConnection()) {
-            prefixDao.deleteByGuildId(con, event.getGuild().getIdLong());
-            setGuildPrefix(event.getGuild().getIdLong(), null);
-        } catch (SQLException e) {
-            logger.error("Couldn't delete guild from database", e);
-        }
-    }
-
-    public boolean setGuildPrefix(long guildId, String prefix) {
-        try (Connection con = DatabaseConnection.getConnection()) {
-            con.setAutoCommit(false);
-            Prefix prefixDbObj = prefixDao.getPrefixByGuildId(con, guildId, RowLockType.FOR_UPDATE);
-            if (prefixDbObj != null) {
-                prefixDbObj.setPrefix(prefix);
-                prefixDao.update(con, prefixDbObj);
-            } else {
-                prefixDao.add(con, new Prefix(guildId, prefix));
-            }
-            con.commit();
-        } catch (SQLException e) {
-            logger.error("Could not update prefix for guild", e);
-            return false;
-        }
-        prefixes.put(guildId, prefix);
-        return true;
-    }
-
-    public static void generateDocumentation() {
-        StringBuilder md = new StringBuilder();
-        commands.forEach((s, commandRecord) -> {
-            Command command = commandRecord.command;
-            if (!(command instanceof SubCmd)) {
-                md.append(command.generateMarkdown());
-            }
-        });
-        System.out.println(md);
     }
 }

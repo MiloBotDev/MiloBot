@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 /**
  * Basic implementation of a command.
  */
+// moving to NewCommand
+@Deprecated(since="12/4/22", forRemoval=true)
 public abstract class Command {
 
     private static final Logger logger = LoggerFactory.getLogger(Command.class);
@@ -298,7 +300,7 @@ public abstract class Command {
      * Generates a standard help message for when the command is called with the --help flag.
      */
     public EmbedBuilder generateHelp(@NotNull Guild guild, @NotNull User author) {
-        String prefix = CommandHandler.prefixes.get(guild.getIdLong());
+        String prefix = GuildPrefixManager.getInstance().getPrefix(guild.getIdLong());
 
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(info, author);
@@ -408,7 +410,7 @@ public abstract class Command {
      * Generates and sends a message for when the command has been improperly used.
      */
     public void sendCommandUsage(@NotNull MessageReceivedEvent event) {
-        String prefix = CommandHandler.prefixes.get(event.getGuild().getIdLong());
+        String prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
 
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(info, event.getAuthor());
