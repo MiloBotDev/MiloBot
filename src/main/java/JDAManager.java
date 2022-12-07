@@ -18,7 +18,7 @@ public class JDAManager {
     private static JDAManager instance;
     private final Logger logger = LoggerFactory.getLogger(JDAManager.class);
     private final JDABuilder jdaBuilder;
-    private boolean built = false;
+    private volatile boolean built = false;
     private List<Consumer<JDA>> jdaBuiltActions = new ArrayList<>();
     private List<Consumer<JDA>> jdaReadyActions = new ArrayList<>();
 
