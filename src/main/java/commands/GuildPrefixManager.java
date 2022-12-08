@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.JDAManager;
 import utility.Config;
 
 import java.sql.Connection;
@@ -24,6 +25,15 @@ public class GuildPrefixManager {
             instance = new GuildPrefixManager();
         }
         return instance;
+    }
+
+    public void initialize() {
+        JDAManager.getInstance().getJDABuilder().addEventListeners(new ListenerAdapter() {
+            @Override
+            public void onGuildLeave(@NotNull GuildLeaveEvent event) {
+                setPrefix(event.getGuild().getIdLong(), null);
+            }
+        });
     }
 
     public EventListener getEventListener() {
