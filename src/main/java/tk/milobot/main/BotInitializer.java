@@ -3,6 +3,7 @@ package tk.milobot.main;
 import tk.milobot.commands.ButtonHandler;
 import tk.milobot.commands.GuildPrefixManager;
 import tk.milobot.commands.NewCommandLoader;
+import tk.milobot.events.EventLoader;
 
 public class BotInitializer {
 
@@ -14,6 +15,7 @@ public class BotInitializer {
         GuildPrefixManager.getInstance().initialize();
         NewCommandLoader.initialize();
         ButtonHandler.getInstance().initialize();
+        EventLoader.load();
 
         // load the bot
         JDAManager.getInstance().build();
