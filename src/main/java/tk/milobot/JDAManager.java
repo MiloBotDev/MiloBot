@@ -24,16 +24,16 @@ public class JDAManager {
     private List<Consumer<JDA>> jdaBuiltActions = new ArrayList<>();
     private List<Consumer<JDA>> jdaReadyActions = new ArrayList<>();
 
+    private JDAManager() {
+        jdaBuilder = JDABuilder.createDefault(Config.getInstance().getBotToken())
+                .setActivity(Activity.listening("Ping bot for help"));
+    }
+
     public synchronized static JDAManager getInstance() {
         if (instance == null) {
             instance = new JDAManager();
         }
         return instance;
-    }
-
-    private JDAManager() {
-        jdaBuilder = JDABuilder.createDefault(Config.getInstance().getBotToken())
-                .setActivity(Activity.listening("Ping bot for help"));
     }
 
     /**
