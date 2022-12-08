@@ -6,7 +6,6 @@ import commands.newcommand.SubCommand;
 import commands.newcommand.extensions.Aliases;
 import commands.newcommand.extensions.EventListeners;
 import commands.newcommand.extensions.SlashCommand;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -16,70 +15,76 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.milobot.JDAManager;
 import utility.Config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class NewCommandHandler extends ListenerAdapter {
+public class NewCommandHandler {
 
+    private static NewCommandHandler instance;
     private final List<ParentCommand> commands = new ArrayList<>();
     private final Logger logger = LoggerFactory.getLogger(NewCommandHandler.class);
-    private final JDA jda;
+    private final List<CommandData> commandDatas = new ArrayList<>();
 
-    public NewCommandHandler(JDA jda) {
-        this.jda = jda;
+    private NewCommandHandler() {
+        JDAManager.getInstance().getJDABuilder().addEventListeners(new ListenerAdapter() {
+            @Override
+            public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+                handleMessageReceived(event);
+            }
+
+            @Override
+            public void onSlashCommand(@NotNull SlashCommandEvent event) {
+                handleSlashCommand(event);
+            }
+        });
+
+        JDAManager.getInstance().addJdaBuiltAction(jda -> jda.updateCommands().addCommands(commandDatas).queue());
+    }
+
+    public static synchronized NewCommandHandler getInstance() {
+        if (instance == null) {
+            instance = new NewCommandHandler();
+        }
+        return instance;
     }
 
     public void registerCommand(@NotNull ParentCommand command) {
         commands.add(command);
-    }
-
-    public void initialize() {
-        // register event listener
-        jda.addEventListener(this);
-
-        commands.forEach(command -> {
-            if (command instanceof EventListeners listeners) {
-                jda.addEventListener(listeners);
-            }
-            command.getSubCommands().forEach(subCommand -> {
-                if (subCommand instanceof EventListeners subListeners) {
-                    jda.addEventListener(subListeners);
-                }
-            });
-        });
-
-        // slash commands
-        ArrayList<CommandData> commandDatas = new ArrayList<>();
-        for (ParentCommand command : commands) {
-            if (command instanceof SlashCommand slashCommand) {
-                CommandData commandData;
-                try {
-                    commandData = (CommandData) slashCommand.getCommandData();
-                } catch (ClassCastException e) {
-                    throw new ClassCastException("Slash command \"" + command.getFullCommandName() + "\" data type is not CommandData");
-                }
-                for (SubCommand subCommand : command.getSubCommands()) {
-                    if (subCommand instanceof SlashCommand subSlashCommand) {
-                        SubcommandData subcommandData;
-                        try {
-                            subcommandData = (SubcommandData) subSlashCommand.getCommandData();
-                        } catch (ClassCastException e) {
-                            throw new ClassCastException("Slash command \"" + subCommand.getFullCommandName() + "\" data type is not SubCommandData");
-                        }
-                        commandData.addSubcommands(subcommandData);
-                    }
-                }
-                commandDatas.add(commandData);
-            }
+        if (command instanceof EventListeners listeners) {
+            JDAManager.getInstance().getJDABuilder().addEventListeners(listeners);
         }
-        jda.updateCommands().addCommands(commandDatas).queue();
+        command.getSubCommands().forEach(subCommand -> {
+            if (subCommand instanceof EventListeners subListeners) {
+                JDAManager.getInstance().getJDABuilder().addEventListeners(subListeners);
+            }
+        });
+        if (command instanceof SlashCommand slashCommand) {
+            CommandData commandData;
+            try {
+                commandData = (CommandData) slashCommand.getCommandData();
+            } catch (ClassCastException e) {
+                throw new ClassCastException("Slash command \"" + command.getFullCommandName() + "\" data type is not CommandData");
+            }
+            for (SubCommand subCommand : command.getSubCommands()) {
+                if (subCommand instanceof SlashCommand subSlashCommand) {
+                    SubcommandData subcommandData;
+                    try {
+                        subcommandData = (SubcommandData) subSlashCommand.getCommandData();
+                    } catch (ClassCastException e) {
+                        throw new ClassCastException("Slash command \"" + subCommand.getFullCommandName() + "\" data type is not SubCommandData");
+                    }
+                    commandData.addSubcommands(subcommandData);
+                }
+            }
+            commandDatas.add(commandData);
+        }
     }
 
-    @Override
-    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+    private void handleMessageReceived(@NotNull MessageReceivedEvent event) {
         if (event.getMessage().getAuthor().isBot()) {
             return;
         }
@@ -122,7 +127,7 @@ public class NewCommandHandler extends ListenerAdapter {
         }, () -> logger.trace("Command not found: " + messageParts.get(0)));
     }
 
-    private void executeCommand(NewCommand command, MessageReceivedEvent event, List<String> args) {
+    private void executeCommand(@NotNull NewCommand command, @NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         logger.trace("Executing text command " + command.getFullCommandName());
         command.getExecutorService().execute(() -> {
             try {
@@ -133,8 +138,7 @@ public class NewCommandHandler extends ListenerAdapter {
         });
     }
 
-    @Override
-    public void onSlashCommand(SlashCommandEvent event) {
+    private void handleSlashCommand(@NotNull SlashCommandEvent event) {
         if (event.getUser().isBot()) {
             return;
         }
@@ -149,7 +153,7 @@ public class NewCommandHandler extends ListenerAdapter {
         }, () -> logger.trace("Command not found: " + event.getName()));
     }
 
-    private void executeCommand(NewCommand command, SlashCommandEvent event) {
+    private void executeCommand(@NotNull NewCommand command, @NotNull SlashCommandEvent event) {
         command.getExecutorService().execute(() -> {
             try {
                 command.onCommand(event);
