@@ -1,5 +1,6 @@
 package tk.milobot;
 
+import commands.ButtonHandler;
 import commands.GuildPrefixManager;
 import commands.NewCommandLoader;
 
@@ -12,6 +13,7 @@ public class BotInitializer {
         // if you need more than one line to initialize something, it means that it should be in its own class
         GuildPrefixManager.getInstance().initialize();
         NewCommandLoader.initialize();
+        ButtonHandler.getInstance().initialize();
 
         // load the bot
         JDAManager.getInstance().build();
