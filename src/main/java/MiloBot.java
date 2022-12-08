@@ -1,7 +1,5 @@
 import tk.milobot.BotInitializer;
 
-import javax.security.auth.login.LoginException;
-
 /**
  * The Main class from where the bot is started.
  */
