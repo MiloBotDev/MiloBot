@@ -1,9 +1,12 @@
 package commands.newcommand;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 public interface IParentCommand {
-    String getSubCommandsText(String prefix);
-    IParentCommand addSubCommand(SubCommand subCommand);
-    List<SubCommand> getSubCommands();
+
+    @NotNull String getSubCommandsText(@NotNull String prefix);
+    @NotNull IParentCommand addSubCommand(@NotNull SubCommand subCommand);
+    @NotNull List<SubCommand> getSubCommands();
 }

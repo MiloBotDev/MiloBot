@@ -2,6 +2,7 @@ package commands.newcommand.extensions;
 
 import commands.newcommand.IParentCommand;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface should only be used when a parent slash command has sub slash commands added to it.
@@ -13,7 +14,7 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public interface DefaultSlashParentCommand extends SlashCommand, IParentCommand {
 
     @Override
-    default void executeCommand(SlashCommandEvent event) {
+    default void executeCommand(@NotNull SlashCommandEvent event) {
         throw new IllegalStateException("This should never happen. When there are sub commands " +
                 "added to slash command, the base command should become unusable.");
     }

@@ -2,6 +2,7 @@ package commands.newcommand;
 
 import commands.newcommand.extensions.SlashCommand;
 import commands.newcommand.extensions.TextCommand;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,19 +11,19 @@ public abstract class ParentCommand extends NewCommand implements IParentCommand
     private final List<SubCommand> subCommands = new ArrayList<>();
 
     @Override
-    public ParentCommand addSubCommand(SubCommand subCommand) {
+    public @NotNull ParentCommand addSubCommand(@NotNull SubCommand subCommand) {
         subCommand.assignParentCommand(this);
         this.subCommands.add(subCommand);
         return this;
     }
 
     @Override
-    public List<SubCommand> getSubCommands() {
+    public @NotNull List<SubCommand> getSubCommands() {
         return new ArrayList<>(subCommands);
     }
 
     @Override
-    public String getSubCommandsText(String prefix) {
+    public @NotNull String getSubCommandsText(@NotNull String prefix) {
         StringBuilder subCommandsText = new StringBuilder();
         for (SubCommand subCommand : getSubCommands()) {
             subCommandsText.append("\n`").append(prefix).append(subCommand.getFullCommandName());

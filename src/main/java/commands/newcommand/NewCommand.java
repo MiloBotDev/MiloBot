@@ -16,11 +16,12 @@ import utility.Users;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class NewCommand implements INewCommand {
     private final Logger logger = LoggerFactory.getLogger(NewCommand.class);
 
-    public final void onCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+    public final void onCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         if (this instanceof TextCommand textCommand) {
             if (!textCommand.getAllowedChannelTypes().contains(event.getChannelType())) {
                 textCommand.sendInvalidChannelMessage(event);
@@ -34,7 +35,7 @@ public abstract class NewCommand implements INewCommand {
             }
 
             if (this instanceof Permissions permissions) {
-                if (!permissions.hasPermission(event.getMember())) {
+                if (!permissions.hasPermission(Objects.requireNonNull(event.getMember()))) {
                     permissions.sendMissingPermissions(event);
                     return;
                 }
@@ -57,7 +58,7 @@ public abstract class NewCommand implements INewCommand {
             }
 
             if (this instanceof Permissions permissions) {
-                if (!permissions.hasPermission(event.getMember())) {
+                if (!permissions.hasPermission(Objects.requireNonNull(event.getMember()))) {
                     permissions.sendMissingPermissions(event);
                 }
             }
@@ -68,7 +69,7 @@ public abstract class NewCommand implements INewCommand {
         }
     }
 
-    private void doUserCommandUpdates(User author, MessageChannel channel) {
+    private void doUserCommandUpdates(@NotNull User author, @NotNull MessageChannel channel) {
         // check if this user exists in the database otherwise add it
         Users.getInstance().addUserIfNotExists(author.getIdLong());
         // update the tracker

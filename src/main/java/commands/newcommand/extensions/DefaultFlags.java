@@ -1,18 +1,19 @@
 package commands.newcommand.extensions;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
 public interface DefaultFlags extends Flags {
 
     @Override
-    default Set<String> getFlags() {
+    default @NotNull Set<String> getFlags() {
         return Set.of("--help", "--stats");
     }
 
     @Override
-    default void executeFlag(MessageReceivedEvent event, String flag) {
+    default void executeFlag(@NotNull MessageReceivedEvent event, @NotNull String flag) {
         // checks if --help flag is present as an argument
         if (flag.equals("--help")) {
             generateHelp(event);

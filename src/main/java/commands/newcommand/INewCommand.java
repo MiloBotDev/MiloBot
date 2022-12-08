@@ -2,13 +2,15 @@ package commands.newcommand;
 
 import commands.newcommand.extensions.SlashCommand;
 import commands.newcommand.extensions.TextCommand;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
 public interface INewCommand {
 
-    String getCommandName();
-    String getCommandDescription();
+    @NotNull String getCommandName();
+    @NotNull String getCommandDescription();
+    @NotNull
     default String getFullCommandName() {
         if (this instanceof ParentCommand) {
             return getCommandName();
@@ -26,5 +28,5 @@ public interface INewCommand {
         }
     }
 
-    ExecutorService getExecutorService();
+    @NotNull ExecutorService getExecutorService();
 }

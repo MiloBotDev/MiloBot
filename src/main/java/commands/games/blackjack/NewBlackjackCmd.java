@@ -8,6 +8,7 @@ import commands.newcommand.extensions.DefaultTextParentCommand;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
@@ -17,7 +18,7 @@ public class NewBlackjackCmd extends ParentCommand implements DefaultTextParentC
         Aliases, DefaultFlags {
     private final ExecutorService executorService;
 
-    public NewBlackjackCmd(ExecutorService executorService) {
+    public NewBlackjackCmd(@NotNull ExecutorService executorService) {
         this.executorService = executorService;
         /*this.commandName = "blackjack";
         this.commandDescription = "Blackjack brought to discord.";
@@ -33,22 +34,22 @@ public class NewBlackjackCmd extends ParentCommand implements DefaultTextParentC
     }
 
     @Override
-    public BaseCommand<?> getCommandData() {
+    public @NotNull BaseCommand<?> getCommandData() {
         return new CommandData("blackjack", "Blackjack brought to discord.");
     }
 
     @Override
-    public Set<ChannelType> getAllowedChannelTypes() {
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
         return Set.of(ChannelType.TEXT, ChannelType.PRIVATE);
     }
 
     @Override
-    public ExecutorService getExecutorService() {
+    public @NotNull ExecutorService getExecutorService() {
         return executorService;
     }
 
     @Override
-    public List<String> getAliases() {
+    public @NotNull List<String> getAliases() {
         return List.of("bj");
     }
 }

@@ -1,6 +1,5 @@
 package commands.newcommand.extensions;
 
-import commands.CommandHandler;
 import commands.GuildPrefixManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.IPermissionHolder;
@@ -14,8 +13,8 @@ import utility.EmbedUtils;
 import java.util.Objects;
 
 public interface Permissions {
-    boolean hasPermission(IPermissionHolder permissionHolder);
-    String getPermissionsText();
+    boolean hasPermission(@NotNull IPermissionHolder permissionHolder);
+    @NotNull String getPermissionsText();
 
     default void sendMissingPermissions(@NotNull MessageReceivedEvent event) {
         String prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());

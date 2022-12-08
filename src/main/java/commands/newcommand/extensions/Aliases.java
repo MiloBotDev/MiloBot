@@ -1,7 +1,10 @@
 package commands.newcommand.extensions;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 public interface Aliases {
-    List<String> getAliases();
+
+    @NotNull List<String> getAliases();
 }

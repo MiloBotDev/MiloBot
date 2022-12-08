@@ -26,13 +26,12 @@ import java.util.stream.Collectors;
 
 public interface TextCommand extends INewCommand {
 
-    void executeCommand(MessageReceivedEvent event, List<String> args);
+    void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args);
+    @NotNull List<String> getCommandArgs();
+    boolean checkRequiredArgs(@NotNull MessageReceivedEvent event, @NotNull List<String> args);
+    @NotNull Set<ChannelType> getAllowedChannelTypes();
 
-    List<String> getCommandArgs();
-    boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args);
-    Set<ChannelType> getAllowedChannelTypes();
-
-    default void generateHelp(MessageReceivedEvent event) {
+    default void generateHelp(@NotNull MessageReceivedEvent event) {
         String prefix;
         if (event.isFromGuild()) {
             prefix = GuildPrefixManager.getInstance().getPrefix(event.getGuild().getIdLong());
@@ -97,7 +96,7 @@ public interface TextCommand extends INewCommand {
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }
 
-    default void generateStats(MessageReceivedEvent event) {
+    default void generateStats(@NotNull MessageReceivedEvent event) {
         try(Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             database.model.User userByDiscordId = UserDao.getInstance().getUserByDiscordId(con, event.getAuthor().getIdLong(), RowLockType.FOR_UPDATE);
@@ -121,7 +120,7 @@ public interface TextCommand extends INewCommand {
         }
     }
 
-    default String getArgumentsText(String prefix) {
+    default @NotNull String getArgumentsText(@NotNull String prefix) {
         StringBuilder argumentsText = new StringBuilder();
         List<String> commandArgs = getCommandArgs();
         if (commandArgs.size() == 0) {
@@ -175,7 +174,7 @@ public interface TextCommand extends INewCommand {
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }
 
-    default void sendInvalidArgs(@NotNull MessageReceivedEvent event, String message) {
+    default void sendInvalidArgs(@NotNull MessageReceivedEvent event, @NotNull String message) {
         EmbedBuilder info = new EmbedBuilder();
         EmbedUtils.styleEmbed(info, event.getAuthor());
         info.setTitle("Arguments error");

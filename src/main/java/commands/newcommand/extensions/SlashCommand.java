@@ -15,16 +15,16 @@ import java.util.stream.Collectors;
 public interface SlashCommand extends INewCommand {
 
     void executeCommand(SlashCommandEvent event);
-    BaseCommand<?> getCommandData();
-    default String getCommandName() {
+    @NotNull BaseCommand<?> getCommandData();
+    default @NotNull String getCommandName() {
         return getCommandData().getName();
     }
-    default String getCommandDescription() {
+    default @NotNull String getCommandDescription() {
         return getCommandData().getDescription();
     }
 
     // this will be removed in the future, JDA 5 will support setting if a command is guild-only in the CommandData
-    Set<ChannelType> getAllowedChannelTypes();
+    @NotNull Set<ChannelType> getAllowedChannelTypes();
     default void sendInvalidChannelMessage(@NotNull SlashCommandEvent event) {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle(String.format("Invalid channel type for: %s", getCommandData().getName()));

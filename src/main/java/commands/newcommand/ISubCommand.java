@@ -1,5 +1,8 @@
 package commands.newcommand;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface ISubCommand {
-    ParentCommand getParentCommand();
+
+    @NotNull ParentCommand getParentCommand();
 }

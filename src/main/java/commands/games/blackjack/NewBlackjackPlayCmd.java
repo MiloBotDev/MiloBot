@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 public class NewBlackjackPlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags {
     private final ExecutorService executorService;
 
-    public NewBlackjackPlayCmd(ExecutorService executorService) {
+    public NewBlackjackPlayCmd(@NotNull ExecutorService executorService) {
         this.executorService = executorService;
         /*this.commandName = "play";
         this.commandDescription = "Play a game of blackjack on discord.";
@@ -45,24 +45,24 @@ public class NewBlackjackPlayCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public BaseCommand<?> getCommandData() {
+    public @NotNull BaseCommand<?> getCommandData() {
         return new SubcommandData("play", "Play a game of blackjack on discord.")
                 .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
                         .setRequiredRange(1, 10000));
     }
 
     @Override
-    public ExecutorService getExecutorService() {
+    public @NotNull ExecutorService getExecutorService() {
         return executorService;
     }
 
     @Override
-    public List<String> getCommandArgs() {
+    public @NotNull List<String> getCommandArgs() {
         return List.of("bet*");
     }
 
     @Override
-    public boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args) {
+    public boolean checkRequiredArgs(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         if (args.size() < 1) {
             sendMissingArgs(event);
             return false;
@@ -85,7 +85,7 @@ public class NewBlackjackPlayCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public Set<ChannelType> getAllowedChannelTypes() {
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
         return Set.of(ChannelType.TEXT, ChannelType.PRIVATE);
     }
 }

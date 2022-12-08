@@ -1,9 +1,11 @@
 package commands.newcommand;
 
+import org.jetbrains.annotations.NotNull;
+
 public abstract class SubCommand extends NewCommand implements ISubCommand {
     private ParentCommand parentCommand = null;
 
-    void assignParentCommand(ParentCommand parentCommand) {
+    void assignParentCommand(@NotNull ParentCommand parentCommand) {
         if (this.parentCommand == null) {
             this.parentCommand = parentCommand;
         } else {
@@ -12,7 +14,7 @@ public abstract class SubCommand extends NewCommand implements ISubCommand {
     }
 
     @Override
-    public ParentCommand getParentCommand() {
+    public @NotNull ParentCommand getParentCommand() {
         return parentCommand;
     }
 }
