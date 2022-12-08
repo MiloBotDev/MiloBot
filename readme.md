@@ -1,4 +1,4 @@
-# MiloBot
+# tk.milobot.main.MiloBot
 
 Play games with your friends, earn Morbcoins and climb up the leaderboards.
 

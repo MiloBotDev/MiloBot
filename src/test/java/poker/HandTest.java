@@ -1,7 +1,7 @@
 package poker;
 
-import games.PokerGame;
-import models.cards.PlayingCard;
+import tk.milobot.games.PokerGame;
+import tk.milobot.models.cards.PlayingCard;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
