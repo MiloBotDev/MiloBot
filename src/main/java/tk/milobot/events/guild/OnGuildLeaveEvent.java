@@ -4,7 +4,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import tk.milobot.database.dao.PrefixDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.milobot.utility.Config;
@@ -18,13 +17,10 @@ import java.util.Objects;
 /**
  * An event triggered when the bot leaves a guild.
  * This event posts a message in the logging channel with info of the server it left.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
  */
-public class OnGuildLeave extends ListenerAdapter {
+public class OnGuildLeaveEvent extends ListenerAdapter {
 
-    final static Logger logger = LoggerFactory.getLogger(OnGuildLeave.class);
-    private final PrefixDao prefixDao = PrefixDao.getInstance();
+    final static Logger logger = LoggerFactory.getLogger(OnGuildLeaveEvent.class);
 
     @Override
     public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
@@ -52,12 +48,6 @@ public class OnGuildLeave extends ListenerAdapter {
         logs.sendTyping().queue();
         logs.sendMessageEmbeds(embed.build()).queue();
 
-        /*try {
-            prefixDao.deleteByGuildId(event.getGuild().getIdLong());
-            CommandHandler.prefixes.remove(event.getGuild().getIdLong());
-        } catch (SQLException e) {
-            logger.error("Error deleting prefix from database on guild leave event", e);
-        }*/
         logger.trace(String.format("Bot has been removed from: %s.", event.getGuild().getName()));
     }
 

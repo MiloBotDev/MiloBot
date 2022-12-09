@@ -4,8 +4,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import tk.milobot.database.dao.PrefixDao;
-import tk.milobot.database.model.Prefix;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +17,9 @@ import java.util.Objects;
 /**
  * An event triggered when the bot joins a new guild.
  */
-public class OnGuildJoin extends ListenerAdapter {
+public class OnGuildJoinEvent extends ListenerAdapter {
 
-    final static Logger logger = LoggerFactory.getLogger(OnGuildJoin.class);
-    private final PrefixDao prefixDao = PrefixDao.getInstance();
+    final static Logger logger = LoggerFactory.getLogger(OnGuildJoinEvent.class);
 
     @Override
     public void onGuildJoin(@NotNull GuildJoinEvent event) {
@@ -47,16 +44,8 @@ public class OnGuildJoin extends ListenerAdapter {
         embed.addField("Date Created", String.valueOf(event.getGuild().getTimeCreated()), true);
         embed.setFooter(dtf.format(LocalDateTime.now()));
 
-        logs.sendTyping().queue();
         logs.sendMessageEmbeds(embed.build()).queue();
 
-        Prefix prefix = new Prefix(event.getGuild().getIdLong(), config.getDefaultPrefix());
-        /*try {
-            prefixDao.add(prefix);
-            CommandHandler.prefixes.put(event.getGuild().getIdLong(), config.getDefaultPrefix());
-        } catch (SQLException e) {
-            logger.error("Error adding prefix on guild join event", e);
-        }*/
         logger.trace(String.format("Bot has been added to: %s.", event.getGuild().getName()));
     }
 
