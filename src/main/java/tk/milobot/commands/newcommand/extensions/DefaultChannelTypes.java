@@ -10,7 +10,7 @@ import java.util.Set;
  * This interface should only be implemented by commands that can be used anywhere.
  * @see TextCommand
  */
-public interface DefaultChannelTypes extends TextCommand, SlashCommand {
+public interface DefaultChannelTypes extends TextCommand {
 
     @Override
     default @NotNull Set<ChannelType> getAllowedChannelTypes() {
