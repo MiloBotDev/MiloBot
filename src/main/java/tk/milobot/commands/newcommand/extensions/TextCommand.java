@@ -28,10 +28,44 @@ import java.util.stream.Collectors;
 public interface TextCommand extends INewCommand {
 
     void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args);
-    @NotNull List<String> getCommandArgs();
-    boolean checkRequiredArgs(@NotNull MessageReceivedEvent event, @NotNull List<String> args);
-    @NotNull Set<ChannelType> getAllowedChannelTypes();
 
+    /**
+     * Returns a list of all the arguments this command has.
+     * Override this method to add arguments to a command.
+     * If the command doesn't have any arguments implement the DefaultCommandChannels interface.
+     *
+     * @return a list of all the command arguments.
+     * @see DefaultCommandArgs
+     */
+    List<String> getCommandArgs();
+
+    /**
+     * Checks if all the required arguments are given when the command is called.
+     * Override this method and perform checks on the arguments if necessary.
+     * If the command doesn't have any arguments implement the DefaultCommandChannels interface.
+     *
+     * @param event the event that's triggered when the command is called.
+     * @param args a list of the arguments that have been passed by the user when the command was called.
+     * @see DefaultCommandArgs
+     */
+    boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args);
+
+    /**
+     * Returns a set with the channel types this command can be used in.
+     * Overrides this method to add the allowed channel types.
+     * If the command can be used in every channel implement the DefaultChannelTypes interface.
+     *
+     * @return a set with the channel types this command can be used in.
+     * @see ChannelType
+     * @see DefaultChannelTypes
+     */
+    Set<ChannelType> getAllowedChannelTypes();
+
+    /**
+     * Generates and sends a standardized help message for the command this is called on.
+     *
+     * @param event the event that's triggered when the command is called.
+     */
     default void generateHelp(@NotNull MessageReceivedEvent event) {
         String prefix;
         if (event.isFromGuild()) {
