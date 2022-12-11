@@ -1,5 +1,6 @@
 package tk.milobot.commands;
 
+import tk.milobot.commands.bot.BotCmdLoader;
 import tk.milobot.commands.loaders.BlackjackLoader;
 
 public class NewCommandLoader {
@@ -11,5 +12,6 @@ public class NewCommandLoader {
         // if you need more than one line to initialize something, it means that it should be in its own class
 
         BlackjackLoader.load();
+        BotCmdLoader.load();
     }
 }

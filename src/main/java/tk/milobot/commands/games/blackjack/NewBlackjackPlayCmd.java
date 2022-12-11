@@ -1,5 +1,6 @@
 package tk.milobot.commands.games.blackjack;
 
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -15,6 +16,7 @@ import tk.milobot.commands.newcommand.extensions.TextCommand;
 import tk.milobot.games.BlackjackGame;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public class NewBlackjackPlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
@@ -76,4 +78,8 @@ public class NewBlackjackPlayCmd extends SubCommand implements TextCommand, Slas
         return true;
     }
 
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
 }
