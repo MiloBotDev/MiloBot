@@ -18,6 +18,11 @@ public interface DefaultCommandArgs extends TextCommand {
 
     @Override
     default boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args) {
-        return true;
+        if (args.size() == 0) {
+            return true;
+        } else {
+            sendInvalidArgs(event, "This command doesn't take any arguments.");
+            return false;
+        }
     }
 }
