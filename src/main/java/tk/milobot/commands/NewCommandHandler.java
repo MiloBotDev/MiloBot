@@ -55,11 +55,11 @@ public class NewCommandHandler {
     public void registerCommand(@NotNull ParentCommand command) {
         commands.add(command);
         if (command instanceof EventListeners listeners) {
-            JDAManager.getInstance().getJDABuilder().addEventListeners(listeners);
+            JDAManager.getInstance().getJDABuilder().addEventListeners(listeners.getEventListeners());
         }
         command.getSubCommands().forEach(subCommand -> {
             if (subCommand instanceof EventListeners subListeners) {
-                JDAManager.getInstance().getJDABuilder().addEventListeners(subListeners);
+                JDAManager.getInstance().getJDABuilder().addEventListeners(subListeners.getEventListeners());
             }
         });
         if (command instanceof SlashCommand slashCommand) {
