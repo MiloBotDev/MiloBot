@@ -1,5 +1,6 @@
 package tk.milobot.commands;
 
+import net.dv8tion.jda.api.hooks.EventListener;
 import tk.milobot.commands.newcommand.NewCommand;
 import tk.milobot.commands.newcommand.ParentCommand;
 import tk.milobot.commands.newcommand.SubCommand;
@@ -15,6 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.milobot.events.EventLoader;
 import tk.milobot.main.JDAManager;
 import tk.milobot.utility.Config;
 
@@ -55,11 +57,15 @@ public class NewCommandHandler {
     public void registerCommand(@NotNull ParentCommand command) {
         commands.add(command);
         if (command instanceof EventListeners listeners) {
-            JDAManager.getInstance().getJDABuilder().addEventListeners(listeners.getEventListeners());
+            for (EventListener listener : listeners.getEventListeners()) {
+                JDAManager.getInstance().getJDABuilder().addEventListeners(listener);
+            }
         }
         command.getSubCommands().forEach(subCommand -> {
             if (subCommand instanceof EventListeners subListeners) {
-                JDAManager.getInstance().getJDABuilder().addEventListeners(subListeners.getEventListeners());
+                for (EventListener listener : subListeners.getEventListeners()) {
+                    JDAManager.getInstance().getJDABuilder().addEventListeners(listener);
+                }
             }
         });
         if (command instanceof SlashCommand slashCommand) {
