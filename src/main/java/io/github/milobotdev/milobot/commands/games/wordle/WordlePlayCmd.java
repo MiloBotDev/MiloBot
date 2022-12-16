@@ -68,19 +68,11 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
 
         EmbedBuilder wordleEmbed = new EmbedBuilder();
         wordleEmbed.setTitle("Wordle");
+        wordleEmbed.setDescription("Every 5 letter word you type will be inputted as a guess.");
         EmbedUtils.styleEmbed(wordleEmbed, event.getAuthor());
         event.getChannel().sendMessageEmbeds(wordleEmbed.build()).queue(message -> {
             extracted(null, authorId, wordleGame, editDescription, gameOver, wordleEmbed, message);
         });
-
-        if(event.getAuthor().getId().equals("510564894395990016")) {
-            event.getAuthor().openPrivateChannel().queue(new Consumer<PrivateChannel>() {
-                @Override
-                public void accept(PrivateChannel privateChannel) {
-                    privateChannel.sendMessage("Almere L, het woord is " + wordleGame.word).queue();
-                }
-            });
-        }
     }
 
     @Override
@@ -93,6 +85,7 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
 
         EmbedBuilder wordleEmbed = new EmbedBuilder();
         wordleEmbed.setTitle("Wordle");
+        wordleEmbed.setDescription("Every 5 letter word you type will be inputted as a guess.");
         EmbedUtils.styleEmbed(wordleEmbed, event.getUser());
 
         event.getHook().sendMessageEmbeds(wordleEmbed.build()).queue(message -> {
@@ -115,8 +108,12 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
 
                     String id = event.getAuthor().getId();
                     if (authorId.equals(id)) {
+                        if(wordleGame.guesses == 0) {
+                            wordleEmbed.setDescription("");
+                        }
                         EmbedBuilder newEmbed = new EmbedBuilder();
                         newEmbed.setTitle("Wordle");
+
                         EmbedUtils.styleEmbed(newEmbed, event.getAuthor());
 
                         editDescription.append(wordleEmbed.getDescriptionBuilder());
@@ -199,6 +196,7 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
                                 event.getJDA().removeEventListener(this);
                                 gameOver[0] = true;
                             }
+
                             newEmbed.setDescription(editDescription);
                             event.getMessage().delete().queue();
                             if (gameOver[0]) {
