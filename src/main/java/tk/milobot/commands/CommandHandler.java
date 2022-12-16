@@ -6,6 +6,7 @@ import tk.milobot.commands.command.ParentCommand;
 import tk.milobot.commands.command.SubCommand;
 import tk.milobot.commands.command.extensions.Aliases;
 import tk.milobot.commands.command.extensions.EventListeners;
+import tk.milobot.commands.command.extensions.Instance;
 import tk.milobot.commands.command.extensions.SlashCommand;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -18,10 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.milobot.main.JDAManager;
 import tk.milobot.utility.Config;
+import tk.milobot.utility.TimeTracker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class CommandHandler {
 
@@ -134,12 +137,28 @@ public class CommandHandler {
     }
 
     private void executeCommand(@NotNull Command command, @NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        logger.trace("Executing text command " + command.getFullCommandName());
+        String fullCommandName = command.getFullCommandName();
+        logger.trace("Executing text command " + fullCommandName);
         command.getExecutorService().execute(() -> {
             try {
+                if(command instanceof Instance) {
+                    Map<Boolean, Integer> instanceData = ((Instance) command).isInstanced();
+                    if (instanceData.containsKey(true)) {
+                        GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
+                        long userId = event.getAuthor().getIdLong();
+                        if(gameInstanceManager.containsUser(userId, fullCommandName)) {
+                            TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId, fullCommandName);
+                            event.getChannel().sendMessage(String.format("You are still in game. Please wait %d more seconds.",
+                                    userTimeTracker.timeSecondsTillDuration())).queue();
+                            return;
+                        } else {
+                            gameInstanceManager.addUser(userId, fullCommandName, instanceData.get(true));
+                        }
+                    }
+                }
                 command.onCommand(event, args);
             } catch (Exception e) {
-                logger.error("Error while executing text command " + command.getFullCommandName(), e);
+                logger.error("Error while executing text command " + fullCommandName, e);
             }
         });
     }
@@ -160,8 +179,24 @@ public class CommandHandler {
     }
 
     private void executeCommand(@NotNull Command command, @NotNull SlashCommandEvent event) {
+        String fullCommandName = command.getFullCommandName();
         command.getExecutorService().execute(() -> {
             try {
+                if(command instanceof Instance) {
+                    Map<Boolean, Integer> instanceData = ((Instance) command).isInstanced();
+                    if (instanceData.containsKey(true)) {
+                        GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
+                        long userId = event.getUser().getIdLong();
+                        if(gameInstanceManager.containsUser(userId, fullCommandName)) {
+                            TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId, fullCommandName);
+                            event.getChannel().sendMessage(String.format("You are still in game. Please wait %d more seconds.",
+                                    userTimeTracker.timeSecondsTillDuration())).queue();
+                            return;
+                        } else {
+                            gameInstanceManager.addUser(userId, fullCommandName, instanceData.get(true));
+                        }
+                    }
+                }
                 command.onCommand(event);
             } catch (Exception e) {
                 logger.error("Error while executing text command " + command.getFullCommandName(), e);

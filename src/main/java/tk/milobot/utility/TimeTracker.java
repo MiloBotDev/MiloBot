@@ -5,6 +5,24 @@ public class TimeTracker {
     private long startTime;
     private long endTime;
     private boolean isStarted;
+    private int durationSeconds;
+    private boolean isDurationSet;
+
+    public TimeTracker() {
+        this.startTime = 0;
+        this.endTime = 0;
+        this.isStarted = false;
+        this.durationSeconds = 0;
+        this.isDurationSet = false;
+    }
+
+    public TimeTracker(int durationSeconds) {
+        this.startTime = 0;
+        this.endTime = 0;
+        this.isStarted = false;
+        this.durationSeconds = durationSeconds;
+        this.isDurationSet = true;
+    }
 
     public void start() {
         if (isStarted) {
@@ -51,6 +69,22 @@ public class TimeTracker {
             return (System.currentTimeMillis() - startTime) / 60000;
         } else {
             return (endTime - startTime) / 60000;
+        }
+    }
+
+    public boolean isTimeSecondsPastDuration() {
+        if(isDurationSet) {
+            return getElapsedTimeSecs() >= durationSeconds;
+        } else {
+            throw new IllegalStateException("Duration is not set");
+        }
+    }
+
+    public long timeSecondsTillDuration() {
+        if(isDurationSet) {
+            return durationSeconds - getElapsedTimeSecs();
+        } else {
+            throw new IllegalStateException("Duration is not set");
         }
     }
 

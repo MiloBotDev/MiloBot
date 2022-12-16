@@ -22,8 +22,8 @@ import tk.milobot.models.cards.CardDeck;
 import tk.milobot.utility.EmbedUtils;
 import tk.milobot.utility.Observer;
 import tk.milobot.utility.TimeTracker;
-import tk.milobot.utility.list.CircularLinkedList;
-import tk.milobot.utility.list.ObservableList;
+import tk.milobot.utility.datatypes.CircularLinkedList;
+import tk.milobot.utility.datatypes.ObservableList;
 
 import java.awt.*;
 import java.sql.Connection;

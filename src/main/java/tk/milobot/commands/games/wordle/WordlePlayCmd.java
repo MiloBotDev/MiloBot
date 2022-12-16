@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.GameInstanceManager;
 import tk.milobot.commands.command.SubCommand;
 import tk.milobot.commands.command.extensions.*;
 import tk.milobot.database.dao.UserDao;
@@ -24,10 +25,7 @@ import tk.milobot.utility.TimeTracker;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -36,7 +34,7 @@ import java.util.function.Consumer;
  * Play a game of wordle.
  */
 public class WordlePlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultCommandArgs,
-        DefaultFlags, DefaultChannelTypes {
+        DefaultFlags, DefaultChannelTypes, Instance {
 
     private final ExecutorService executorService;
     private final WordleDao wordleDao;
@@ -53,6 +51,8 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
     public @NotNull BaseCommand<?> getCommandData() {
         return new SubcommandData("play", "Play a game of wordle.");
     }
+
+
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
@@ -197,6 +197,7 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
                             newEmbed.setDescription(editDescription);
                             event.getMessage().delete().queue();
                             if (gameOver[0]) {
+                                GameInstanceManager.getInstance().removeUserGame(event.getAuthor().getIdLong(), getFullCommandName());
                                 if (SlashCommandEvent != null) {
                                     SlashCommandEvent.getHook().editOriginalEmbeds(newEmbed.build()).setActionRow(
                                             Button.secondary(event.getAuthor().getId() + ":delete", "Delete")
@@ -233,5 +234,10 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
     @Override
     public @NotNull ExecutorService getExecutorService() {
         return this.executorService;
+    }
+
+    @Override
+    public Map<Boolean, Integer> isInstanced() {
+        return Map.of(true, 900);
     }
 }

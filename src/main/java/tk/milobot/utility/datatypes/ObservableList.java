@@ -1,4 +1,4 @@
-package tk.milobot.utility.list;
+package tk.milobot.utility.datatypes;
 
 import tk.milobot.utility.Observer;
 
@@ -32,7 +32,7 @@ public class ObservableList<T> extends ArrayList<T> {
     }
 
     private void notifyObservers() {
-        for (Observer observer : observers) {
+        for (Observer observer : this.observers) {
             observer.update();
         }
     }

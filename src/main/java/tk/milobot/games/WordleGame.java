@@ -22,11 +22,9 @@ public class WordleGame {
 
     public final int maxGuesses = 7;
     public final int wordLength = 5;
-
     public String word;
     public int guesses;
     public boolean guessed;
-
     private ArrayList<String> words;
 
     public WordleGame() {
