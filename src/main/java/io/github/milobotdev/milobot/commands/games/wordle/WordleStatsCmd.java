@@ -77,9 +77,14 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
                 int totalWins = userWordle.getWins();
                 int totalLosses = totalGames - totalWins;
 
+                double winRate = (double) totalWins / totalGames;
+                int roundedWinRate = (int) Math.ceil(winRate * 100);
+                String winRateString = roundedWinRate + "%";
+
                 embed.addField("Total Games", String.valueOf(totalGames), true);
                 embed.addField("Total Wins", String.valueOf(totalWins), true);
                 embed.addField("Total Losses", String.valueOf(totalLosses), true);
+                embed.addField("Win Rate", winRateString, true);
                 embed.addField("Current Streak", String.valueOf(currentStreak), true);
                 embed.addField("Highest Streak", String.valueOf(highestStreak), true);
 

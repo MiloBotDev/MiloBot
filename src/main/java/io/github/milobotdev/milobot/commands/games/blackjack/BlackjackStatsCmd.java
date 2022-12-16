@@ -91,10 +91,15 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
             int totalDraws = blackjack.getTotalDraws();
             int totalEarnings = blackjack.getTotalEarnings();
 
+            double winRate = (double) totalWins / totalGames;
+            int roundedWinRate = (int) Math.ceil(winRate * 100);
+            String winRateString = roundedWinRate + "%";
+
             embed.addField("Total Games", String.valueOf(totalGames), true);
             embed.addField("Total Wins", String.valueOf(totalWins), true);
             embed.addField("Total Draws", String.valueOf(totalDraws), true);
             embed.addField("Total Losses", String.valueOf(totalLosses), true);
+            embed.addField("Win Rate", winRateString, true);
             embed.addField("Current Streak", String.valueOf(currentStreak), true);
             embed.addField("Highest Streak", String.valueOf(highestStreak), true);
             embed.addField("Total Earnings", totalEarnings + " morbcoins", true);
