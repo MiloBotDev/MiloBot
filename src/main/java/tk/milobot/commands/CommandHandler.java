@@ -17,6 +17,9 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.milobot.commands.instance.GameInstanceManager;
+import tk.milobot.commands.instance.GameType;
+import tk.milobot.commands.instance.InstanceData;
 import tk.milobot.main.JDAManager;
 import tk.milobot.utility.Config;
 import tk.milobot.utility.TimeTracker;
@@ -142,17 +145,17 @@ public class CommandHandler {
         command.getExecutorService().execute(() -> {
             try {
                 if(command instanceof Instance) {
-                    Map<Boolean, Integer> instanceData = ((Instance) command).isInstanced();
-                    if (instanceData.containsKey(true)) {
+                    InstanceData instanceData = ((Instance) command).isInstanced();
+                    if (instanceData.isInstanced()) {
                         GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
                         long userId = event.getAuthor().getIdLong();
-                        if(gameInstanceManager.containsUser(userId, fullCommandName)) {
-                            TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId, fullCommandName);
+                        if(gameInstanceManager.containsUser(userId, instanceData.gameType())) {
+                            TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId, instanceData.gameType());
                             event.getChannel().sendMessage(String.format("You are still in game. Please wait %d more seconds.",
                                     userTimeTracker.timeSecondsTillDuration())).queue();
                             return;
                         } else {
-                            gameInstanceManager.addUser(userId, fullCommandName, instanceData.get(true));
+                            gameInstanceManager.addUser(userId, instanceData.gameType(), instanceData.duration());
                         }
                     }
                 }
@@ -179,21 +182,20 @@ public class CommandHandler {
     }
 
     private void executeCommand(@NotNull Command command, @NotNull SlashCommandEvent event) {
-        String fullCommandName = command.getFullCommandName();
         command.getExecutorService().execute(() -> {
             try {
                 if(command instanceof Instance) {
-                    Map<Boolean, Integer> instanceData = ((Instance) command).isInstanced();
-                    if (instanceData.containsKey(true)) {
+                    InstanceData instanceData = ((Instance) command).isInstanced();
+                    if (instanceData.isInstanced()) {
                         GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
                         long userId = event.getUser().getIdLong();
-                        if(gameInstanceManager.containsUser(userId, fullCommandName)) {
-                            TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId, fullCommandName);
+                        if(gameInstanceManager.containsUser(userId, instanceData.gameType())) {
+                            TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId, instanceData.gameType());
                             event.getChannel().sendMessage(String.format("You are still in game. Please wait %d more seconds.",
                                     userTimeTracker.timeSecondsTillDuration())).queue();
                             return;
                         } else {
-                            gameInstanceManager.addUser(userId, fullCommandName, instanceData.get(true));
+                            gameInstanceManager.addUser(userId, instanceData.gameType(), instanceData.duration());
                         }
                     }
                 }

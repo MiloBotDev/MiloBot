@@ -1,4 +1,4 @@
-package tk.milobot.commands;
+package tk.milobot.commands.instance;
 
 import tk.milobot.utility.TimeTracker;
 
@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GameInstanceManager {
 
-    private final Map<Map<Long, String>, TimeTracker> gameInstances;
+    private final Map<Map<Long, GameType>, TimeTracker> gameInstances;
     private static GameInstanceManager instance = null;
     private static final ScheduledExecutorService idleInstanceCleanupExecutorService =
             Executors.newScheduledThreadPool(1);
@@ -26,29 +26,29 @@ public class GameInstanceManager {
         return instance;
     }
 
-    public boolean containsUser(long userId, String gameName) {
+    public boolean containsUser(long userId, GameType gameType) {
         final boolean[] contains = {false};
         gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameName)) {
+            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
                 contains[0] = true;
             }
         });
         return contains[0];
     }
 
-    public void addUser(long userId, String gameName, int duration) {
-        if(containsUser(userId, gameName)) {
+    public void addUser(long userId, GameType gameType, int duration) {
+        if(containsUser(userId, gameType)) {
             throw new IllegalStateException("Tried adding a user to a game instance that already exists.");
         }
         TimeTracker tracker = new TimeTracker(duration);
         tracker.start();
-        this.gameInstances.put(Map.of(userId, gameName), tracker);
+        this.gameInstances.put(Map.of(userId, gameType), tracker);
     }
 
-    public void removeUserGame(long userId, String gameName) {
-        final Collection<Map<Long, String>> keyToRemove = new HashSet<>();
+    public void removeUserGame(long userId, GameType gameType) {
+        final Collection<Map<Long, GameType>> keyToRemove = new HashSet<>();
         this.gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameName)) {
+            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
                 keyToRemove.add(longStringMap);
             }
         });
@@ -58,10 +58,10 @@ public class GameInstanceManager {
         gameInstances.remove(keyToRemove.iterator().next());
     }
 
-    public TimeTracker getUserTimeTracker(long userId, String gameName) {
+    public TimeTracker getUserTimeTracker(long userId, GameType gameType) {
         final TimeTracker[] returnValue = new TimeTracker[1];
         this.gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameName)) {
+            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
                 returnValue[0] = timeTracker;
             }
         });
@@ -73,9 +73,9 @@ public class GameInstanceManager {
 
     private void setIdleInstanceCleanup() {
         idleInstanceCleanupExecutorService.schedule(() -> {
-            gameInstances.forEach((aLong, timeTracker) -> {
-                if(timeTracker.isTimeSecondsPastDuration()) {
-                    gameInstances.remove(aLong);
+            gameInstances.forEach((longGameTypeMap, timeTracker) -> {
+                if (timeTracker.isTimeSecondsPastDuration()) {
+                    gameInstances.remove(longGameTypeMap);
                 }
             });
         }, 1, TimeUnit.MINUTES);

@@ -1,5 +1,8 @@
 package tk.milobot.games;
 
+import tk.milobot.commands.games.blackjack.BlackjackPlayCmd;
+import tk.milobot.commands.instance.GameInstanceManager;
+import tk.milobot.commands.instance.GameType;
 import tk.milobot.database.dao.BlackjackDao;
 import tk.milobot.database.dao.UserDao;
 import tk.milobot.database.util.DatabaseConnection;
@@ -48,24 +51,22 @@ public class BlackjackGame {
     private boolean finished;
     private int winnings;
     private volatile Message message;
+    private static int duration;
 
-    private BlackjackGame(long userDiscordId, int bet) {
+    private BlackjackGame(long userDiscordId, int bet, int instanceDuration) {
         this.playerHand = new ArrayList<>();
         this.dealerHand = new ArrayList<>();
         this.deck = new CardDeck<>(List.of(PlayingCard.values()));
         this.userDiscordId = userDiscordId;
         this.playerBet = bet;
         this.winnings = 0;
+        duration = instanceDuration;
     }
 
-    public static void newGame(@NotNull MessageReceivedEvent event, List<String> args) {
+    public static void newGame(@NotNull MessageReceivedEvent event, List<String> args, int instanceDuration) {
+        duration = instanceDuration;
         long authorIdLong = event.getAuthor().getIdLong();
         String authorId = event.getAuthor().getId();
-
-        if (blackjackGames.containsKey(authorIdLong)) {
-            event.getChannel().sendMessage("You are already in a game of blackjack.").queue();
-            return;
-        }
 
         int bet = 0;
         if (args.size() > 0) {
@@ -121,7 +122,7 @@ public class BlackjackGame {
             return;
         }
 
-        BlackjackGame blackjack = new BlackjackGame(authorIdLong, bet);
+        BlackjackGame blackjack = new BlackjackGame(authorIdLong, bet, duration);
         blackjack.initializeGame();
 
 
@@ -149,14 +150,10 @@ public class BlackjackGame {
         }
     }
 
-    public static void newGame(@NotNull SlashCommandEvent event) {
+    public static void newGame(@NotNull SlashCommandEvent event, int instanceDuration) {
+        duration = instanceDuration;
         long authorIdLong = event.getUser().getIdLong();
         String authorId = event.getUser().getId();
-
-        if (blackjackGames.containsKey(authorIdLong)) {
-            event.getHook().sendMessage("You are already in a game of blackjack.").queue();
-            return;
-        }
 
         int bet;
         if (event.getOption("bet") == null) {
@@ -197,7 +194,7 @@ public class BlackjackGame {
             }
         }
 
-        BlackjackGame blackjack = new BlackjackGame(authorIdLong, bet);
+        BlackjackGame blackjack = new BlackjackGame(authorIdLong, bet, instanceDuration);
         blackjack.initializeGame();
 
         BlackjackGame.BlackjackStates blackjackStates = blackjack.checkWin(false);
@@ -231,8 +228,9 @@ public class BlackjackGame {
         }
         String description = event.getMessage().getEmbeds().get(0).getDescription();
         BlackjackGame blackjack;
+        GameInstanceManager.getInstance().addUser(event.getUser().getIdLong(), GameType.BLACKJACK, duration);
         if (description == null) {
-            blackjack = new BlackjackGame(event.getUser().getIdLong(), 0);
+            blackjack = new BlackjackGame(event.getUser().getIdLong(), 0, duration);
         } else {
             String s = description.replaceAll("[^0-9]", "");
             int bet = Integer.parseInt(s);
@@ -249,7 +247,7 @@ public class BlackjackGame {
                 user.setCurrency(newWallet);
                 userDao.update(con, user);
                 con.commit();
-                blackjack = new BlackjackGame(event.getUser().getIdLong(), bet);
+                blackjack = new BlackjackGame(event.getUser().getIdLong(), bet, duration);
             } catch (SQLException e) {
                 logger.error("Error updating blackjack data when user wanted to replay blackjack.", e);
                 return;
@@ -350,6 +348,9 @@ public class BlackjackGame {
                 }
             }
 
+        }
+        if(finished) {
+            GameInstanceManager.getInstance().removeUserGame(user.getIdLong(), GameType.BLACKJACK);
         }
         return embed;
     }
@@ -496,8 +497,12 @@ public class BlackjackGame {
     }
 
     private void setIdleInstanceCleanup() {
+        GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
         idleInstanceCleanupFuture = idleInstanceCleanupExecutorService.schedule(() -> {
             blackjackGames.remove(userDiscordId);
+            if(gameInstanceManager.containsUser(userDiscordId, GameType.BLACKJACK)) {
+                gameInstanceManager.removeUserGame(userDiscordId, GameType.BLACKJACK);
+            }
             message.delete().queue();
         }, 15, TimeUnit.MINUTES);
     }

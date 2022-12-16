@@ -9,10 +9,9 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import tk.milobot.commands.command.SubCommand;
-import tk.milobot.commands.command.extensions.DefaultChannelTypes;
-import tk.milobot.commands.command.extensions.DefaultFlags;
-import tk.milobot.commands.command.extensions.SlashCommand;
-import tk.milobot.commands.command.extensions.TextCommand;
+import tk.milobot.commands.command.extensions.*;
+import tk.milobot.commands.instance.GameType;
+import tk.milobot.commands.instance.InstanceData;
 import tk.milobot.games.BlackjackGame;
 
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public class BlackjackPlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
-        DefaultChannelTypes {
+        DefaultChannelTypes, Instance {
 
     private final ExecutorService executorService;
 
@@ -30,13 +29,13 @@ public class BlackjackPlayCmd extends SubCommand implements TextCommand, SlashCo
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        BlackjackGame.newGame(event, args);
+        BlackjackGame.newGame(event, args, isInstanced().duration());
     }
 
     @Override
     public void executeCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
-        BlackjackGame.newGame(event);
+        BlackjackGame.newGame(event, isInstanced().duration());
     }
 
     @Override
@@ -81,5 +80,10 @@ public class BlackjackPlayCmd extends SubCommand implements TextCommand, SlashCo
     @Override
     public @NotNull Set<ChannelType> getAllowedChannelTypes() {
         return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public InstanceData isInstanced() {
+        return new InstanceData(true, 900, GameType.BLACKJACK);
     }
 }

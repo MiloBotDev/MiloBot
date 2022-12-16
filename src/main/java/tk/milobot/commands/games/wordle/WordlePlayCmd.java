@@ -11,9 +11,11 @@ import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
-import tk.milobot.commands.GameInstanceManager;
+import tk.milobot.commands.instance.GameInstanceManager;
+import tk.milobot.commands.instance.GameType;
 import tk.milobot.commands.command.SubCommand;
 import tk.milobot.commands.command.extensions.*;
+import tk.milobot.commands.instance.InstanceData;
 import tk.milobot.database.dao.UserDao;
 import tk.milobot.database.dao.WordleDao;
 import tk.milobot.database.model.Wordle;
@@ -197,7 +199,7 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
                             newEmbed.setDescription(editDescription);
                             event.getMessage().delete().queue();
                             if (gameOver[0]) {
-                                GameInstanceManager.getInstance().removeUserGame(event.getAuthor().getIdLong(), getFullCommandName());
+                                GameInstanceManager.getInstance().removeUserGame(event.getAuthor().getIdLong(), isInstanced().gameType());
                                 if (SlashCommandEvent != null) {
                                     SlashCommandEvent.getHook().editOriginalEmbeds(newEmbed.build()).setActionRow(
                                             Button.secondary(event.getAuthor().getId() + ":delete", "Delete")
@@ -237,7 +239,7 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
     }
 
     @Override
-    public Map<Boolean, Integer> isInstanced() {
-        return Map.of(true, 900);
+    public InstanceData isInstanced() {
+        return new InstanceData(true, 900, GameType.WORDLE);
     }
 }
