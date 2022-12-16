@@ -1,19 +1,26 @@
 package tk.milobot.commands.morbconomy;
 
-import tk.milobot.commands.Command;
-import tk.milobot.database.util.DatabaseConnection;
-import tk.milobot.database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
-import tk.milobot.database.dao.UserDao;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.DefaultChannelTypes;
+import tk.milobot.commands.command.extensions.DefaultFlags;
+import tk.milobot.commands.command.extensions.SlashCommand;
+import tk.milobot.commands.command.extensions.TextCommand;
+import tk.milobot.database.dao.UserDao;
 import tk.milobot.database.model.User;
+import tk.milobot.database.util.DatabaseConnection;
+import tk.milobot.database.util.RowLockType;
 import tk.milobot.utility.EmbedUtils;
 import tk.milobot.utility.Users;
 
@@ -21,24 +28,38 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
-/**
- * Shows the user their own profile or that of someone else.
- */
-public class ProfileCmd extends Command implements MorbconomyCmd {
+public class ProfileCmd extends ParentCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, MorbconomyCmd{
 
+    private final ExecutorService executorService;
     private static final Logger logger = LoggerFactory.getLogger(ProfileCmd.class);
     private final Users user;
     private final UserDao userDao = UserDao.getInstance();
 
-    public ProfileCmd() {
-        this.commandName = "profile";
-        this.commandDescription = "View your own or someone else's profile.";
-        this.commandArgs = new String[]{"*user"};
-        this.cooldown = 0;
+    public ProfileCmd(ExecutorService executorService) {
+        this.executorService = executorService;
         this.user = Users.getInstance();
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new CommandData("profile", "View your own or someone else's profile.")
+                .addOption(OptionType.USER, "user", "The user to view the profile of.", false);
+    }
+
+    @Override
+    public List<String> getCommandArgs() {
+        return List.of("*user");
+    }
+
+    @Override
+    public boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args) {
+        if(args.size() == 0) {
+            return true;
+        }
+        return true;
     }
 
     @Override
@@ -82,7 +103,7 @@ public class ProfileCmd extends Command implements MorbconomyCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
         net.dv8tion.jda.api.entities.User author = event.getUser();
         if (event.getOption("user") == null) {
@@ -206,5 +227,15 @@ public class ProfileCmd extends Command implements MorbconomyCmd {
         progressBar.append(String.format("] %s", percentageDoneString)).append("%");
 
         return Optional.of(progressBar.toString());
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return this.executorService;
     }
 }

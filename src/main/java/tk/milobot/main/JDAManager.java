@@ -3,6 +3,7 @@ package tk.milobot.main;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.milobot.utility.Config;
@@ -26,7 +27,7 @@ public class JDAManager {
 
     private JDAManager() {
         jdaBuilder = JDABuilder.createDefault(Config.getInstance().getBotToken())
-                .setActivity(Activity.listening("Ping bot for help"));
+                .setActivity(Activity.listening("Ping bot for help")).enableIntents(GatewayIntent.GUILD_MEMBERS);
     }
 
     public synchronized static JDAManager getInstance() {

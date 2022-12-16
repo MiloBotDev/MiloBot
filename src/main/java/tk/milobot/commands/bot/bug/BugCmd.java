@@ -1,32 +1,37 @@
 package tk.milobot.commands.bot.bug;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.ParentCmd;
-import tk.milobot.commands.bot.BotCmd;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.bot.BotCmd;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.*;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-/**
- * Parent command for all Bug sub commands.
- */
-public class BugCmd extends Command implements BotCmd, ParentCmd {
+public class BugCmd extends ParentCommand implements TextCommand, SlashCommand, DefaultChannelTypes,
+        DefaultTextParentCommand, DefaultSlashParentCommand, DefaultFlags, BotCmd {
 
-    private final static ResourceBundle resourceBundle = ResourceBundle.getBundle("localization.MiloBot_en_US", Locale.getDefault());
+    private final ExecutorService executorService;
 
-    public BugCmd() {
-        this.commandName = resourceBundle.getString("bugCommandName");
-        this.commandDescription = resourceBundle.getString("bugCommandDescription");
-        this.subCommands.add(new BugReportCmd());
-        this.subCommands.add(new BugViewCmd());
-        this.subCommands.add(new BugListCmd());
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.slashCommandData = new CommandData(this.commandName, this.commandDescription);
-        this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
-        this.slashCommandData = new CommandData(this.commandName, this.commandDescription);
+    public BugCmd(@NotNull ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new CommandData("bug", "Add bugs to the bots issue tracker, or view them.");
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
 }

@@ -1,41 +1,58 @@
 package tk.milobot.commands.games.blackjack;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.utility.EmbedUtils;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-public class BlackjackInfoCmd extends Command implements SubCmd {
+public class BlackjackInfoCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, DefaultCommandArgs {
 
-    public BlackjackInfoCmd() {
-        this.commandName = "info";
-        this.commandDescription = "A simple tutorial on the rules of blackjack.";
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+    private final ExecutorService executorService;
+
+    public BlackjackInfoCmd(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
     @Override
-    public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+    public void executeCommand(SlashCommandEvent event) {
+        User user = event.getUser();
+        event.replyEmbeds(createBlackjackInfoEmbed(user).build())
+                .addActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
+    }
+
+    @Override
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         User author = event.getAuthor();
         event.getChannel().sendMessageEmbeds(createBlackjackInfoEmbed(author).build())
                 .setActionRow(Button.secondary(author.getId() + ":delete", "Delete")).queue();
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-        User user = event.getUser();
-        event.replyEmbeds(createBlackjackInfoEmbed(user).build())
-                .addActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("info", "A simple tutorial on the rules of blackjack.");
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return this.executorService;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 
     private @NotNull EmbedBuilder createBlackjackInfoEmbed(User user) {
@@ -55,7 +72,6 @@ public class BlackjackInfoCmd extends Command implements SubCmd {
                 "done with our own currency: morbcoins. If you bet 500 morbcoins they will be taken from your " +
                 "account as soon as the game starts, if you manage to win you will win 100% of your bet back, and " +
                 "in the case of a blackjack you will win 150% of your bet back.", false);
-
         return info;
     }
 }

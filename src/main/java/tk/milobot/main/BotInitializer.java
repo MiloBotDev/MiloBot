@@ -2,7 +2,7 @@ package tk.milobot.main;
 
 import tk.milobot.commands.ButtonHandler;
 import tk.milobot.commands.GuildPrefixManager;
-import tk.milobot.commands.NewCommandLoader;
+import tk.milobot.commands.CommandLoader;
 import tk.milobot.events.EventLoader;
 
 public class BotInitializer {
@@ -13,7 +13,7 @@ public class BotInitializer {
         // or SomeClass.getInstance().initialize()
         // if you need more than one line to initialize something, it means that it should be in its own class
         GuildPrefixManager.getInstance().initialize();
-        NewCommandLoader.initialize();
+        CommandLoader.initialize();
         ButtonHandler.getInstance().initialize();
         EventLoader.load();
 

@@ -1,33 +1,52 @@
 package tk.milobot.commands.utility;
 
-import tk.milobot.commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.utility.EmbedUtils;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Shows the user an overview of their own account details, or that of someone in the same server.
  */
-public class UserCmd extends Command implements UtilityCmd {
+public class UserCmd extends ParentCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, DefaultCommandArgs, UtilityCmd {
 
-    public UserCmd() {
-        this.commandName = "user";
-        this.commandDescription = "Shows information about a user.";
-        this.commandArgs = new String[]{"*user"};
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+    private final ExecutorService executorService;
+
+    public UserCmd(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new CommandData("user", "Shows information on the user you are using this command on.")
+                .addOptions(new OptionData(OptionType.USER, "user", "The user to show information on.")
+                        .setRequired(false));
+    }
+
+    @Override
+    public List<String> getCommandArgs() {
+        return List.of("user");
+    }
+
+    @Override
+    public boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args) {
+        return true;
     }
 
     @Override
@@ -46,7 +65,8 @@ public class UserCmd extends Command implements UtilityCmd {
             member[0] = event.getMember();
             user[0].retrieveProfile().queue(profile -> {
                 userProfile[0] = profile;
-                makeEmbed(event, dtf, userEmbed, user[0], userProfile[0], member[0]);
+                EmbedBuilder embedBuilder = makeEmbed(dtf, userEmbed, user[0], userProfile[0], member[0]);
+                event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
             });
         } else {
             String findUser = String.join(" ", args);
@@ -64,23 +84,58 @@ public class UserCmd extends Command implements UtilityCmd {
                                 member[0] = usersByName.get(0);
                                 user[0].retrieveProfile().queue(profile -> {
                                     userProfile[0] = profile;
-                                    makeEmbed(event, dtf, userEmbed, user[0], userProfile[0], member[0]);
+                                    EmbedBuilder embedBuilder = makeEmbed(dtf, userEmbed, user[0], userProfile[0], member[0]);
+                                    event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
                                 });
                             }
                         });
             } catch (IllegalStateException e) {
-                e.printStackTrace();
                 event.getChannel().sendTyping().queue();
                 event.getChannel().sendMessage("You can only look up other users in a server.").queue();
             }
         }
     }
 
+    @Override
+    public void executeCommand(SlashCommandEvent event) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        EmbedBuilder userEmbed = new EmbedBuilder();
+        EmbedUtils.styleEmbed(userEmbed, event.getUser());
+
+        final User[] user = new User[1];
+        final User.Profile[] userProfile = new User.Profile[1];
+        final Member[] member = new Member[1];
+
+        if (event.getOption("user") == null) {
+            user[0] = event.getUser();
+            userProfile[0] = user[0].retrieveProfile().complete();
+            member[0] = event.getMember();
+            user[0].retrieveProfile().queue(profile -> {
+                userProfile[0] = profile;
+                EmbedBuilder embedBuilder = makeEmbed(dtf, userEmbed, user[0], userProfile[0], member[0]);
+                event.replyEmbeds(embedBuilder.build()).queue();
+            });
+        } else {
+            try {
+                user[0] = event.getOption("user").getAsUser();
+                member[0] = event.getGuild().getMember(user[0]);
+                user[0].retrieveProfile().queue(profile -> {
+                    userProfile[0] = profile;
+                    EmbedBuilder embedBuilder = makeEmbed(dtf, userEmbed, user[0], userProfile[0], member[0]);
+                    event.replyEmbeds(embedBuilder.build()).queue();
+                });
+            } catch (NullPointerException e) {
+                event.reply("User not found.").queue();
+            }
+
+        }
+    }
+
     /**
      * Constructs and sends the embed for the User command.
      */
-    private void makeEmbed(@NotNull MessageReceivedEvent event, DateTimeFormatter dtf,
-                           @NotNull EmbedBuilder userEmbed, @NotNull User user, User.@NotNull Profile profile, Member member) {
+    private EmbedBuilder makeEmbed(DateTimeFormatter dtf, @NotNull EmbedBuilder userEmbed, @NotNull User user,
+                                   User.@NotNull Profile profile, Member member) {
         userEmbed.setTitle(user.getName());
         userEmbed.setImage(profile.getBannerUrl());
         userEmbed.setThumbnail(user.getAvatarUrl());
@@ -107,6 +162,16 @@ public class UserCmd extends Command implements UtilityCmd {
 
         userEmbed.addField("Account Created", user.getTimeCreated().format(dtf), false);
 
-        event.getChannel().sendMessageEmbeds(userEmbed.build()).setActionRow(Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+        return userEmbed;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return Set.of(ChannelType.TEXT);
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return this.executorService;
     }
 }

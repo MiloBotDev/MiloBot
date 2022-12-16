@@ -224,7 +224,8 @@ public class HungerGames {
 
     private void loadAllEvents(Globals globals) {
         try {
-            URI uri = getClass().getResource(Config.getInstance().getHungerGamesPath() + "/tk/milobot/events").toURI();
+            System.out.println(Config.getInstance().getHungerGamesPath() + "events");
+            URI uri = getClass().getResource(Config.getInstance().getHungerGamesPath() + "/events").toURI();
             fileLoadHack(uri);
             try (Stream<Path> paths = Files.walk(Paths.get(uri))) {
                 paths

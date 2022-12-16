@@ -58,7 +58,7 @@ public class BlackjackGame {
         this.winnings = 0;
     }
 
-    public static void newGame(MessageReceivedEvent event, List<String> args) {
+    public static void newGame(@NotNull MessageReceivedEvent event, List<String> args) {
         long authorIdLong = event.getAuthor().getIdLong();
         String authorId = event.getAuthor().getId();
 
@@ -96,10 +96,6 @@ public class BlackjackGame {
                         }
                         user.setCurrency(newWallet);
                         userDao.update(con, user);
-                        if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
-                            blackjackDao.add(con, new Blackjack(Objects.requireNonNull(
-                                    userDao.getUserByDiscordId(con, authorIdLong, RowLockType.NONE)).getId()));
-                        }
                         con.commit();
                     } catch (SQLException e) {
                         logger.error("Error updating blackjack data when user wanted to play blackjack.", e);
@@ -111,6 +107,18 @@ public class BlackjackGame {
                 event.getChannel().sendMessage("Invalid bet amount.").queue();
                 return;
             }
+        }
+
+        try(Connection con = DatabaseConnection.getConnection()) {
+            con.setAutoCommit(false);
+            if (blackjackDao.getByUserDiscordId(con, authorIdLong, RowLockType.FOR_UPDATE) == null) {
+                blackjackDao.add(con, new Blackjack(Objects.requireNonNull(
+                        userDao.getUserByDiscordId(con, authorIdLong, RowLockType.NONE)).getId()));
+            }
+            con.commit();
+        } catch (SQLException e) {
+            logger.error("Error updating blackjack data when user wanted to play blackjack.", e);
+            return;
         }
 
         BlackjackGame blackjack = new BlackjackGame(authorIdLong, bet);
@@ -216,7 +224,7 @@ public class BlackjackGame {
         }
     }
 
-    public static void replayBlackjack(ButtonClickEvent event) {
+    public static void replayBlackjack(@NotNull ButtonClickEvent event) {
         String authorId = event.getUser().getId();
         if (blackjackGames.containsKey(event.getUser().getIdLong())) {
             return;

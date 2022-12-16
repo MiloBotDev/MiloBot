@@ -1,29 +1,63 @@
 package tk.milobot.commands.games.uno;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
-import tk.milobot.games.hungergames.model.LobbyEntry;
-import tk.milobot.games.uno.UnoGame;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
+import tk.milobot.games.hungergames.model.LobbyEntry;
+import tk.milobot.games.uno.UnoGame;
 import tk.milobot.utility.lobby.BotLobby;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-public class UnoHostCmd extends Command implements SubCmd {
+public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, Aliases {
 
-    private static final Logger logger = LoggerFactory.getLogger(UnoHostCmd.class);
+    private final ExecutorService executorService;
 
-    public UnoHostCmd() {
-        this.commandName = "host";
-        this.commandDescription = "Host a game of Uno!";
-        this.aliases =  new String[]{"start", "play", "h"};
-        this.allowedChannelTypes.add(ChannelType.TEXT);
+    public UnoHostCmd(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("host", "Host a game of Uno!")
+                .addOptions(new OptionData(OptionType.INTEGER, "max-players", "Maximum number of players", false)
+                        .setRequiredRange(2, 8));
+    }
+
+    @Override
+    public List<String> getCommandArgs() {
+        return List.of("*maxPlayers");
+    }
+
+    @Override
+    public boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args) {
+        if (args.size() > 0) {
+            try {
+                int i = Integer.parseInt(args.get(0));
+                if (i < 2 || i > 4) {
+                    event.getChannel().sendMessage("maxPlayers must be a number between 2 and 4.").queue();
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                event.getChannel().sendMessage("maxPlayers must be a number between 2 and 4.").queue();
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -40,22 +74,52 @@ public class UnoHostCmd extends Command implements SubCmd {
                     UnoGame unoGame = new UnoGame(participants);
                     unoGame.start(channel);
                 }, 2, 4);
-        if(args.size() > 0) {
-            try {
-                int i = Integer.parseInt(args.get(0));
-                if(i < 2 || i > 4) {
-                    channel.sendMessage("maxPlayers must be a number between 2 and 4.").queue();
-                } else {
-                    unoLobby.setMaxPlayers(i);
-                    unoLobby.initialize(channel);
-                }
-            } catch (NumberFormatException e) {
-                logger.error("Failed formatting argument to number when setting the max players for uno lobby", e);
-                channel.sendMessage("maxPlayers must be a number between 2 and 4.").queue();
-            }
+        if (args.size() > 0) {
+            int i = Integer.parseInt(args.get(0));
+            unoLobby.setMaxPlayers(i);
+            unoLobby.initialize(channel);
         } else {
             unoLobby.setMaxPlayers(maxPlayers);
             unoLobby.initialize(channel);
         }
+    }
+
+    @Override
+    public void executeCommand(SlashCommandEvent event) {
+        int maxPlayers = 4;
+        MessageChannel channel = event.getChannel();
+        BotLobby unoLobby = new BotLobby("Uno Lobby", event.getUser(),
+                (entries, message) -> {
+                    ArrayList<LobbyEntry> participants = new ArrayList<>();
+                    entries.forEach((players, npcs) -> {
+                        npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
+                        players.forEach(user -> participants.add(new LobbyEntry(user)));
+                    });
+                    UnoGame unoGame = new UnoGame(participants);
+                    unoGame.start(channel);
+                }, 2, 4);
+        if (event.getOption("max-players") != null) {
+            int i = Integer.parseInt(String.valueOf(event.getOption("max-players").getAsLong()));
+            unoLobby.setMaxPlayers(i);
+            unoLobby.initialize(event);
+        } else {
+            unoLobby.setMaxPlayers(maxPlayers);
+            unoLobby.initialize(event);
+        }
+    }
+
+    @Override
+    public @NotNull List<String> getAliases() {
+        return List.of("start", "play", "h");
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
     }
 }

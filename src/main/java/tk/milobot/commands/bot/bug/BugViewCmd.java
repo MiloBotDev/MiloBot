@@ -1,61 +1,71 @@
 package tk.milobot.commands.bot.bug;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.utility.EmbedUtils;
 import tk.milobot.utility.GitHubBot;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-/**
- * Lookup a specific bug on the issue tracker.
- */
-public class BugViewCmd extends Command implements SubCmd {
+public class BugViewCmd extends SubCommand implements TextCommand, SlashCommand, DefaultChannelTypes, DefaultFlags {
 
-    private final GitHubBot gitHubBot;
+    private final ExecutorService executorService;
+    private final GitHubBot gitHubBot = GitHubBot.getInstance();
 
-    public BugViewCmd() {
-        this.commandName = "view";
-        this.commandDescription = "Lookup a specific bug on the issue tracker.";
-        this.commandArgs = new String[]{"id"};
-        this.gitHubBot = GitHubBot.getInstance();
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription).addOptions(
-                new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true)
-        );
+    public BugViewCmd(@NotNull ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        if (args.size() < 1) {
-            sendCommandUsage(event);
+        Optional<EmbedBuilder> loadedBug = loadBug(Integer.parseInt(args.get(0)), event.getAuthor());
+        if (loadedBug.isEmpty()) {
+            event.getChannel().sendMessage(String.format("Bug with number: %s not found.", args.get(0))).queue();
         } else {
-            Optional<EmbedBuilder> loadedBug = loadBug(Integer.parseInt(args.get(0)), event.getAuthor());
-            if (loadedBug.isEmpty()) {
-                event.getChannel().sendMessage(String.format("Bug with number: %s not found.", args.get(0))).queue();
-            } else {
-                event.getChannel().sendMessageEmbeds(loadedBug.get().build()).setActionRow(
-                        Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+            event.getChannel().sendMessageEmbeds(loadedBug.get().build()).setActionRow(
+                    Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+        }
+    }
+
+    @Override
+    public List<String> getCommandArgs() {
+        return List.of("id");
+    }
+
+    @Override
+    public boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args) {
+        if (args.size() !=  1) {
+            sendMissingArgs(event);
+            return false;
+        } else {
+            try {
+                Integer.parseInt(args.get(0));
+                return true;
+            } catch (NumberFormatException e) {
+                sendInvalidArgs(event, "Bug id must be a number.");
+                return false;
             }
         }
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(SlashCommandEvent event) {
         int id = Math.toIntExact(Objects.requireNonNull(event.getOption("id")).getAsLong());
         Optional<EmbedBuilder> loadedBug = loadBug(id, event.getUser());
         if (loadedBug.isEmpty()) {
@@ -64,7 +74,22 @@ public class BugViewCmd extends Command implements SubCmd {
             event.replyEmbeds(loadedBug.get().build()).addActionRow(
                     Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
         }
+    }
 
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("view", "Lookup a specific bug on the issue tracker.").addOptions(
+                new OptionData(OptionType.INTEGER, "id", "The id of the bug you want to view", true));
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 
     /**

@@ -1,12 +1,5 @@
 package tk.milobot.commands.games.blackjack;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
-import tk.milobot.database.dao.BlackjackDao;
-import tk.milobot.database.dao.UserDao;
-import tk.milobot.database.model.Blackjack;
-import tk.milobot.database.util.DatabaseConnection;
-import tk.milobot.database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -15,13 +8,22 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.milobot.utility.Paginator;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
+import tk.milobot.database.dao.BlackjackDao;
+import tk.milobot.database.dao.UserDao;
+import tk.milobot.database.model.Blackjack;
+import tk.milobot.database.util.DatabaseConnection;
+import tk.milobot.database.util.RowLockType;
+import tk.milobot.utility.paginator.Paginator;
 import tk.milobot.utility.Users;
 
 import java.awt.*;
@@ -30,69 +32,34 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-public class BlackjackLeaderboardCmd extends Command implements SubCmd {
+public class BlackjackLeaderboardCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, DefaultCommandArgs, EventListeners {
 
+    private final ExecutorService executorService;
     private static final UserDao userDao = UserDao.getInstance();
     private static final BlackjackDao blackjackDao = BlackjackDao.getInstance();
     private static final Logger logger = LoggerFactory.getLogger(BlackjackLeaderboardCmd.class);
     private static final Users userUtil = Users.getInstance();
 
-    public BlackjackLeaderboardCmd() {
-        this.commandName = "leaderboard";
-        this.commandDescription = "View the blackjack leaderboards.";
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+    public BlackjackLeaderboardCmd(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
 
-        this.listeners.add(new ListenerAdapter() {
-            @Override
-            public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
-                String[] id = event.getComponentId().split(":");
-                String authorId = id[0];
-                String type = id[1];
-                User user = event.getUser();
-
-                if (user.getId().equals(authorId) && type.equals("blackjackLeaderboard")) {
-                    event.deferEdit().queue();
-                    String option = Objects.requireNonNull(event.getSelectedOptions()).get(0).getValue();
-                    List<MessageEmbed> embeds = new ArrayList<>();
-                    try {
-                        switch (option) {
-                            case "totalWins" -> {
-                                List<Blackjack> topTotalWins = blackjackDao.getTopTotalWins();
-                                embeds = buildBlackjackEmbeds(topTotalWins, "Total Wins", event.getJDA());
-                            }
-                            case "totalDraws" -> {
-                                List<Blackjack> topTotalDraws = blackjackDao.getTopTotalDraws();
-                                embeds = buildBlackjackEmbeds(topTotalDraws, "Total Draws", event.getJDA());
-                            }
-                            case "totalGamesPlayed" -> {
-                                List<Blackjack> topTotalGamesPlayed = blackjackDao.getTopTotalGamesPlayed();
-                                embeds = buildBlackjackEmbeds(topTotalGamesPlayed, "Total Games Played", event.getJDA());
-                            }
-                            case "highestStreak" -> {
-                                List<Blackjack> topHighestStreak = blackjackDao.getTopHighestStreak();
-                                embeds = buildBlackjackEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
-                            }
-                            case "currentStreak" -> {
-                                List<Blackjack> topCurrentStreak = blackjackDao.getTopCurrentStreak();
-                                embeds = buildBlackjackEmbeds(topCurrentStreak, "Current Streak", event.getJDA());
-                            }
-                            case "totalEarnings" -> {
-                                List<Blackjack> topTotalEarnings = blackjackDao.getTopTotalEarnings();
-                                embeds = buildBlackjackEmbeds(topTotalEarnings, "Total Earnings", event.getJDA());
-                            }
-                        }
-                        Paginator paginator = new Paginator(user, embeds);
-                        event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
-                                .queue(paginator::initialize);
-                    } catch (SQLException e) {
-                        logger.error("Failed to get the blackjack leaderboard", e);
-                    }
-                }
-            }
-        });
+    @Override
+    public void executeCommand(SlashCommandEvent event) {
+        SelectionMenu menu = SelectionMenu.create(event.getUser().getId() + ":blackjackLeaderboard")
+                .setPlaceholder("Select a leaderboard")
+                .addOption("Highest Streak", "highestStreak")
+                .addOption("Current Streak", "currentStreak")
+                .addOption("Total Wins", "totalWins")
+                .addOption("Total Draws", "totalDraws")
+                .addOption("Total Games Played", "totalGamesPlayed")
+                .addOption("Total Earnings", "totalEarnings")
+                .build();
+        event.reply("Blackjack Leaderboard Selection").addActionRow(menu).queue();
     }
 
     @Override
@@ -110,18 +77,73 @@ public class BlackjackLeaderboardCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-        SelectionMenu menu = SelectionMenu.create(event.getUser().getId() + ":blackjackLeaderboard")
-                .setPlaceholder("Select a leaderboard")
-                .addOption("Highest Streak", "highestStreak")
-                .addOption("Current Streak", "currentStreak")
-                .addOption("Total Wins", "totalWins")
-                .addOption("Total Draws", "totalDraws")
-                .addOption("Total Games Played", "totalGamesPlayed")
-                .addOption("Total Earnings", "totalEarnings")
-                .build();
-        event.reply("Blackjack Leaderboard Selection").addActionRow(menu).queue();
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("leaderboard","View the blackjack leaderboards.");
     }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return this.executorService;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull List<EventListener> getEventListeners() {
+        return List.of(menuListener);
+    }
+
+    ListenerAdapter menuListener = new ListenerAdapter() {
+        @Override
+        public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
+            String[] id = event.getComponentId().split(":");
+            String authorId = id[0];
+            String type = id[1];
+            User user = event.getUser();
+
+            if (user.getId().equals(authorId) && type.equals("blackjackLeaderboard")) {
+                event.deferEdit().queue();
+                String option = Objects.requireNonNull(event.getSelectedOptions()).get(0).getValue();
+                List<MessageEmbed> embeds = new ArrayList<>();
+                try {
+                    switch (option) {
+                        case "totalWins" -> {
+                            List<Blackjack> topTotalWins = blackjackDao.getTopTotalWins();
+                            embeds = buildBlackjackEmbeds(topTotalWins, "Total Wins", event.getJDA());
+                        }
+                        case "totalDraws" -> {
+                            List<Blackjack> topTotalDraws = blackjackDao.getTopTotalDraws();
+                            embeds = buildBlackjackEmbeds(topTotalDraws, "Total Draws", event.getJDA());
+                        }
+                        case "totalGamesPlayed" -> {
+                            List<Blackjack> topTotalGamesPlayed = blackjackDao.getTopTotalGamesPlayed();
+                            embeds = buildBlackjackEmbeds(topTotalGamesPlayed, "Total Games Played", event.getJDA());
+                        }
+                        case "highestStreak" -> {
+                            List<Blackjack> topHighestStreak = blackjackDao.getTopHighestStreak();
+                            embeds = buildBlackjackEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
+                        }
+                        case "currentStreak" -> {
+                            List<Blackjack> topCurrentStreak = blackjackDao.getTopCurrentStreak();
+                            embeds = buildBlackjackEmbeds(topCurrentStreak, "Current Streak", event.getJDA());
+                        }
+                        case "totalEarnings" -> {
+                            List<Blackjack> topTotalEarnings = blackjackDao.getTopTotalEarnings();
+                            embeds = buildBlackjackEmbeds(topTotalEarnings, "Total Earnings", event.getJDA());
+                        }
+                    }
+                    Paginator paginator = new Paginator(user, embeds);
+                    event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
+                            .queue(paginator::initialize);
+                } catch (SQLException e) {
+                    logger.error("Failed to get the blackjack leaderboard", e);
+                }
+            }
+        }
+    };
 
     public static @NotNull ArrayList<MessageEmbed> buildBlackjackEmbeds(@NotNull List<Blackjack> blackjacks, String title, JDA jda) {
         ArrayList<MessageEmbed> embeds = new ArrayList<>();
@@ -165,4 +187,6 @@ public class BlackjackLeaderboardCmd extends Command implements SubCmd {
 
         return embeds;
     }
+
+
 }

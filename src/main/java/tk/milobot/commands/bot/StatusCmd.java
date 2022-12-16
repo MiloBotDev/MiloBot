@@ -1,6 +1,5 @@
 package tk.milobot.commands.bot;
 
-import tk.milobot.commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -8,26 +7,41 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.DefaultCommandArgs;
+import tk.milobot.commands.command.extensions.DefaultFlags;
+import tk.milobot.commands.command.extensions.TextCommand;
 import tk.milobot.utility.EmbedUtils;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-/**
- * The status command.
- * Shows some information on the bots current status.
- */
-public class StatusCmd extends Command implements BotCmd {
+public class StatusCmd extends ParentCommand implements TextCommand, DefaultFlags, DefaultCommandArgs, BotCmd {
 
-    public StatusCmd() {
-        this.commandName = "status";
-        this.commandDescription = "The status of the bot.";
-        this.cooldown = 60;
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+    private final ExecutorService executorService;
+
+    public StatusCmd(@NotNull ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
     @Override
-    public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+    public @NotNull String getCommandName() {
+        return "status";
+    }
+
+    @Override
+    public @NotNull String getCommandDescription() {
+        return "The status of the bot.";
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    @Override
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         EmbedBuilder embed = new EmbedBuilder();
         EmbedUtils.styleEmbed(embed, event.getAuthor());
 
@@ -55,4 +69,8 @@ public class StatusCmd extends Command implements BotCmd {
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }
 
+    @Override
+    public Set<ChannelType> getAllowedChannelTypes() {
+        return null;
+    }
 }

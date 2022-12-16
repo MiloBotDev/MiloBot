@@ -1,29 +1,54 @@
 package tk.milobot.commands.games.poker;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.ParentCmd;
-import tk.milobot.commands.games.GamesCmd;
-import tk.milobot.games.PokerGame;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.*;
+import tk.milobot.commands.games.GamesCmd;
+import tk.milobot.games.PokerGame;
 
-public class PokerCmd extends Command implements ParentCmd, GamesCmd {
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-    public PokerCmd() {
-        this.commandName = "poker";
-        this.commandDescription = "5-card Poker brought to discord.";
-        this.subCommands.add(new PokerPlayCmd());
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.listeners.add(new ListenerAdapter() {
-            @Override
-            public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-                PokerGame.onMessageReceived(event);
-            }
-        });
-        this.subCommands.add(new PokerPlayCmd());
-        this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
+public class PokerCmd extends ParentCommand implements DefaultTextParentCommand, DefaultSlashParentCommand,
+        DefaultFlags, DefaultChannelTypes, EventListeners, GamesCmd {
+
+    private final ExecutorService executorService;
+
+    public PokerCmd(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new CommandData("poker", "5-card Poker brought to discord.");
+    }
+
+    private final ListenerAdapter pokerListener = new ListenerAdapter() {
+        @Override
+        public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+            PokerGame.onMessageReceived(event);
+        }
+    };
+
+    @Override
+    public @NotNull List<EventListener> getEventListeners() {
+        return List.of(pokerListener);
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
+    }
 }

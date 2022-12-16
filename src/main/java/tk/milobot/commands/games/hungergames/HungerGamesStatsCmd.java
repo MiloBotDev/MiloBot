@@ -1,7 +1,9 @@
 package tk.milobot.commands.games.hungergames;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.database.dao.HungerGamesDao;
 import tk.milobot.database.model.HungerGames;
 import tk.milobot.database.util.DatabaseConnection;
@@ -20,21 +22,27 @@ import tk.milobot.utility.EmbedUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-public class HungerGamesStatsCmd extends Command implements SubCmd {
+public class HungerGamesStatsCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, DefaultCommandArgs {
 
+    private final ExecutorService executorService;
     private final HungerGamesDao hungerGamesDao = HungerGamesDao.getInstance();
     private final Logger logger = LoggerFactory.getLogger(HungerGamesStatsCmd.class);
 
-    public HungerGamesStatsCmd() {
-        this.commandName = "stats";
-        this.commandDescription = "View your own hungergames statistics.";
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+    public HungerGamesStatsCmd(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
     @Override
-    public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("stats", "View your own hungergames statistics.");
+    }
+
+    @Override
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         try {
             EmbedBuilder embedBuilder = generateEmbed(event.getAuthor());
             event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
@@ -45,7 +53,7 @@ public class HungerGamesStatsCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandEvent event) {
         try {
             EmbedBuilder embedBuilder = generateEmbed(event.getUser());
             event.replyEmbeds(embedBuilder.build()).addActionRow(
@@ -83,5 +91,15 @@ public class HungerGamesStatsCmd extends Command implements SubCmd {
             }
         }
         return embed;
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 }

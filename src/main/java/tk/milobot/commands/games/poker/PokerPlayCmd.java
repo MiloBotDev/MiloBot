@@ -1,28 +1,64 @@
 package tk.milobot.commands.games.poker;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
-import tk.milobot.games.PokerGame;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
+import tk.milobot.games.PokerGame;
 import tk.milobot.utility.lobby.Lobby;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-public class PokerPlayCmd extends Command implements SubCmd {
+public class PokerPlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags, Aliases,
+        DefaultCommandArgs {
 
-    public PokerPlayCmd() {
-        this.commandName = "play";
-        this.commandDescription = "Play a game of poker on discord.";
-        this.allowedChannelTypes.add(ChannelType.TEXT);
+    private final ExecutorService executorService;
+
+    public PokerPlayCmd(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("play", "Play a game of poker on discord.");
+    }
+
+    @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         new Lobby("Poker lobby", event.getAuthor(),
                 (players, message) -> {
                     PokerGame pokerGame = new PokerGame(players);
                     pokerGame.start();
                 }, 2, 5).initialize(event.getChannel());
+    }
+
+    @Override
+    public void executeCommand(@NotNull SlashCommandEvent event) {
+        new Lobby("Poker lobby", event.getUser(),
+                (players, message) -> {
+                    PokerGame pokerGame = new PokerGame(players);
+                    pokerGame.start();
+                }, 2, 5).initialize(event);
+    }
+
+    @Override
+    public @NotNull List<String> getAliases() {
+        return List.of("start", "host");
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return Set.of(ChannelType.TEXT);
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return this.executorService;
     }
 }

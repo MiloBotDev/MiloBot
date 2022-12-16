@@ -1,26 +1,40 @@
 package tk.milobot.commands.utility;
 
-import tk.milobot.commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.utility.EmbedUtils;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-public class ServerCmd extends Command implements UtilityCmd {
+public class ServerCmd extends ParentCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, DefaultCommandArgs, Aliases, UtilityCmd  {
 
-    public ServerCmd() {
-        this.commandName = "server";
-        this.commandDescription = "Shows information on the guild you are using this command in.";
-        this.aliases = new String[]{"guild"};
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+    private final ExecutorService executorService;
+
+    public ServerCmd(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new CommandData("server", "Shows information on the guild you are using this command in.");
+    }
+
+    @Override
+    public @NotNull List<String> getAliases() {
+        return List.of("guild");
     }
 
     @Override
@@ -32,7 +46,7 @@ public class ServerCmd extends Command implements UtilityCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandEvent event) {
         EmbedBuilder embedBuilder = generateGuildEmbed(event.getGuild(), event.getUser());
         event.replyEmbeds(embedBuilder.build())
                 .addActionRow(Button.secondary(event.getUser().getId() + ":delete", "Delete"))
@@ -44,7 +58,7 @@ public class ServerCmd extends Command implements UtilityCmd {
         EmbedUtils.styleEmbed(guildEmbed, user);
 
         int boostCount = guild.getBoostCount();
-        guildEmbed.addField("Boosts'", String.valueOf(boostCount), true);
+        guildEmbed.addField("Boosts", String.valueOf(boostCount), true);
         int categoryCount = guild.getCategories().size();
         guildEmbed.addField("Categories", String.valueOf(categoryCount), true);
         int textChannelsSize = guild.getTextChannels().size();
@@ -66,4 +80,13 @@ public class ServerCmd extends Command implements UtilityCmd {
         return guildEmbed;
     }
 
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return Set.of(ChannelType.TEXT);
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return this.executorService;
+    }
 }

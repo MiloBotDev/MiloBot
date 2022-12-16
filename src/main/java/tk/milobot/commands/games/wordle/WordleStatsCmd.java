@@ -1,7 +1,8 @@
 package tk.milobot.commands.games.wordle;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.database.util.DatabaseConnection;
 import tk.milobot.database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -21,34 +22,39 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-public class WordleStatsCmd extends Command implements SubCmd {
+public class WordleStatsCmd extends SubCommand implements TextCommand, SlashCommand, DefaultCommandArgs,
+        DefaultFlags, DefaultChannelTypes {
 
+    private final ExecutorService executorService;
     private final WordleDao wordleDao;
     private final UserDao userDao;
 
-    public WordleStatsCmd() {
-        this.commandName = "stats";
-        this.commandDescription = "View your own wordle statistics";
+    public WordleStatsCmd(ExecutorService executorService) {
+        this.executorService = executorService;
         this.wordleDao = WordleDao.getInstance();
         this.userDao = UserDao.getInstance();
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
     }
 
     @Override
-    public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         EmbedBuilder embedBuilder = generateEmbed(event.getAuthor());
         event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
                 Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandEvent event) {
         EmbedBuilder embedBuilder = generateEmbed(event.getUser());
         event.replyEmbeds(embedBuilder.build()).addActionRow(
                 Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("stats", "View your own wordle statistics");
     }
 
     private @NotNull EmbedBuilder generateEmbed(User user) {
@@ -87,5 +93,16 @@ public class WordleStatsCmd extends Command implements SubCmd {
         } catch (SQLException e) {
             return new EmbedBuilder().setTitle("Error").setDescription("An error occurred while fetching your wordle statistics.");
         }
+    }
+
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return this.executorService;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 }

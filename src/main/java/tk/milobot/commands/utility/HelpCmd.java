@@ -1,137 +1,158 @@
 package tk.milobot.commands.utility;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.CommandHandler;
-import tk.milobot.commands.GuildPrefixManager;
-import tk.milobot.commands.bot.BotCmd;
-import tk.milobot.commands.games.GamesCmd;
-import tk.milobot.commands.games.dnd.DndCmd;
-import tk.milobot.commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import tk.milobot.commands.CommandHandler;
+import tk.milobot.commands.GuildPrefixManager;
+import tk.milobot.commands.bot.BotCmd;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.DefaultChannelTypes;
+import tk.milobot.commands.command.extensions.DefaultFlags;
+import tk.milobot.commands.command.extensions.SlashCommand;
+import tk.milobot.commands.command.extensions.TextCommand;
+import tk.milobot.commands.games.GamesCmd;
+import tk.milobot.commands.morbconomy.MorbconomyCmd;
+import tk.milobot.utility.Config;
 import tk.milobot.utility.EmbedUtils;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Shows the user an overview of every command, or detailed information on a specific command.
  * This class is a singleton.
  */
-public class HelpCmd extends Command implements UtilityCmd {
+public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, UtilityCmd {
 
-    private static HelpCmd instance;
-    private final CommandHandler handler;
-    private EmbedBuilder help;
+    private final ExecutorService executorService;
 
-    private HelpCmd(CommandHandler handler) {
-        this.handler = handler;
-        this.commandName = "help";
-        this.commandDescription = "Shows the user a list of available commands.";
-        this.commandArgs = new String[]{"*command"};
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+    public HelpCmd(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
-    /**
-     * Return the only instance of this class or make a new one if no instance exists.
-     */
-    public static HelpCmd getInstance(CommandHandler handler) {
-        if (instance == null) {
-            instance = new HelpCmd(handler);
-        }
-        return instance;
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new CommandData("help", "Shows the user an overview of every command, or detailed information on a specific command.")
+                .addOptions(new OptionData(OptionType.STRING, "command", "The command to get help for.")
+                        .setRequired(false));
+    }
+
+    @Override
+    public List<String> getCommandArgs() {
+        return List.of("*command");
+    }
+
+    @Override
+    public boolean checkRequiredArgs(MessageReceivedEvent event, List<String> args) {
+        return true;
     }
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        String authorId = event.getAuthor().getId();
-        if (args.size() > 0) {
-            AtomicBoolean commandFound = new AtomicBoolean(false);
-            String arg = args.get(0);
-            CommandHandler.commands.forEach((key, value) -> {
-                if (key.contains(arg.toLowerCase(Locale.ROOT))) {
-                    EmbedBuilder embedBuilder = value.command().generateHelp(event.getGuild(), event.getAuthor());
-                    event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
-                            Button.secondary(authorId + ":delete", "Delete")).queue();
-                    commandFound.set(true);
-                }
-            });
-            if (!commandFound.get()) {
-                event.getChannel().sendMessage(String.format("%s not found.", arg)).queue();
-            }
+        if(args.size() == 0) {
+            event.getChannel().sendMessageEmbeds(generateHelpEmbed(event.getAuthor(), event.getGuild()).build()).queue();
         } else {
-            createEmbed(event.getAuthor(), event.getGuild());
-            EmbedUtils.styleEmbed(help, event.getAuthor());
-            event.getChannel().sendMessageEmbeds(help.build()).setActionRow(Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+            sendCommandSpecificHelpEmbed(String.join(" ", args), event);
         }
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
-        String authorId = event.getUser().getId();
-        if (!(event.getOption("command") == null)) {
-            AtomicBoolean commandFound = new AtomicBoolean(false);
-            String command = Objects.requireNonNull(event.getOption("command")).getAsString();
-            CommandHandler.commands.forEach((key, value) -> {
-                if (key.contains(command.toLowerCase(Locale.ROOT))) {
-                    EmbedBuilder embedBuilder = value.command().generateHelp(Objects.requireNonNull(event.getGuild()), event.getUser());
-                    event.replyEmbeds(embedBuilder.build()).addActionRow(Button.secondary(authorId + ":delete", "Delete")).queue();
-                    commandFound.set(true);
-                }
-            });
-            if (!commandFound.get()) {
-                event.reply(String.format("%s not found.", command)).queue();
-            }
+    public void executeCommand(@NotNull SlashCommandEvent event) {
+        if(event.getOption("command") != null) {
+            sendCommandSpecificHelpEmbed(event.getOption("command").getAsString(), event);
         } else {
-            createEmbed(event.getUser(), Objects.requireNonNull(event.getGuild()));
-            EmbedUtils.styleEmbed(help, event.getUser());
-            event.replyEmbeds(help.build()).addActionRow(Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
+            event.replyEmbeds(generateHelpEmbed(event.getUser(), event.getGuild()).build()).queue();
         }
     }
 
-    /**
-     * Builds the embeds for the help command.
-     */
-    private void createEmbed(@NotNull User author, @NotNull Guild guild) {
-        String prefix = GuildPrefixManager.getInstance().getPrefix(guild.getIdLong());
+    private void sendCommandSpecificHelpEmbed(String commandName, Event event) {
+        final boolean[] foundCommand = {false};
+        CommandHandler.getInstance().getCommands().forEach((command) -> {
+            if (command.getFullCommandName().equalsIgnoreCase(commandName)) {
+                if(event instanceof MessageReceivedEvent) {
+                    ((TextCommand) command).generateHelp((MessageReceivedEvent) event);
+                } else if(event instanceof SlashCommandEvent) {
+                    ((SlashCommand) command).generateHelp((SlashCommandEvent) event);
+                }
+                foundCommand[0] = true;
+            } else {
+                command.getSubCommands().forEach((subCommand) -> {
+                    if (subCommand.getFullCommandName().equalsIgnoreCase(commandName)) {
+                        if(event instanceof MessageReceivedEvent) {
+                            ((TextCommand) subCommand).generateHelp((MessageReceivedEvent) event);
+                        } else if(event instanceof SlashCommandEvent) {
+                            ((SlashCommand) subCommand).generateHelp((SlashCommandEvent) event);
+                        }
+                        foundCommand[0] = true;
+                    }
+                });
+            }
+        });
+        if(!foundCommand[0]) {
+            if(event instanceof MessageReceivedEvent) {
+                ((MessageReceivedEvent) event).getChannel().sendMessage(String.format("Command `%s` not found.", commandName)).queue();
+            } else if(event instanceof SlashCommandEvent) {
+                ((SlashCommandEvent) event).reply(String.format("Command `%s` not found.", commandName)).setEphemeral(true).queue();
+            }
+        }
+    }
+
+    private @NotNull EmbedBuilder generateHelpEmbed(@NotNull User author, @Nullable Guild guild) {
+        String prefix;
+        if(guild != null) {
+            prefix = GuildPrefixManager.getInstance().getPrefix(guild.getIdLong());
+        } else {
+            prefix = Config.getInstance().getDefaultPrefix();
+        }
 
         StringBuilder utility = new StringBuilder();
         StringBuilder morbconomy = new StringBuilder();
         StringBuilder games = new StringBuilder();
         StringBuilder bot = new StringBuilder();
-        StringBuilder dnd = new StringBuilder();
 
-        handler.commands.forEach((key, value) -> {
-            Command command = value.command();
+        CommandHandler.getInstance().getCommands().forEach(command -> {
             if (command instanceof UtilityCmd) {
-                utility.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
+                utility.append(String.format("**%s%s** - %s\n", prefix, command.getCommandName(), command.getCommandDescription()));
             } else if (command instanceof MorbconomyCmd) {
-                morbconomy.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
+                morbconomy.append(String.format("**%s%s** - %s\n", prefix, command.getCommandName(), command.getCommandDescription()));
             } else if (command instanceof GamesCmd) {
-                games.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
+                games.append(String.format("**%s%s** - %s\n", prefix, command.getCommandName(), command.getCommandDescription()));
             } else if (command instanceof BotCmd) {
-                bot.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
-            } else if (command instanceof DndCmd) {
-                dnd.append(String.format("**%s%s** - %s\n", prefix, command.commandName, command.commandDescription));
+                bot.append(String.format("**%s%s** - %s\n", prefix, command.getCommandName(), command.getCommandDescription()));
             }
         });
 
-        this.help = new EmbedBuilder();
+        EmbedBuilder help = new EmbedBuilder();
+        EmbedUtils.styleEmbed(help, author);
         help.setTitle("Commands");
         help.addField("Utility", utility.toString(), false);
         help.addField("Morbconomy", morbconomy.toString(), false);
         help.addField("Games", games.toString(), false);
         help.addField("Bot", bot.toString(), false);
-        help.addField("Dungeons & Dragons", dnd.toString(), false);
+        return help;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
     }
 
 }

@@ -1,7 +1,9 @@
 package tk.milobot.commands.morbconomy.daily;
 
-import tk.milobot.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import tk.milobot.commands.SubCmd;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.database.dao.DailyDao;
 import tk.milobot.database.dao.UserDao;
 import tk.milobot.database.model.Daily;
@@ -22,26 +24,31 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 
-public class DailyClaimCmd extends Command implements SubCmd {
+public class DailyClaimCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
+        DefaultChannelTypes, DefaultCommandArgs {
 
+    private final ExecutorService executorService;
     private static final Logger logger = LoggerFactory.getLogger(DailyCmd.class);
     private final Random random = new Random();
     private final UserDao userDao = UserDao.getInstance();
     private final DailyDao dailyDao = DailyDao.getInstance();
 
-    public DailyClaimCmd() {
-        this.commandName = "claim";
-        this.commandDescription = "Claim your daily reward.";
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+    public DailyClaimCmd(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
     @Override
-    public void executeCommand(@NotNull MessageReceivedEvent event, List<String> args) {
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("claim", "Claim your daily reward.");
+    }
+
+    @Override
+    public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         try {
             String s = updateDailies(event.getAuthor());
             event.getChannel().sendMessage(s).queue();
@@ -51,7 +58,7 @@ public class DailyClaimCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
         try {
             String s = updateDailies(event.getUser());
@@ -128,5 +135,15 @@ public class DailyClaimCmd extends Command implements SubCmd {
         }
 
         return result.toString();
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
     }
 }

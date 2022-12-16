@@ -1,20 +1,40 @@
 package tk.milobot.commands.morbconomy.bank;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.ParentCmd;
-import tk.milobot.commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.DefaultChannelTypes;
+import tk.milobot.commands.command.extensions.DefaultFlags;
+import tk.milobot.commands.command.extensions.DefaultSlashParentCommand;
+import tk.milobot.commands.command.extensions.DefaultTextParentCommand;
+import tk.milobot.commands.morbconomy.MorbconomyCmd;
 
-public class BankCmd extends Command implements MorbconomyCmd, ParentCmd {
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-    public BankCmd() {
-        this.commandName = "bank";
-        this.commandDescription = "All commands related to your virtual bank.";
-        this.subCommands.add(new BankBalanceCmd());
-        this.subCommands.add(new BankTransferCmd());
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.slashCommandData = new CommandData(this.commandName, this.commandDescription);
+public class BankCmd extends ParentCommand implements DefaultTextParentCommand, DefaultSlashParentCommand,
+        DefaultFlags, DefaultChannelTypes, MorbconomyCmd {
+
+    private final ExecutorService executorService;
+
+    public BankCmd(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new CommandData("bank", "All commands related to your virtual bank.");
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
     }
 }

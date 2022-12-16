@@ -1,68 +1,95 @@
 package tk.milobot.commands;
 
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.hooks.EventListener;
+import tk.milobot.commands.command.Command;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.Aliases;
+import tk.milobot.commands.command.extensions.EventListeners;
+import tk.milobot.commands.command.extensions.SlashCommand;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.milobot.main.JDAManager;
 import tk.milobot.utility.Config;
-import tk.milobot.utility.Users;
 
-import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-// moving to NewCommandHandler
-@Deprecated(since="12/4/22", forRemoval=true)
-public class CommandHandler extends ListenerAdapter {
+public class CommandHandler {
 
-    public record CommandRecord(Command command, ExecutorService executor) {
-    }
-    public static final Map<String, CommandRecord> commands = new HashMap<>();
+    private static CommandHandler instance;
+    private final List<ParentCommand> commands = new ArrayList<>();
     private final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
-    private final JDA jda;
+    private final List<CommandData> commandDatas = new ArrayList<>();
 
-    public CommandHandler(JDA jda) {
-        this.jda = jda;
+    private CommandHandler() {
+        JDAManager.getInstance().getJDABuilder().addEventListeners(new ListenerAdapter() {
+            @Override
+            public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+                handleMessageReceived(event);
+            }
+
+            @Override
+            public void onSlashCommand(@NotNull SlashCommandEvent event) {
+                handleSlashCommand(event);
+            }
+        });
+
+        JDAManager.getInstance().addJdaBuiltAction(jda -> jda.updateCommands().addCommands(commandDatas).queue());
     }
 
-    public void registerCommand(ExecutorService service, @NotNull Command command) {
-        commands.put(command.commandName, new CommandRecord(command, service));
+    public static synchronized CommandHandler getInstance() {
+        if (instance == null) {
+            instance = new CommandHandler();
+        }
+        return instance;
     }
 
-    public void initialize() {
-        // register event listener
-        jda.addEventListener(this);
-        jda.addEventListener((EventListener) genericEvent -> commands.forEach((name, record) -> {
-            record.command.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent)));
-            record.command.subCommands.forEach(subCommand ->
-                    subCommand.listeners.forEach(listener -> record.executor.submit(() -> listener.onEvent(genericEvent))));
-        }));
-
-        // slash commands
-        ArrayList<CommandData> commandDatas = new ArrayList<>();
-        for (CommandRecord commandRecord : commands.values()) {
-            Command command = commandRecord.command;
-            if (command.slashCommandData != null) {
-                CommandData commandData = command.slashCommandData;
-                for (Command subCommand : command.subCommands) {
-                    if (subCommand.slashSubcommandData != null) {
-                        commandData.addSubcommands(subCommand.slashSubcommandData);
-                    }
-                }
-                commandDatas.add(commandData);
+    public void registerCommand(@NotNull ParentCommand command) {
+        commands.add(command);
+        if (command instanceof EventListeners listeners) {
+            for (EventListener listener : listeners.getEventListeners()) {
+                JDAManager.getInstance().getJDABuilder().addEventListeners(listener);
             }
         }
-        jda.updateCommands().addCommands(commandDatas).queue();
+        command.getSubCommands().forEach(subCommand -> {
+            if (subCommand instanceof EventListeners subListeners) {
+                for (EventListener listener : subListeners.getEventListeners()) {
+                    JDAManager.getInstance().getJDABuilder().addEventListeners(listener);
+                }
+            }
+        });
+        if (command instanceof SlashCommand slashCommand) {
+            CommandData commandData;
+            try {
+                commandData = (CommandData) slashCommand.getCommandData();
+            } catch (ClassCastException e) {
+                throw new ClassCastException("Slash command \"" + command.getFullCommandName() + "\" data type is not CommandData");
+            }
+            for (SubCommand subCommand : command.getSubCommands()) {
+                if (subCommand instanceof SlashCommand subSlashCommand) {
+                    SubcommandData subcommandData;
+                    try {
+                        subcommandData = (SubcommandData) subSlashCommand.getCommandData();
+                    } catch (ClassCastException e) {
+                        throw new ClassCastException("Slash command \"" + subCommand.getFullCommandName() + "\" data type is not SubCommandData");
+                    }
+                    commandData.addSubcommands(subcommandData);
+                }
+            }
+            commandDatas.add(commandData);
+        }
     }
 
-    @Override
-    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+    private void handleMessageReceived(@NotNull MessageReceivedEvent event) {
         if (event.getMessage().getAuthor().isBot()) {
             return;
         }
@@ -87,162 +114,62 @@ public class CommandHandler extends ListenerAdapter {
             return;
         }
 
-        CommandRecord commandRecord = commands.get(messageParts.get(0).toLowerCase());
-        if (commandRecord == null) {
-            return;
-        }
+        commands.stream().filter(cmd -> cmd.getCommandName().equals(messageParts.get(0)) ||
+                (cmd instanceof Aliases &&
+                        (((Aliases) cmd).getAliases().contains(messageParts.get(0)))))
+                .findFirst().ifPresentOrElse(command -> {
+            if (messageParts.size() == 1) {
+                messageParts.remove(0);
+                executeCommand(command, event, messageParts);
+            } else {
+                messageParts.remove(0);
+                command.getSubCommands().stream().filter(subCommand -> subCommand.getCommandName().equals(messageParts.get(0)) ||
+                        subCommand instanceof Aliases &&
+                                ((Aliases) subCommand).getAliases().contains(messageParts.get(0))).findFirst().ifPresentOrElse(subCommand -> {
+                    messageParts.remove(0);
+                    executeCommand(subCommand, event, messageParts);
+                }, () -> executeCommand(command, event, messageParts));
+            }
+        }, () -> logger.trace("Command not found: " + messageParts.get(0)));
+    }
 
-        ExecutorService executorService = commandRecord.executor;
-        messageParts.remove(0);
-        executorService.submit(() -> {
-            Command command = commandRecord.command;
-            String fullCommandName = command.commandName;
-
-            if (messageParts.size() > 0) {
-                for (Command subCommand : command.subCommands) {
-                    if (subCommand.commandName.equals(messageParts.get(0).toLowerCase())) {
-                        messageParts.remove(0);
-                        command = subCommand;
-                        fullCommandName += " " + subCommand.commandName;
-                        break;
-                    }
-                }
-            }
-
-            if (!command.checkChannelAllowed(event.getChannel().getType())) {
-                command.sendInvalidChannel(event);
-                return;
-            }
-
-            // check for flags if one or multiple arguments are present
-            if (messageParts.size() > 0) {
-                if (command.checkForFlags(event, messageParts)) {
-                    return;
-                }
-            }
-            // check if the author has the required permissions
-            if (!command.checkRequiredPermissions(event)) {
-                command.sendMissingPermissions(event, prefix);
-                return;
-            }
-            // check if the command is a parent command
-            if (command instanceof ParentCmd) {
-                command.sendCommandExplanation(event, prefix);
-                return;
-            }
-            // check if all required args are present
-            if (command.calculateRequiredArgs() > messageParts.size()) {
-                command.sendCommandUsage(event);
-                return;
-            }
-            // check for potential cooldown
-            if (command.cooldown > 0) {
-                boolean onCooldown = command.checkCooldown(event);
-                if (onCooldown) {
-                    return;
-                }
-            }
-            // check for single instance
-            if (command.singleInstance) {
-                boolean instanceOpen = command.checkInstanceOpen(event);
-                if (instanceOpen) {
-                    return;
-                }
-            }
-            // check if this user exists in the database otherwise add it
-            Users.getInstance().addUserIfNotExists(event.getAuthor().getIdLong());
-            // update the tracker
-            long userId = event.getAuthor().getIdLong();
-            command.updateCommandTrackerUser(userId);
+    private void executeCommand(@NotNull Command command, @NotNull MessageReceivedEvent event, @NotNull List<String> args) {
+        logger.trace("Executing text command " + command.getFullCommandName());
+        command.getExecutorService().execute(() -> {
             try {
-                Users.getInstance().updateExperience(event.getAuthor().getIdLong(), 10, event.getAuthor().getAsMention(),
-                        event.getChannel());
-            } catch (SQLException e) {
-                logger.error("Couldn't update user experience", e);
+                command.onCommand(event, args);
+            } catch (Exception e) {
+                logger.error("Error while executing text command " + command.getFullCommandName(), e);
             }
-            // execute the command
-            Command finalCommand = command;
-            executorService.execute(() -> {
-                try {
-                    finalCommand.executeCommand(event, messageParts);
-                } catch (Exception e) {
-                    logger.error("An exception occurred while handling text command: " + finalCommand.getFullCommandName(), e);
-                }
-            });
-            logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
-                    event.getAuthor().getName()));
         });
     }
 
-    @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+    private void handleSlashCommand(@NotNull SlashCommandEvent event) {
         if (event.getUser().isBot()) {
             return;
         }
-        String commandName = event.getName();
-        CommandRecord commandRecord = commands.get(commandName);
-        if (commandRecord == null) {
-            return;
-        }
 
-        ExecutorService executorService = commandRecord.executor;
-        executorService.submit(() -> {
-            Command command = commandRecord.command;
-            String fullCommandName = command.commandName;
-            if (event.getSubcommandName() != null) {
-                for (Command subCommand : command.subCommands) {
-                    if (subCommand.commandName.equals(event.getSubcommandName())) {
-                        command = subCommand;
-                        fullCommandName += " " + subCommand.commandName;
-                        break;
-                    }
-                }
+        commands.stream().filter(cmd -> cmd.getCommandName().equals(event.getName())).findFirst().ifPresentOrElse(command -> {
+            if (event.getSubcommandName() == null || event.getSubcommandName() == null) {
+                executeCommand(command, event);
+            } else {
+                command.getSubCommands().stream().filter(subCommand -> subCommand.getCommandName().equals(event.getSubcommandName()))
+                        .findFirst().ifPresentOrElse(subCommand -> executeCommand(subCommand, event), () -> executeCommand(command, event));
             }
-            if (!command.checkChannelAllowed(event.getChannelType())) {
-                command.sendInvalidChannel(event);
-                return;
-            }
-            if (!command.checkRequiredPermissions(event)) {
-                command.sendMissingPermissions(event, "");
-                return;
-            }
-            if (command instanceof ParentCmd) {
-                command.sendCommandExplanation(event, "");
-                return;
-            }
-            // check for potential cooldown
-            if (command.cooldown > 0) {
-                boolean onCooldown = command.checkCooldown(event);
-                if (onCooldown) {
-                    return;
-                }
-            }
-            // check for single instance
-            if (command.singleInstance) {
-                boolean instanceOpen = command.checkInstanceOpen(event);
-                if (instanceOpen) {
-                    return;
-                }
-            }
-            Users.getInstance().addUserIfNotExists(event.getUser().getIdLong());
-            long userId = event.getUser().getIdLong();
-            command.updateCommandTrackerUser(userId);
+        }, () -> logger.trace("Command not found: " + event.getName()));
+    }
+
+    private void executeCommand(@NotNull Command command, @NotNull SlashCommandEvent event) {
+        command.getExecutorService().execute(() -> {
             try {
-                Users.getInstance().updateExperience(event.getUser().getIdLong(), 10, event.getUser().getAsMention(),
-                        event.getChannel());
-            } catch (SQLException e) {
-                logger.error("Couldn't update user experience", e);
+                command.onCommand(event);
+            } catch (Exception e) {
+                logger.error("Error while executing text command " + command.getFullCommandName(), e);
             }
-            Command finalCommand = command;
-            executorService.execute(() -> {
-                try {
-                    finalCommand.executeSlashCommand(event);
-                } catch (Exception e) {
-                    logger.error("An exception occurred while handling slash command: " + finalCommand.getFullCommandName(), e);
-                }
-            });
-            logger.trace(String.format("Executed command: %s | Author: %s.", fullCommandName,
-                    event.getUser().getName()));
         });
+    }
+
+    public List<ParentCommand> getCommands() {
+        return commands;
     }
 }

@@ -1,28 +1,46 @@
 package tk.milobot.commands.bot.bug;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.utility.Config;
 import tk.milobot.utility.GitHubBot;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
-/**
- * Report a bug you have found. The bug will be added to the issue tracker on the repository.
- */
-public class BugReportCmd extends Command implements SubCmd {
+public class BugReportCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags, DefaultCommandArgs, DefaultChannelTypes, EventListeners {
 
-    private final ArrayList<String> questions;
-    private final GitHubBot gitHubBot;
+    private final ExecutorService executorService;
+    private final List<String> questions = List.of(new String[]{
+        "Please give me a short summary of the bug you found. You can type cancel at any time to stop the command.",
+                "How do you reproduce the bug?",
+                "On a scale of 1-5, how severe would you say the bug is?",
+                "Do you have any additional information about this bug?",
+    });
+    private final GitHubBot gitHubBot = GitHubBot.getInstance();
     private final ScheduledExecutorService idleInstanceCleanupExecutorService = Executors.newScheduledThreadPool(1);
+
+    @Override
+    public @NotNull List<EventListener> getEventListeners() {
+        return List.of(new ListenerAdapter() {
+            @Override
+            public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+                onMessage(event);
+            }
+        });
+    }
+
     private class UserBugReportInstance {
         private UserBugReportInstance(User user) {
             this.user = user;
@@ -45,26 +63,13 @@ public class BugReportCmd extends Command implements SubCmd {
     }
     private final Map<Long, UserBugReportInstance> bugReportInstances = new ConcurrentHashMap<>();
 
-    public BugReportCmd() {
-        this.commandName = "report";
-        this.commandDescription = "Report a bug you found.";
-        this.cooldown = 600;
-        this.questions = new ArrayList<>(List.of(new String[]{
-                "Please give me a short summary of the bug you found. You can type cancel at any time to stop the command.",
-                "How do you reproduce the bug?",
-                "On a scale of 1-5, how severe would you say the bug is?",
-                "Do you have any additional information about this bug?",
-        }));
-        this.gitHubBot = GitHubBot.getInstance();
-        this.listeners.add(new ListenerAdapter() {
-            @Override
-            public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-                onMessage(event);
-            }
-        });
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
+    public BugReportCmd(@NotNull ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("report", "Report a bug you found.");
     }
 
     @Override
@@ -82,7 +87,7 @@ public class BugReportCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(SlashCommandEvent event) {
         if (bugReportInstances.containsKey(event.getUser().getIdLong())) {
             event.reply("You already have an active bug report instance.").queue();
             return;
@@ -93,6 +98,16 @@ public class BugReportCmd extends Command implements SubCmd {
         instance.setIdleInstanceCleanup();
         bugReportInstances.put(event.getUser().getIdLong(), instance);
         event.reply("Please continue the bug report in the DM with Milobot.").queue();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 
     private void onMessage(@NotNull MessageReceivedEvent event) {

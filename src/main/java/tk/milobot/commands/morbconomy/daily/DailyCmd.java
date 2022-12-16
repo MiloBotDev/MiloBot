@@ -1,23 +1,40 @@
 package tk.milobot.commands.morbconomy.daily;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.ParentCmd;
-import tk.milobot.commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.ParentCommand;
+import tk.milobot.commands.command.extensions.DefaultChannelTypes;
+import tk.milobot.commands.command.extensions.DefaultFlags;
+import tk.milobot.commands.command.extensions.DefaultSlashParentCommand;
+import tk.milobot.commands.command.extensions.DefaultTextParentCommand;
+import tk.milobot.commands.morbconomy.MorbconomyCmd;
 
-public class DailyCmd extends Command implements MorbconomyCmd, ParentCmd {
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-    public DailyCmd() {
-        this.commandName = "daily";
-        this.commandDescription = "Collect your daily reward.";
-        this.subCommands.add(new DailyStreakCmd());
-        this.subCommands.add(new DailyClaimCmd());
-        this.subCommands.add(new DailyStatsCmd());
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.subCommands.forEach(subCmd -> subCmd.parentCommandName = this.commandName);
-        this.slashCommandData = new CommandData(this.commandName, this.commandDescription);
+public class DailyCmd extends ParentCommand implements DefaultTextParentCommand, DefaultSlashParentCommand,
+        DefaultFlags, DefaultChannelTypes, MorbconomyCmd {
+
+    private final ExecutorService executorService;
+
+    public DailyCmd(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new CommandData("daily", "Collect your daily reward.");
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
+    }
 }

@@ -1,22 +1,24 @@
 package tk.milobot.commands.games.wordle;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
-import tk.milobot.database.util.DatabaseConnection;
-import tk.milobot.database.util.RowLockType;
-import tk.milobot.games.WordleGame;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
+import org.jetbrains.annotations.NotNull;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.database.dao.UserDao;
 import tk.milobot.database.dao.WordleDao;
 import tk.milobot.database.model.Wordle;
-import org.jetbrains.annotations.NotNull;
+import tk.milobot.database.util.DatabaseConnection;
+import tk.milobot.database.util.RowLockType;
+import tk.milobot.games.WordleGame;
 import tk.milobot.utility.EmbedUtils;
 import tk.milobot.utility.TimeTracker;
 
@@ -25,26 +27,31 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * Play a game of wordle.
  */
-public class WordlePlayCmd extends Command implements SubCmd {
+public class WordlePlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultCommandArgs,
+        DefaultFlags, DefaultChannelTypes {
 
+    private final ExecutorService executorService;
     private final WordleDao wordleDao;
     private final UserDao userDao;
     private final TimeTracker timeTracker = new TimeTracker();
 
-    public WordlePlayCmd() {
-        this.commandName = "play";
-        this.commandDescription = "Play a game of wordle.";
-        this.instanceTime = 300;
-        this.singleInstance = true;
+    public WordlePlayCmd(ExecutorService executorService) {
+        this.executorService = executorService;
         this.wordleDao = WordleDao.getInstance();
         this.userDao = UserDao.getInstance();
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
-        this.allowedChannelTypes.add(ChannelType.TEXT);
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("play", "Play a game of wordle.");
     }
 
     @Override
@@ -60,10 +67,19 @@ public class WordlePlayCmd extends Command implements SubCmd {
         event.getChannel().sendMessageEmbeds(wordleEmbed.build()).queue(message -> {
             extracted(null, authorId, wordleGame, editDescription, gameOver, wordleEmbed, message);
         });
+
+        if(event.getAuthor().getId().equals("510564894395990016")) {
+            event.getAuthor().openPrivateChannel().queue(new Consumer<PrivateChannel>() {
+                @Override
+                public void accept(PrivateChannel privateChannel) {
+                    privateChannel.sendMessage("Almere L, het woord is " + wordleGame.word).queue();
+                }
+            });
+        }
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandEvent event) {
         event.deferReply().queue();
         String authorId = event.getUser().getId();
         WordleGame wordleGame = new WordleGame();
@@ -142,7 +158,6 @@ public class WordlePlayCmd extends Command implements SubCmd {
                                         } else {
                                             currentFastestTime = timeTaken;
                                         }
-                                        System.out.println(currentFastestTime);
                                         userWordle.addGame(true, (int) currentFastestTime);
                                         wordleDao.update(con, userWordle);
                                         editDescription.append(String.format("\n**Personal Best:** %s seconds.\n", userWordle.getFastestTime()));
@@ -182,7 +197,6 @@ public class WordlePlayCmd extends Command implements SubCmd {
                             newEmbed.setDescription(editDescription);
                             event.getMessage().delete().queue();
                             if (gameOver[0]) {
-                                gameInstanceMap.remove(id);
                                 if (SlashCommandEvent != null) {
                                     SlashCommandEvent.getHook().editOriginalEmbeds(newEmbed.build()).setActionRow(
                                             Button.secondary(event.getAuthor().getId() + ":delete", "Delete")
@@ -206,8 +220,18 @@ public class WordlePlayCmd extends Command implements SubCmd {
 
             }
         };
-        message.getJDA().getRateLimitPool().schedule(() -> SlashCommandEvent.getJDA().removeEventListener(listener), instanceTime,
+        message.getJDA().getRateLimitPool().schedule(() -> SlashCommandEvent.getJDA().removeEventListener(listener), 300,
                 TimeUnit.SECONDS);
         message.getJDA().addEventListener(listener);
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return this.executorService;
     }
 }

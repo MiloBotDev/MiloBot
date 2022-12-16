@@ -1,40 +1,44 @@
 package tk.milobot.commands.bot.bug;
 
-import tk.milobot.commands.Command;
-import tk.milobot.commands.SubCmd;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
+import tk.milobot.commands.command.SubCommand;
+import tk.milobot.commands.command.extensions.*;
 import tk.milobot.utility.EmbedUtils;
 import tk.milobot.utility.GitHubBot;
-import tk.milobot.utility.Paginator;
+import tk.milobot.utility.paginator.Paginator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-/**
- * Displays all issues labeled as a bug.
- */
-public class BugListCmd extends Command implements SubCmd {
+public class BugListCmd extends SubCommand implements TextCommand, SlashCommand, DefaultCommandArgs, DefaultFlags, DefaultChannelTypes {
 
-    private final static ResourceBundle resourceBundle = ResourceBundle.getBundle("localization.MiloBot_en_US", Locale.getDefault());
-    private final GitHubBot gitHubBot;
+    private final ExecutorService executorService;
+    private final GitHubBot gitHubBot = GitHubBot.getInstance();
 
-    public BugListCmd() {
-        this.commandName = resourceBundle.getString("bugListCommandName");
-        this.commandDescription = resourceBundle.getString("bugListCommandDescription");
-        this.gitHubBot = GitHubBot.getInstance();
-        this.allowedChannelTypes.add(ChannelType.TEXT);
-        this.allowedChannelTypes.add(ChannelType.PRIVATE);
-        this.slashSubcommandData = new SubcommandData(this.commandName, this.commandDescription);
+
+    public BugListCmd(@NotNull ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    @Override
+    public @NotNull BaseCommand<?> getCommandData() {
+        return new SubcommandData("list", "Shows a list of all reported bugs.");
     }
 
     @Override
@@ -50,7 +54,7 @@ public class BugListCmd extends Command implements SubCmd {
     }
 
     @Override
-    public void executeSlashCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(SlashCommandEvent event) {
         event.deferReply().queue();
         ArrayList<MessageEmbed> pages = createPages(event.getUser());
         if (pages.size() == 0) {
@@ -99,5 +103,10 @@ public class BugListCmd extends Command implements SubCmd {
             }
         }
         return pages;
+    }
+
+    @Override
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 }
