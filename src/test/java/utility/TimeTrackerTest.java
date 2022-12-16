@@ -1,7 +1,7 @@
 package utility;
 
 import org.junit.jupiter.api.Test;
-import tk.milobot.utility.TimeTracker;
+import io.github.milobotdev.milobot.utility.TimeTracker;
 
 import static org.junit.jupiter.api.Assertions.*;
 

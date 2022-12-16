@@ -1,9 +1,9 @@
 package games.hungergames.model;
 
-import tk.milobot.games.hungergames.HungerGames;
+import io.github.milobotdev.milobot.games.hungergames.HungerGames;
 import org.junit.jupiter.api.*;
-import tk.milobot.games.hungergames.model.Item;
-import tk.milobot.games.hungergames.model.Player;
+import io.github.milobotdev.milobot.games.hungergames.model.Item;
+import io.github.milobotdev.milobot.games.hungergames.model.Player;
 
 @Disabled
 public class ItemTest {

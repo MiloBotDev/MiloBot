@@ -21,7 +21,7 @@
                 <configuration>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>tk.milobot.main.MiloBot</mainClass>
+                            <mainClass>io.github.milobotdev.milobot.main.MiloBot</mainClass>
                         </transformer>
                     </transformers>
                     <filters>
