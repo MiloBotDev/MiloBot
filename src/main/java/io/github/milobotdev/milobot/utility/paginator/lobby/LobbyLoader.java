@@ -1,4 +1,4 @@
-package io.github.milobotdev.milobot.utility.lobby;
+package io.github.milobotdev.milobot.utility.paginator.lobby;
 
 import io.github.milobotdev.milobot.commands.ButtonHandler;
 

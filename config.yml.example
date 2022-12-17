@@ -19,3 +19,7 @@ hungerGamesPath: /hungergames
 connectionUrl: "jdbc:mysql://localhost/milobot"
 user: "root"
 password: ""
+
+# imgur api
+imgurClientId: ""
+imgurClientSecret: ""

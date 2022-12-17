@@ -36,6 +36,9 @@ public class Config {
     private final String connectionUrl;
     private final String user;
     private final String password;
+    // imgur api
+    private final String imgurClientId;
+    private final String imgurClientSecret;
 
     /**
      * Instantiates all the configuration fields.
@@ -65,7 +68,8 @@ public class Config {
         this.repositoryName = (String) data.get("repositoryName");
         this.monstersCsvPath = (String) data.get("monstersCsvPath");
 
-
+        this.imgurClientId = (String) data.get("imgurClientId");
+        this.imgurClientSecret = (String) data.get("imgurClientSecret");
     }
 
     /**
@@ -138,5 +142,13 @@ public class Config {
 
     public String getMonstersCsvPath() {
         return monstersCsvPath;
+    }
+
+    public String getImgurClientId() {
+        return imgurClientId;
+    }
+
+    public String getImgurClientSecret() {
+        return imgurClientSecret;
     }
 }

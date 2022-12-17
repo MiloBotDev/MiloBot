@@ -8,6 +8,7 @@ import io.github.milobotdev.milobot.database.model.Wordle;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.utility.Users;
+import io.github.milobotdev.milobot.utility.chart.BarChart;
 import io.github.milobotdev.milobot.utility.paginator.Paginator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -147,41 +149,74 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
 
         final EmbedBuilder[] embed = {new EmbedBuilder()};
         final StringBuilder[] desc = {new StringBuilder()};
+        final BarChart[] chart = {new BarChart("Wordle Leaderboard", "User", title, title)};
+        final Color[] colors = {Color.BLUE, Color.CYAN, Color.GREEN, Color.MAGENTA, Color.ORANGE, Color.PINK, Color.RED,
+                Color.YELLOW, Color.LIGHT_GRAY, Color.decode("#90EE90")};
         embed[0].setTitle(title);
         embed[0].setColor(Color.BLUE);
 
-        final int[] counter = {1};
+        final int[] rank = {1};
+        final int[] counter = {0};
         wordles.forEach((wordle) -> {
-            try(Connection con = DatabaseConnection.getConnection()) {
+            try (Connection con = DatabaseConnection.getConnection()) {
                 long discordId = Objects.requireNonNull(userDao.getUserById(con, wordle.getUserId(), RowLockType.NONE)).getDiscordId();
                 String name = userUtil.getUserNameTag(discordId, jda).userName();
                 switch (title) {
-                    case "Highest Streak" -> desc[0].append(String.format("`%d.` %s - %d games.\n", counter[0], name, wordle.getHighestStreak()));
-                    case "Fastest Time" -> desc[0].append(String.format("`%d.` %s - %d seconds.\n", counter[0], name, wordle.getFastestTime()));
-                    case "Total Wins" -> desc[0].append(String.format("`%d.` %s - %d wins.\n", counter[0], name, wordle.getWins()));
-                    case "Total Games Played" -> desc[0].append(String.format("`%d.` %s - %d games.\n", counter[0], name, wordle.getGamesPlayed()));
-                    case "Current Streak" -> desc[0].append(String.format("`%d.` %s - %d games.\n", counter[0], name, wordle.getCurrentStreak()));
+                    case "Highest Streak" -> {
+                        desc[0].append(String.format("`%d.` %s - %d games.\n", rank[0], name, wordle.getHighestStreak()));
+                        chart[0].addBar(name, wordle.getHighestStreak(), colors[counter[0]]);
+                    }
+                    case "Fastest Time" -> {
+                        desc[0].append(String.format("`%d.` %s - %d seconds.\n", rank[0], name, wordle.getFastestTime()));
+                        chart[0].addBar(name, wordle.getFastestTime(), colors[counter[0]]);
+                    }
+                    case "Total Wins" -> {
+                        desc[0].append(String.format("`%d.` %s - %d wins.\n", rank[0], name, wordle.getWins()));
+                        chart[0].addBar(name, wordle.getWins(), colors[counter[0]]);
+                    }
+                    case "Total Games Played" -> {
+                        desc[0].append(String.format("`%d.` %s - %d games.\n", rank[0], name, wordle.getGamesPlayed()));
+                        chart[0].addBar(name, wordle.getGamesPlayed(), colors[counter[0]]);
+                    }
+                    case "Current Streak" -> {
+                        desc[0].append(String.format("`%d.` %s - %d games.\n", rank[0], name, wordle.getCurrentStreak()));
+                        chart[0].addBar(name, wordle.getCurrentStreak(), colors[counter[0]]);
+                    }
                 }
+                rank[0]++;
                 counter[0]++;
-                if(counter[0] % 10 == 0) {
+                if (rank[0] % 10 == 0) {
+                    counter[0] = 0;
                     embed[0].setDescription(desc[0]);
+                    String barChart = chart[0].createBarChart();
+                    embed[0].setImage(barChart);
                     embeds.add(embed[0].build());
                     embed[0] = new EmbedBuilder();
                     desc[0] = new StringBuilder();
+                    chart[0] = new BarChart("Wordle Leaderboard", title, "User", title);
                     embed[0].setTitle(title);
                     embed[0].setColor(Color.BLUE);
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
 
         });
+
+        try {
+            String barChart = chart[0].createBarChart();
+            embed[0].setImage(barChart);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         embed[0].setDescription(desc[0]);
         embeds.add(embed[0].build());
 
         return embeds;
     }
+
+
 
 }
 

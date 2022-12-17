@@ -8,6 +8,7 @@ import io.github.milobotdev.milobot.database.model.Wordle;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
+import io.github.milobotdev.milobot.utility.chart.PieChart;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
@@ -18,6 +19,8 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -93,9 +96,15 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
                 } else {
                     embed.addField("Fastest Time", "None", true);
                 }
+
+                PieChart pieChart = new PieChart("Wins / Losses", user.getId());
+                pieChart.addSection("Wins", totalWins, Color.GREEN);
+                pieChart.addSection("Losses", totalLosses, Color.RED);
+                String circleDiagram = pieChart.createCircleDiagram();
+                embed.setImage(circleDiagram);
             }
             return embed;
-        } catch (SQLException e) {
+        } catch (SQLException | IOException e) {
             return new EmbedBuilder().setTitle("Error").setDescription("An error occurred while fetching your wordle statistics.");
         }
     }

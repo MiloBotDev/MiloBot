@@ -6,6 +6,7 @@ import io.github.milobotdev.milobot.database.dao.BlackjackDao;
 import io.github.milobotdev.milobot.database.model.Blackjack;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
+import io.github.milobotdev.milobot.utility.chart.PieChart;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -19,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -37,13 +40,17 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
     }
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandEvent event) {
         try {
             EmbedBuilder embedBuilder = generateEmbed(event.getUser());
             event.replyEmbeds(embedBuilder.build()).addActionRow(
                     Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
         } catch (SQLException e) {
             logger.error("SQL Error while generating embed for user " + event.getUser().getId(), e);
+            event.reply("Sorry, something went wrong.").setEphemeral(true).queue();
+        } catch (IOException e) {
+            logger.error("IO Error while generating embed for user " + event.getUser().getId(), e);
+            event.reply("Sorry, something went wrong.").setEphemeral(true).queue();
         }
     }
 
@@ -55,6 +62,10 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
                     Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
         } catch (SQLException e) {
             logger.error("SQL Error while generating embed for user " + event.getAuthor().getId(), e);
+            event.getChannel().sendMessage("Sorry, something went wrong.").queue();
+        } catch (IOException e) {
+            logger.error("IO Error while generating embed for user " + event.getAuthor().getId(), e);
+            event.getChannel().sendMessage("Sorry, something went wrong.").queue();
         }
     }
 
@@ -73,7 +84,7 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
         return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 
-    private @NotNull EmbedBuilder generateEmbed(User user) throws SQLException {
+    private @NotNull EmbedBuilder generateEmbed(User user) throws SQLException, IOException {
         EmbedBuilder embed = new EmbedBuilder();
         EmbedUtils.styleEmbed(embed, user);
         embed.setTitle(String.format("Blackjack Statistics for %s", user.getName()));
@@ -103,10 +114,16 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
             embed.addField("Current Streak", String.valueOf(currentStreak), true);
             embed.addField("Highest Streak", String.valueOf(highestStreak), true);
             embed.addField("Total Earnings", totalEarnings + " morbcoins", true);
+
+            PieChart pieChart = new PieChart("Wins / Draws / Losses", user.getId());
+            pieChart.addSection("Wins", totalWins, Color.GREEN);
+            pieChart.addSection("Draws", totalDraws, Color.YELLOW);
+            pieChart.addSection("Losses", totalLosses, Color.RED);
+            String circleDiagram = pieChart.createCircleDiagram();;
+            embed.setImage(circleDiagram);
         } else {
             embed.setDescription("No blackjack statistics on record.");
         }
-
         return embed;
     }
 }
