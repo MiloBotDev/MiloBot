@@ -127,16 +127,18 @@ public class PieChart {
         int width = 640;
         int height = 480;
 
-        File file = new File(String.format("src/main/resources/charts/%s.png", filename));
-        ChartUtilities.saveChartAsPNG(file, chart, width, height);
-        BufferedImage image;
-        image = ImageIO.read(new File(file.getPath()));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(image, "png", baos);
-        byte[] imageBytes = baos.toByteArray();
+        File file = new File(String.format("temp/charts/%s.png", filename));
+        if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
+            ChartUtilities.saveChartAsPNG(file, chart, width, height);
+            BufferedImage image;
+            image = ImageIO.read(new File(file.getPath()));
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", baos);
+            byte[] imageBytes = baos.toByteArray();
 
-        return uploadImageToImgur(imageBytes);
-
+            return uploadImageToImgur(imageBytes);
+        }
+        return null;
     }
 
     private @NotNull PieDataset createDataset() {
