@@ -1,5 +1,6 @@
 package io.github.milobotdev.milobot.commands.bot;
 
+import io.github.milobotdev.milobot.commands.command.extensions.DefaultChannelTypes;
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultCommandArgs;
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
 import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-public class StatusCmd extends ParentCommand implements TextCommand, DefaultFlags, DefaultCommandArgs, BotCmd {
+public class StatusCmd extends ParentCommand implements TextCommand, DefaultFlags, DefaultCommandArgs, BotCmd, DefaultChannelTypes {
 
     private final ExecutorService executorService;
 
@@ -70,7 +71,7 @@ public class StatusCmd extends ParentCommand implements TextCommand, DefaultFlag
     }
 
     @Override
-    public Set<ChannelType> getAllowedChannelTypes() {
-        return null;
+    public @NotNull Set<ChannelType> getAllowedChannelTypes() {
+        return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 }
