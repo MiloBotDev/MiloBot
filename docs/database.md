@@ -1,6 +1,6 @@
-# MiloBot database
+# main.io.github.milobotdev.milobot.MiloBot database
 
-MiloBot uses a MySQL/MariaDB database.
+main.io.github.milobotdev.milobot.MiloBot uses a MySQL/MariaDB database.
 
 We have adopted a nice database model for the bot. This model allows database access to be programmer-friendly with relatively little loss in performance. It also enables us to perform locking reads a nice way.
 
@@ -37,7 +37,7 @@ MySQL provides two types of locking reads for `SELECT` statements:
 
 Source: [MySQL docs for locking reads](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html)
 
-To use this in MiloBot, we have to pass the RowLockType enum to every method in the DAOs that make a `SELECT` query. All DAO methods that make `SELECT` queries have a RowLockType parameter. The RowLockType enum has three values:
+To use this in main.io.github.milobotdev.milobot.MiloBot, we have to pass the RowLockType enum to every method in the DAOs that make a `SELECT` query. All DAO methods that make `SELECT` queries have a RowLockType parameter. The RowLockType enum has three values:
 - NONE - No locking read is used.
 - SHARE - `SELECT ... LOCK IN SHARE MODE` is used.
 - UPDATE - `SELECT ... FOR UPDATE` is used.

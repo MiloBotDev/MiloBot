@@ -1,7 +1,9 @@
 package games.hungergames.model;
 
-import games.hungergames.HungerGames;
+import io.github.milobotdev.milobot.games.hungergames.HungerGames;
 import org.junit.jupiter.api.*;
+import io.github.milobotdev.milobot.games.hungergames.model.Event;
+import io.github.milobotdev.milobot.games.hungergames.model.Player;
 
 @Disabled
 public class EventTest {

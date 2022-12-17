@@ -1,7 +1,7 @@
 package poker;
 
-import games.PokerGame;
-import models.cards.PlayingCard;
+import io.github.milobotdev.milobot.games.PokerGame;
+import io.github.milobotdev.milobot.models.cards.PlayingCard;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
