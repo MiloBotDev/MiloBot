@@ -216,7 +216,7 @@ Host a game of Uno!
 
 
 `!uno info`
-A simple tutorial on how to play uno with milobot.
+A simple tutorial on how to play the game uno with milobot.
 
 ---
 
