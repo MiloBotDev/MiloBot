@@ -69,7 +69,7 @@ public class BarChart {
      * @throws IOException           if there is an error reading or writing to the image file
      * @throws IllegalStateException if the bar chart has no bars
      */
-    public InputStream createBarChart() throws IllegalStateException {
+    public byte[] createBarChart() throws IllegalStateException {
         if (sections.size() == 0) {
             throw new IllegalStateException("BarChart must have at least one bar");
         }
@@ -146,7 +146,7 @@ public class BarChart {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new ByteArrayInputStream(os.toByteArray());
+        return os.toByteArray();
     }
 
     /**
