@@ -10,6 +10,7 @@ import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.utility.Users;
 import io.github.milobotdev.milobot.utility.chart.BarChart;
 import io.github.milobotdev.milobot.utility.paginator.Paginator;
+import io.github.milobotdev.milobot.utility.paginator.PaginatorWithImages;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -24,6 +25,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageAction;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,15 +140,15 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
                 } catch (SQLException | IOException e) {
                     logger.error("Failed to get the wordle leaderboard", e);
                 }
-                Paginator paginator = new Paginator(user, embeds);
-                event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
-                        .queue(paginator::initialize);
             }
         }
     };
 
-    public static @NotNull ArrayList<MessageEmbed> buildWordleEmbeds(@NotNull List<Wordle> wordles, String title, JDA jda) {
-        ArrayList<MessageEmbed> embeds = new ArrayList<>();
+    public static void buildWordleEmbeds(@NotNull SelectionMenuEvent event,
+                                         @NotNull List<Wordle> wordles, String title,
+                                         JDA jda) throws IOException {
+        List<MessageEmbed> embeds = new ArrayList<>();
+        List<InputStream> charts = new ArrayList<>();
 
         final EmbedBuilder[] embed = {new EmbedBuilder()};
         final StringBuilder[] desc = {new StringBuilder()};
@@ -158,6 +160,7 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
 
         final int[] rank = {1};
         final int[] counter = {0};
+        final int[] chartCounter = {0};
         wordles.forEach((wordle) -> {
             try (Connection con = DatabaseConnection.getConnection()) {
                 long discordId = Objects.requireNonNull(userDao.getUserById(con, wordle.getUserId(), RowLockType.NONE)).getDiscordId();
@@ -208,8 +211,13 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
 
         embed[0].setImage("attachment://chart.png");
 
-        embed[0].setDescription(desc[0]);
+        //embed[0].setDescription(desc[0]);
+        System.out.println("att: " + "attachment://chart" + chartCounter[0] + ".png");
+        embed[0].setImage("attachment://chart" + rank[0] + ".png");
+        charts.add(chart[0].createBarChart());
         embeds.add(embed[0].build());
+
+        PaginatorWithImages paginator = new PaginatorWithImages(event.getUser(), embeds, (i, m) -> m.addFile(charts.get(i), "chart" + i + ".png"));
 
         /*Paginator paginator = new Paginator(event.getUser(), embeds);
         WebhookMessageAction<Message> action = event.getHook().sendMessageEmbeds(paginator.currentPage())
