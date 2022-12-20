@@ -17,9 +17,7 @@ import org.jfree.ui.RectangleInsets;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 
 import static io.github.milobotdev.milobot.utility.ImgurFunctions.uploadImageToImgur;
@@ -71,7 +69,7 @@ public class BarChart {
      * @throws IOException           if there is an error reading or writing to the image file
      * @throws IllegalStateException if the bar chart has no bars
      */
-    public String createBarChart() throws IOException, IllegalStateException {
+    public InputStream createBarChart() throws IllegalStateException {
         if (sections.size() == 0) {
             throw new IllegalStateException("BarChart must have at least one bar");
         }
@@ -142,18 +140,13 @@ public class BarChart {
         int width = 640;
         int height = 480;
 
-        File file = new File(String.format("temp/charts/%s.png", filename));
-        if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
-            ChartUtilities.saveChartAsPNG(file, chart, width, height);
-            BufferedImage image;
-            image = ImageIO.read(new File(file.getPath()));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", baos);
-            byte[] imageBytes = baos.toByteArray();
-
-            return uploadImageToImgur(imageBytes);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            ChartUtilities.writeChartAsPNG(os, chart, width, height);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return null;
+        return new ByteArrayInputStream(os.toByteArray());
     }
 
     /**
