@@ -67,10 +67,6 @@ public class Paginator {
         return currentPage;
     }
 
-    protected Message getMessage() {
-        return message;
-    }
-
     protected MessageAction getUpdateMessageAction() {
         return message.editMessageEmbeds(pages.get(currentPage)).setActionRows(getActionRows());
     }

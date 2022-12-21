@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * View all the leaderboards for the Wordle command.
@@ -45,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class WordleLeaderboardCmd extends SubCommand implements TextCommand, SlashCommand, DefaultCommandArgs,
         DefaultFlags, DefaultChannelTypes, EventListeners {
 
+    private static final int NUM_USERS_ON_LEADERBOARD = 10;
     private final ExecutorService executorService;
     private static final UserDao userDao = UserDao.getInstance();
     private static final WordleDao wordleDao = WordleDao.getInstance();
@@ -146,7 +146,6 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
                                          @NotNull List<Wordle> wordles, String title,
                                          JDA jda) throws IOException {
         List<MessageEmbed> embeds = new ArrayList<>();
-        List<EmbedBuilder> builders = new ArrayList<>();
         List<byte[]> charts = new ArrayList<>();
 
         final EmbedBuilder[] embed = {new EmbedBuilder()};
@@ -160,7 +159,9 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
         final int[] rank = {1};
         final int[] counter = {0};
         final int[] chartCounter = {0};
+        AtomicBoolean ran = new AtomicBoolean(false);
         wordles.forEach((wordle) -> {
+            ran.set(true);
             try (Connection con = DatabaseConnection.getConnection()) {
                 long discordId = Objects.requireNonNull(userDao.getUserById(con, wordle.getUserId(), RowLockType.NONE)).getDiscordId();
                 String name = userUtil.getUserNameTag(discordId, jda).userName();
@@ -188,15 +189,13 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
                 }
                 rank[0]++;
                 counter[0]++;
-                if (rank[0] % 2 == 0) {
+                if ((rank[0]-1) % NUM_USERS_ON_LEADERBOARD == 0) {
                     counter[0] = 0;
                     embed[0].setDescription(desc[0]);
-                    System.out.println("att: " + "attachment://chart" + chartCounter[0] + ".png");
-                    //embed[0].setImage("attachment://chart" + chartCounter[0] + ".png");
+                    embed[0].setImage("attachment://chart" + chartCounter[0] + ".png");
                     chartCounter[0]++;
                     charts.add(chart[0].createBarChart());
                     embeds.add(embed[0].build());
-                    builders.add(embed[0]);
                     embed[0] = new EmbedBuilder();
                     desc[0] = new StringBuilder();
                     chart[0] = new BarChart("Wordle Leaderboard", title, "User", title);
@@ -209,31 +208,28 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
 
         });
 
-        embed[0].setImage("attachment://chart0.png");
+        if (counter[0] > 0) {
+            embed[0].setDescription(desc[0]);
+            embed[0].setImage("attachment://chart" + chartCounter[0] + ".png");
+            chartCounter[0]++;
+            charts.add(chart[0].createBarChart());
+            embeds.add(embed[0].build());
+            embed[0] = new EmbedBuilder();
+            desc[0] = new StringBuilder();
+            chart[0] = new BarChart("Wordle Leaderboard", title, "User", title);
+            embed[0].setTitle(title);
+            embed[0].setColor(Color.BLUE);
+        }
 
-        //embed[0].setDescription(desc[0]);
-        /*System.out.println("att: " + "attachment://chart" + chartCounter[0] + ".png");
-        embed[0].setImage("attachment://chart" + rank[0] + ".png");
-        charts.add(chart[0].createBarChart());
-        embeds.add(embed[0].build());*/
 
-        AtomicInteger chartNumCounter = new AtomicInteger();
-        PaginatorWithImages paginator = new PaginatorWithImages(event.getUser(), embeds, (i, m) -> {
-            int num = chartNumCounter.getAndIncrement();
-            System.out.println("num: " + num + " i: " + i);
-            return m.editMessageEmbeds(new EmbedBuilder(builders.get(i)).setImage("attachment://chart" + num + ".png").build()).addFile(charts.get(i), "chart" + num + ".png");
-        });
+        if (ran.get()) {
+            PaginatorWithImages paginator = new PaginatorWithImages(event.getUser(), embeds, (i, m) -> m.addFile(charts.get(i), "chart" + i + ".png"));
 
-        /*Paginator paginator = new Paginator(event.getUser(), embeds);
-        WebhookMessageAction<Message> action = event.getHook().sendMessageEmbeds(paginator.currentPage())
-                .addActionRows(paginator.getActionRows());
-
-        for (int i=0; i<charts.size(); i++) {
-            action = action.addFile(charts.get(i), "chart" + i + ".png");
-        }*/
-
-        event.getHook().sendMessageEmbeds(paginator.currentPage()).addFile(charts.get(0), "chart0.png")
-                .addActionRows(paginator.getActionRows()).queue(paginator::initialize);
+            event.getHook().sendMessageEmbeds(paginator.currentPage()).addFile(charts.get(0), "chart0.png")
+                    .addActionRows(paginator.getActionRows()).queue(paginator::initialize);
+        } else {
+            event.getHook().sendMessage("No wordles in database.").queue();
+        }
     }
 
 

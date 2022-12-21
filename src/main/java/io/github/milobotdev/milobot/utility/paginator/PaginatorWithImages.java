@@ -1,6 +1,5 @@
 package io.github.milobotdev.milobot.utility.paginator;
 
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
@@ -10,9 +9,9 @@ import java.util.function.BiFunction;
 
 public class PaginatorWithImages extends Paginator {
     private List<byte[]> images;
-    private BiFunction<Integer, Message, MessageAction> imageAdder;
+    private BiFunction<Integer, MessageAction, MessageAction> imageAdder;
 
-    public PaginatorWithImages(User creator, List<MessageEmbed> pages, BiFunction<Integer, Message, MessageAction> imageAdder) {
+    public PaginatorWithImages(User creator, List<MessageEmbed> pages, BiFunction<Integer, MessageAction, MessageAction> imageAdder) {
         super(creator, pages);
         this.imageAdder = imageAdder;
     }
@@ -21,7 +20,6 @@ public class PaginatorWithImages extends Paginator {
 
     @Override
     protected MessageAction getUpdateMessageAction() {
-        return imageAdder.apply(getCurrentPage(), message).retainFilesById(List.of()).setActionRows(getActionRows());
-
+        return imageAdder.apply(getCurrentPage(), super.getUpdateMessageAction().retainFilesById(List.of()));
     }
 }
