@@ -9,7 +9,7 @@ import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.utility.Users;
 import io.github.milobotdev.milobot.utility.chart.BarChart;
-import io.github.milobotdev.milobot.utility.paginator.Paginator;
+import io.github.milobotdev.milobot.utility.paginator.PaginatorWithImages;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * View all the leaderboards for the Wordle command.
@@ -43,6 +44,7 @@ import java.util.concurrent.ExecutorService;
 public class WordleLeaderboardCmd extends SubCommand implements TextCommand, SlashCommand, DefaultCommandArgs,
         DefaultFlags, DefaultChannelTypes, EventListeners {
 
+    private static final int NUM_USERS_ON_LEADERBOARD = 10;
     private final ExecutorService executorService;
     private static final UserDao userDao = UserDao.getInstance();
     private static final WordleDao wordleDao = WordleDao.getInstance();
@@ -110,42 +112,41 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
             if (user.getId().equals(authorId) && type.equals("wordleLeaderboard")) {
                 event.deferEdit().queue();
                 String option = Objects.requireNonNull(event.getSelectedOptions()).get(0).getValue();
-                List<MessageEmbed> embeds = new ArrayList<>();
                 try {
                     switch (option) {
                         case "highestStreak" -> {
                             List<Wordle> topHighestStreak = wordleDao.getTopHighestStreak();
-                            embeds = buildWordleEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
+                            buildWordleEmbeds(event, topHighestStreak, "Highest Streak", event.getJDA());
                         }
                         case "fastestTime" -> {
                             List<Wordle> topFastestTime = wordleDao.getTopFastestTime();
-                            embeds = buildWordleEmbeds(topFastestTime, "Fastest Time", event.getJDA());
+                            buildWordleEmbeds(event, topFastestTime, "Fastest Time", event.getJDA());
                         }
                         case "totalWins" -> {
                             List<Wordle> topTotalWins = wordleDao.getTopTotalWins();
-                            embeds = buildWordleEmbeds(topTotalWins, "Total Wins", event.getJDA());
+                            buildWordleEmbeds(event, topTotalWins, "Total Wins", event.getJDA());
                         }
                         case "totalGames" -> {
                             List<Wordle> topTotalGames = wordleDao.getTopTotalGames();
-                            embeds = buildWordleEmbeds(topTotalGames, "Total Games Played", event.getJDA());
+                            buildWordleEmbeds(event, topTotalGames, "Total Games Played", event.getJDA());
                         }
                         case "currentStreak" -> {
                             List<Wordle> topCurrentStreak = wordleDao.getTopCurrentStreak();
-                            embeds = buildWordleEmbeds(topCurrentStreak, "Current Streak", event.getJDA());
+                            buildWordleEmbeds(event, topCurrentStreak, "Current Streak", event.getJDA());
                         }
                     }
-                } catch (SQLException e) {
+                } catch (SQLException | IOException e) {
                     logger.error("Failed to get the wordle leaderboard", e);
                 }
-                Paginator paginator = new Paginator(user, embeds);
-                event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
-                        .queue(paginator::initialize);
             }
         }
     };
 
-    public static @NotNull ArrayList<MessageEmbed> buildWordleEmbeds(@NotNull List<Wordle> wordles, String title, JDA jda) {
-        ArrayList<MessageEmbed> embeds = new ArrayList<>();
+    public static void buildWordleEmbeds(@NotNull SelectionMenuEvent event,
+                                         @NotNull List<Wordle> wordles, String title,
+                                         JDA jda) throws IOException {
+        List<MessageEmbed> embeds = new ArrayList<>();
+        List<byte[]> charts = new ArrayList<>();
 
         final EmbedBuilder[] embed = {new EmbedBuilder()};
         final StringBuilder[] desc = {new StringBuilder()};
@@ -157,7 +158,10 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
 
         final int[] rank = {1};
         final int[] counter = {0};
+        final int[] chartCounter = {0};
+        AtomicBoolean ran = new AtomicBoolean(false);
         wordles.forEach((wordle) -> {
+            ran.set(true);
             try (Connection con = DatabaseConnection.getConnection()) {
                 long discordId = Objects.requireNonNull(userDao.getUserById(con, wordle.getUserId(), RowLockType.NONE)).getDiscordId();
                 String name = userUtil.getUserNameTag(discordId, jda).userName();
@@ -185,11 +189,12 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
                 }
                 rank[0]++;
                 counter[0]++;
-                if (rank[0] % 10 == 0) {
+                if ((rank[0]-1) % NUM_USERS_ON_LEADERBOARD == 0) {
                     counter[0] = 0;
                     embed[0].setDescription(desc[0]);
-                    String barChart = chart[0].createBarChart();
-                    embed[0].setImage(barChart);
+                    embed[0].setImage("attachment://chart" + chartCounter[0] + ".png");
+                    chartCounter[0]++;
+                    charts.add(chart[0].createBarChart());
                     embeds.add(embed[0].build());
                     embed[0] = new EmbedBuilder();
                     desc[0] = new StringBuilder();
@@ -197,23 +202,34 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
                     embed[0].setTitle(title);
                     embed[0].setColor(Color.BLUE);
                 }
-            } catch (SQLException | IOException e) {
-                throw new RuntimeException(e);
+            } catch (SQLException e) {
+                logger.error("Failed to get the wordle leaderboard", e);
             }
 
         });
 
-        try {
-            String barChart = chart[0].createBarChart();
-            embed[0].setImage(barChart);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (counter[0] > 0) {
+            embed[0].setDescription(desc[0]);
+            embed[0].setImage("attachment://chart" + chartCounter[0] + ".png");
+            chartCounter[0]++;
+            charts.add(chart[0].createBarChart());
+            embeds.add(embed[0].build());
+            embed[0] = new EmbedBuilder();
+            desc[0] = new StringBuilder();
+            chart[0] = new BarChart("Wordle Leaderboard", title, "User", title);
+            embed[0].setTitle(title);
+            embed[0].setColor(Color.BLUE);
         }
 
-        embed[0].setDescription(desc[0]);
-        embeds.add(embed[0].build());
 
-        return embeds;
+        if (ran.get()) {
+            PaginatorWithImages paginator = new PaginatorWithImages(event.getUser(), embeds, (i, m) -> m.addFile(charts.get(i), "chart" + i + ".png"));
+
+            event.getHook().sendMessageEmbeds(paginator.currentPage()).addFile(charts.get(0), "chart0.png")
+                    .addActionRows(paginator.getActionRows()).queue(paginator::initialize);
+        } else {
+            event.getHook().sendMessage("No wordles in database.").queue();
+        }
     }
 
 
