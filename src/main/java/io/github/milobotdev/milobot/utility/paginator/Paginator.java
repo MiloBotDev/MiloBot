@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -62,6 +63,14 @@ public class Paginator {
         }
     }
 
+    protected int getCurrentPage() {
+        return currentPage;
+    }
+
+    protected MessageAction getUpdateMessageAction() {
+        return message.editMessageEmbeds(pages.get(currentPage)).setActionRows(getActionRows());
+    }
+
     public void nextPage() {
         checkInitialized();
         if (!cancelIdleInstanceCleanup()) {
@@ -69,7 +78,7 @@ public class Paginator {
         }
         if (currentPage + 1 < pages.size()) {
             currentPage++;
-            message.editMessageEmbeds(pages.get(currentPage)).setActionRows(getActionRows()).queue();
+            getUpdateMessageAction().queue();
         }
         setIdleInstanceCleanup();
     }
@@ -81,7 +90,7 @@ public class Paginator {
         }
         if (currentPage - 1 >= 0) {
             currentPage--;
-            message.editMessageEmbeds(pages.get(currentPage)).setActionRows(getActionRows()).queue();
+            getUpdateMessageAction().queue();
         }
         setIdleInstanceCleanup();
     }
