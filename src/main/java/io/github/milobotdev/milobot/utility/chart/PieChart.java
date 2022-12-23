@@ -12,13 +12,12 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 import org.jfree.ui.RectangleInsets;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
-
-import static io.github.milobotdev.milobot.utility.ImgurFunctions.uploadImageToImgur;
 
 /**
  * A class that represents a pie chart with multiple sections.
@@ -60,9 +59,8 @@ public class PieChart {
      * @return the URL of the uploaded image on Imgur
      * @throws IOException           if there is an error reading or writing to the image file
      * @throws IllegalStateException if the pie chart has no sections
-     * @see io.github.milobotdev.milobot.utility.ImgurFunctions
      */
-    public @NotNull InputStream createCircleDiagram() throws IOException, IllegalStateException {
+    public byte @NotNull [] createCircleDiagram() throws IOException, IllegalStateException {
         if (this.sections.size() == 0) {
             throw new IllegalStateException("PieChart must have at least one section");
         }
@@ -132,7 +130,7 @@ public class PieChart {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return new ByteArrayInputStream(os.toByteArray());
+        return os.toByteArray();
     }
 
     private @NotNull PieDataset createDataset() {

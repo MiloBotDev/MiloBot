@@ -98,7 +98,7 @@ public class WordleGame {
      */
     private void loadWordsAsList() {
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        InputStream is = classloader.getResourceAsStream(Config.getInstance().getWordleWordsPath());
+        InputStream is = classloader.getResourceAsStream("wordle_words.txt");
         InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
         Scanner s = new Scanner(streamReader);
         ArrayList<String> list = new ArrayList<>();

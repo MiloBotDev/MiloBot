@@ -47,7 +47,6 @@ public class Users {
         this.dailyDao = DailyDao.getInstance();
         this.usersCacheDao = UsersCacheDao.getInstance();
         Config config = Config.getInstance();
-        String levelsJsonPath = config.getLevelsJsonPath();
         this.levels = new HashMap<>();
         loadLevelsAsMap();
     }
@@ -120,7 +119,7 @@ public class Users {
     private void loadLevelsAsMap() {
         // see https://stackoverflow.com/a/48298758
         try {
-            URI uri = getClass().getResource(Config.getInstance().getLevelsJsonPath()).toURI();
+            URI uri = getClass().getResource("/levels.json").toURI();
             HungerGames.fileLoadHack(uri);
             Path source = Paths.get(uri);
             String jsonAsString = new String(Files.readAllBytes(source));

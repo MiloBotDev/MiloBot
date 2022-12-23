@@ -27,18 +27,10 @@ public class Config {
     //github
     private final String personalAccessToken;
     private final String repositoryName;
-    // paths
-    private final String levelsJsonPath;
-    private final String hungerGamesPath;
-    private final String wordleWordsPath;
-    private final String monstersCsvPath;
     // database
     private final String connectionUrl;
     private final String user;
     private final String password;
-    // imgur api
-    private final String imgurClientId;
-    private final String imgurClientSecret;
 
     /**
      * Instantiates all the configuration fields.
@@ -54,22 +46,15 @@ public class Config {
         this.botToken = (String) data.get("token");
         this.testGuildId = Long.toString(((Long) data.get("testGuildId")));
         this.loggingChannelName = (String) data.get("loggingChannelName");
-        this.levelsJsonPath = (String) data.get("levelsJsonPath");
-        this.hungerGamesPath = (String) data.get("hungerGamesPath");
 
         this.connectionUrl = (String) data.get("connectionUrl");
         this.user = (String) data.get("user");
         this.password = (String) data.get("password");
 
-        this.wordleWordsPath = (String) data.get("wordleWordsPath");
         this.defaultPrefix = (String) data.get("prefix");
         this.privateChannelPrefix = (String) data.get("privateChannelPrefix");
         this.personalAccessToken = (String) data.get("personalAccessToken");
         this.repositoryName = (String) data.get("repositoryName");
-        this.monstersCsvPath = (String) data.get("monstersCsvPath");
-
-        this.imgurClientId = (String) data.get("imgurClientId");
-        this.imgurClientSecret = (String) data.get("imgurClientSecret");
     }
 
     /**
@@ -100,10 +85,6 @@ public class Config {
         return loggingChannelName;
     }
 
-    public String getLevelsJsonPath() {
-        return levelsJsonPath;
-    }
-
     public String getConnectionUrl() {
         return connectionUrl;
     }
@@ -114,14 +95,6 @@ public class Config {
 
     public String getPassword() {
         return password;
-    }
-
-    public String getWordleWordsPath() {
-        return wordleWordsPath;
-    }
-
-    public String getHungerGamesPath() {
-        return hungerGamesPath;
     }
 
     public String getDefaultPrefix() {
@@ -140,15 +113,4 @@ public class Config {
         return repositoryName;
     }
 
-    public String getMonstersCsvPath() {
-        return monstersCsvPath;
-    }
-
-    public String getImgurClientId() {
-        return imgurClientId;
-    }
-
-    public String getImgurClientSecret() {
-        return imgurClientSecret;
-    }
 }
