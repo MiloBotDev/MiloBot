@@ -44,7 +44,7 @@ public class EncounterGenerator {
     public void loadMonsters() {
         this.monsters = new ArrayList<>();
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        InputStream is = classloader.getResourceAsStream(Config.getInstance().getMonstersCsvPath());
+        InputStream is = classloader.getResourceAsStream("monsters.csv");
         InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
         try (BufferedReader br = new BufferedReader(streamReader)) {
             String line;
