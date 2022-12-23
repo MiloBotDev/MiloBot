@@ -11,6 +11,7 @@ import io.github.milobotdev.milobot.utility.EmbedUtils;
 import io.github.milobotdev.milobot.utility.chart.PieChart;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -43,16 +44,12 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        EmbedBuilder embedBuilder = generateEmbed(event.getAuthor());
-        event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
-                Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+        generateEmbed(event.getAuthor(), event.getChannel());
     }
 
     @Override
     public void executeCommand(@NotNull SlashCommandEvent event) {
-        EmbedBuilder embedBuilder = generateEmbed(event.getUser());
-        event.replyEmbeds(embedBuilder.build()).addActionRow(
-                Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
+        generateEmbed(event.getUser(), event.getChannel());
     }
 
     @Override
@@ -60,7 +57,7 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
         return new SubcommandData("stats", "View your own wordle statistics");
     }
 
-    private @NotNull EmbedBuilder generateEmbed(User user) {
+    private void generateEmbed(User user, MessageChannel channel) {
         try(Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             EmbedBuilder embed = new EmbedBuilder();
@@ -72,6 +69,8 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
             con.commit();
             if (userWordle == null) {
                 embed.setDescription("No wordle statistics on record.");
+                channel.sendMessageEmbeds(embed.build())
+                        .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
             } else {
                 int fastestTime = userWordle.getFastestTime();
                 int currentStreak = userWordle.getCurrentStreak();
@@ -100,12 +99,15 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
                 PieChart pieChart = new PieChart("Wins / Losses", user.getId());
                 pieChart.addSection("Wins", totalWins, Color.GREEN);
                 pieChart.addSection("Losses", totalLosses, Color.RED);
-                String circleDiagram = pieChart.createCircleDiagram();
-                embed.setImage(circleDiagram);
+                embed.setImage("attachment://chart.png");
+                channel.sendMessageEmbeds(embed.build()).addFile(pieChart.createCircleDiagram(), "chart.png")
+                        .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
             }
-            return embed;
         } catch (SQLException | IOException e) {
-            return new EmbedBuilder().setTitle("Error").setDescription("An error occurred while fetching your wordle statistics.");
+            EmbedBuilder errorEmbed = new EmbedBuilder()
+                    .setTitle("Error")
+                    .setDescription("An error occurred while fetching your wordle statistics.");
+            channel.sendMessageEmbeds(errorEmbed.build()).setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
         }
     }
 

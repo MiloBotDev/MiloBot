@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -63,11 +65,23 @@ public class DailyStatsCmd extends SubCommand implements TextCommand, SlashComma
             Daily daily = dailyDao.getDailyByUserDiscordId(con, user.getIdLong(), RowLockType.NONE);
             if(daily != null) {
                 int streak = daily.getStreak();
+                int highestStreak = daily.getHighestStreak();
                 int totalClaimed = daily.getTotalClaimed();
-                String lastDailyTime = Objects.requireNonNull(daily.getLastDailyTime()).toString();
+                int highestCurrencyClaimed = daily.getHighestCurrencyClaimed();
+                int totalCurrencyClaimed = daily.getTotalCurrencyClaimed();
+                int lowestCurrencyClaimed = daily.getLowestCurrencyClaimed();
+                int averageClaim = totalCurrencyClaimed / totalClaimed;
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                        .withZone(ZoneId.systemDefault());
+                String lastDaily = formatter.format(Objects.requireNonNull(daily.getLastDailyTime()));
                 dailyStatsEmbed.addField("Current Streak", String.valueOf(streak), true);
+                dailyStatsEmbed.addField("Highest Streak", String.valueOf(highestStreak), true);
                 dailyStatsEmbed.addField("Total Dailies Claimed", String.valueOf(totalClaimed), true);
-                dailyStatsEmbed.addField("Last Daily Claimed", lastDailyTime, true);
+                dailyStatsEmbed.addField("Last Daily Claimed", lastDaily, true);
+                dailyStatsEmbed.addField("Total Morbcoins Claimed", String.valueOf(totalCurrencyClaimed), true);
+                dailyStatsEmbed.addField("Highest Morbcoins Claim", String.valueOf(highestCurrencyClaimed), true);
+                dailyStatsEmbed.addField("Lowest Morbcoins Claim", String.valueOf(lowestCurrencyClaimed), true);
+                dailyStatsEmbed.addField("Average Morbcoins Claim", String.valueOf(averageClaim), true);
             } else {
                 dailyStatsEmbed.setDescription("No Daily statistics on record.");
             }

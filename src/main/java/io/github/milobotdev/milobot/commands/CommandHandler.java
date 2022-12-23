@@ -71,6 +71,7 @@ public class CommandHandler {
                 }
             }
         });
+
         if (command instanceof SlashCommand slashCommand) {
             CommandData commandData;
             try {
@@ -142,21 +143,6 @@ public class CommandHandler {
         logger.trace("Executing text command " + fullCommandName);
         command.getExecutorService().execute(() -> {
             try {
-                if(command instanceof Instance) {
-                    InstanceData instanceData = ((Instance) command).isInstanced();
-                    if (instanceData.isInstanced()) {
-                        GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
-                        long userId = event.getAuthor().getIdLong();
-                        if(gameInstanceManager.containsUser(userId, instanceData.gameType())) {
-                            TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId, instanceData.gameType());
-                            event.getChannel().sendMessage(String.format("You are still in game. Please wait %d more seconds.",
-                                    userTimeTracker.timeSecondsTillDuration())).queue();
-                            return;
-                        } else {
-                            gameInstanceManager.addUser(userId, instanceData.gameType(), instanceData.duration());
-                        }
-                    }
-                }
                 command.onCommand(event, args);
             } catch (Exception e) {
                 logger.error("Error while executing text command " + fullCommandName, e);
@@ -182,21 +168,6 @@ public class CommandHandler {
     private void executeCommand(@NotNull Command command, @NotNull SlashCommandEvent event) {
         command.getExecutorService().execute(() -> {
             try {
-                if(command instanceof Instance) {
-                    InstanceData instanceData = ((Instance) command).isInstanced();
-                    if (instanceData.isInstanced()) {
-                        GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
-                        long userId = event.getUser().getIdLong();
-                        if(gameInstanceManager.containsUser(userId, instanceData.gameType())) {
-                            TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId, instanceData.gameType());
-                            event.getChannel().sendMessage(String.format("You are still in game. Please wait %d more seconds.",
-                                    userTimeTracker.timeSecondsTillDuration())).queue();
-                            return;
-                        } else {
-                            gameInstanceManager.addUser(userId, instanceData.gameType(), instanceData.duration());
-                        }
-                    }
-                }
                 command.onCommand(event);
             } catch (Exception e) {
                 logger.error("Error while executing text command " + command.getFullCommandName(), e);

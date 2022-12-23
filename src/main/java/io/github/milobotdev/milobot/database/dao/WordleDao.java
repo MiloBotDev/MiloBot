@@ -107,15 +107,46 @@ public class WordleDao {
         return getWordles(currentStreaks, query);
     }
 
-    private List<Wordle> getWordles(ArrayList<Wordle> currentStreaks, String query) throws SQLException {
+    public enum WordleLeaderboardType {
+        HIGHEST_STREAK("SELECT * FROM wordle ORDER BY wordle.highest_streak DESC LIMIT 100"),
+        FASTEST_TIME(""),
+        TOTAL_WINS(""),
+        TOTAL_GAMES(""),
+        CURRENT_STREAK("");
+
+        private String query;
+
+        public String getQuery() {
+            return query;
+        }
+
+        WordleLeaderboardType(String query) {
+            this.query = query;
+        }
+    }
+
+    private List<Wordle> getWordlesLeaderboard(WordleLeaderboardType wordleType) throws SQLException {
+        List<Wordle> wordlesList = new ArrayList<>();
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(wordleType.getQuery());
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                wordlesList.add(new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+                        rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak")));
+            }
+            return wordlesList;
+        }
+    }
+
+    private List<Wordle> getWordles(ArrayList<Wordle> wordlesList, String query) throws SQLException {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                currentStreaks.add(new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
+                wordlesList.add(new Wordle(rs.getInt("id"), rs.getInt("user_id"), rs.getInt("games_played"), rs.getInt("wins"),
                         rs.getInt("fastest_time"), rs.getInt("highest_streak"), rs.getInt("current_streak")));
             }
-            return currentStreaks;
+            return wordlesList;
         }
     }
 

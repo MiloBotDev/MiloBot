@@ -16,5 +16,6 @@ public class UtilityCmdLoader {
         commandHandler.registerCommand(new PrefixCmd(utilityExecutor));
         commandHandler.registerCommand(new ServerCmd(utilityExecutor));
         commandHandler.registerCommand(new UserCmd(utilityExecutor));
+        commandHandler.registerCommand(new UsageCmd(utilityExecutor));
     }
 }

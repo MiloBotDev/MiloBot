@@ -68,6 +68,17 @@ public class Minesweeper {
                 if (hitMine) {
                     event.getChannel().sendMessage("You hit a mine!").queue();
                     minesweeperGames.remove(this);
+                    for (int i = 0; i < ROWS; i++) {
+                        for (int j = 0; j < COLS; j++) {
+                            if (mines[i][j]) {
+                                board[i][j] = '*';
+                            }
+                        }
+                    }
+                    EmbedBuilder embedBuilder = new EmbedBuilder();
+                    embedBuilder.setTitle("Minesweeper");
+                    embedBuilder.setImage("attachment://minesweeper.png");
+                    event.getChannel().sendMessageEmbeds(embedBuilder.build()).addFile(boardToPng(), "minesweeper.png").queue();
                 } else {
                     EmbedBuilder embedBuilder = new EmbedBuilder();
                     embedBuilder.setTitle("Minesweeper");

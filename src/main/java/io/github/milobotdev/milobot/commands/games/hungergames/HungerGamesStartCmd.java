@@ -10,7 +10,7 @@ import io.github.milobotdev.milobot.games.hungergames.HungerGames;
 import io.github.milobotdev.milobot.games.hungergames.model.Item;
 import io.github.milobotdev.milobot.games.hungergames.model.LobbyEntry;
 import io.github.milobotdev.milobot.games.hungergames.model.Player;
-import io.github.milobotdev.milobot.utility.paginator.lobby.BotLobby;
+import io.github.milobotdev.milobot.utility.lobby.BotLobby;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;

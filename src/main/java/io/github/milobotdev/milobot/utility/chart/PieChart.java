@@ -15,9 +15,7 @@ import org.jfree.ui.RectangleInsets;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 
 import static io.github.milobotdev.milobot.utility.ImgurFunctions.uploadImageToImgur;
@@ -64,7 +62,7 @@ public class PieChart {
      * @throws IllegalStateException if the pie chart has no sections
      * @see io.github.milobotdev.milobot.utility.ImgurFunctions
      */
-    public @NotNull String createCircleDiagram() throws IOException, IllegalStateException {
+    public @NotNull InputStream createCircleDiagram() throws IOException, IllegalStateException {
         if (this.sections.size() == 0) {
             throw new IllegalStateException("PieChart must have at least one section");
         }
@@ -127,18 +125,14 @@ public class PieChart {
         int width = 640;
         int height = 480;
 
-        File file = new File(String.format("temp/charts/%s.png", filename));
-        if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
-            ChartUtilities.saveChartAsPNG(file, chart, width, height);
-            BufferedImage image;
-            image = ImageIO.read(new File(file.getPath()));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", baos);
-            byte[] imageBytes = baos.toByteArray();
 
-            return uploadImageToImgur(imageBytes);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            ChartUtilities.writeChartAsPNG(os, chart, width, height);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return null;
+        return new ByteArrayInputStream(os.toByteArray());
     }
 
     private @NotNull PieDataset createDataset() {

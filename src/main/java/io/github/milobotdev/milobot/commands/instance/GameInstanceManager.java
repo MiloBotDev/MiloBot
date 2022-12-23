@@ -20,7 +20,7 @@ public class GameInstanceManager {
     }
 
     public static GameInstanceManager getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new GameInstanceManager();
         }
         return instance;
@@ -29,7 +29,7 @@ public class GameInstanceManager {
     public boolean containsUser(long userId, GameType gameType) {
         final boolean[] contains = {false};
         gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
+            if (longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
                 contains[0] = true;
             }
         });
@@ -37,7 +37,7 @@ public class GameInstanceManager {
     }
 
     public void addUser(long userId, GameType gameType, int duration) {
-        if(containsUser(userId, gameType)) {
+        if (containsUser(userId, gameType)) {
             throw new IllegalStateException("Tried adding a user to a game instance that already exists.");
         }
         TimeTracker tracker = new TimeTracker(duration);
@@ -48,11 +48,11 @@ public class GameInstanceManager {
     public void removeUserGame(long userId, GameType gameType) {
         final Collection<Map<Long, GameType>> keyToRemove = new HashSet<>();
         this.gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
+            if (longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
                 keyToRemove.add(longStringMap);
             }
         });
-        if(keyToRemove.isEmpty()) {
+        if (keyToRemove.isEmpty()) {
             throw new IllegalStateException("Tried to remove user game that doesn't exist");
         }
         gameInstances.remove(keyToRemove.iterator().next());
@@ -61,14 +61,18 @@ public class GameInstanceManager {
     public TimeTracker getUserTimeTracker(long userId, GameType gameType) {
         final TimeTracker[] returnValue = new TimeTracker[1];
         this.gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
+            if (longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
                 returnValue[0] = timeTracker;
             }
         });
-        if(Arrays.stream(returnValue).sequential().allMatch(Objects::isNull)) {
+        if (Arrays.stream(returnValue).sequential().allMatch(Objects::isNull)) {
             throw new IllegalStateException("Tried to get user time tracker for a game that doesn't exist");
         }
         return returnValue[0];
+    }
+
+    public Map<Map<Long, GameType>, TimeTracker> getGameInstances() {
+        return gameInstances;
     }
 
     private void setIdleInstanceCleanup() {
@@ -80,5 +84,7 @@ public class GameInstanceManager {
             });
         }, 1, TimeUnit.MINUTES);
     }
+
+
 
 }
