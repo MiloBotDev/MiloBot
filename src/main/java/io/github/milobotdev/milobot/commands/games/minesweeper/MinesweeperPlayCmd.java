@@ -2,6 +2,9 @@ package io.github.milobotdev.milobot.commands.games.minesweeper;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.instance.model.GameType;
+import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
+import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
 import io.github.milobotdev.milobot.games.Minesweeper;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -21,7 +24,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public class MinesweeperPlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
-        DefaultChannelTypes, Aliases, DefaultCommandArgs {
+        DefaultChannelTypes, Aliases, DefaultCommandArgs, Instance {
 
     private static final Logger logger = LoggerFactory.getLogger(MinesweeperPlayCmd.class);
     private final ExecutorService executorService;
@@ -82,5 +85,12 @@ public class MinesweeperPlayCmd extends SubCommand implements TextCommand, Slash
     @Override
     public @NotNull ExecutorService getExecutorService() {
         return executorService;
+    }
+
+
+    @Override
+    public InstanceData isInstanced() {
+        return new InstanceData(true, 1200,
+                new GameType("minesweeper", userId -> Minesweeper.minesweeperGames.get(userId).removeGame(userId)));
     }
 }

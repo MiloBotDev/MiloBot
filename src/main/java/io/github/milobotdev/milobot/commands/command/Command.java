@@ -1,14 +1,9 @@
 package io.github.milobotdev.milobot.commands.command;
 
 import io.github.milobotdev.milobot.commands.command.extensions.*;
-import io.github.milobotdev.milobot.commands.instance.GameInstanceManager;
-import io.github.milobotdev.milobot.commands.instance.GameType;
-import io.github.milobotdev.milobot.commands.instance.InstanceData;
+import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
-import io.github.milobotdev.milobot.utility.TimeTracker;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -19,14 +14,8 @@ import io.github.milobotdev.milobot.utility.Users;
 
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
-public abstract class Command implements INewCommand {
+public abstract class Command implements ICommand {
 
     private final Logger logger = LoggerFactory.getLogger(Command.class);
 
@@ -58,8 +47,11 @@ public abstract class Command implements INewCommand {
             if (textCommand instanceof Instance) {
                 InstanceData instanceData = ((Instance) textCommand).isInstanced();
                 if (instanceData.isInstanced()) {
-                    ((Instance) textCommand).manageInstance(event.getChannel(), event.getAuthor(), 
+                    boolean inInstance = ((Instance) textCommand).manageInstance(event.getChannel(), event.getAuthor(),
                             instanceData.gameType(), instanceData.duration());
+                    if(inInstance) {
+                        return;
+                    }
                 }
             }
 
@@ -85,8 +77,11 @@ public abstract class Command implements INewCommand {
             if (slashCommand instanceof Instance) {
                 InstanceData instanceData = ((Instance) slashCommand).isInstanced();
                 if (instanceData.isInstanced()) {
-                    ((Instance) slashCommand).manageInstance(event.getChannel(), event.getUser(),
+                    boolean inInstance = ((Instance) slashCommand).manageInstance(event.getChannel(), event.getUser(),
                             instanceData.gameType(), instanceData.duration());
+                    if(inInstance) {
+                        return;
+                    }
                 }
             }
 

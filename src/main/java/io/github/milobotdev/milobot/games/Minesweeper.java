@@ -15,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class Minesweeper {
@@ -24,7 +25,7 @@ public class Minesweeper {
     public static final int ROWS = 9;
     public static final int COLS = 9;
     public static final int MINES = 10;
-    private static final ArrayList<Minesweeper> minesweeperGames = new ArrayList<>();
+    public static final Map<Long, Minesweeper> minesweeperGames = new ConcurrentHashMap<>();
     private final char[][] board;
     private final boolean[][] mines;
     private final User author;
@@ -37,7 +38,7 @@ public class Minesweeper {
         this.loadAssets();
         this.initBoard();
         this.initMines();
-        minesweeperGames.add(this);
+        minesweeperGames.put(author.getIdLong(),this);
         author.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessageEmbeds(generateHelp().build()).queue());
         this.tracker = new TimeTracker();
         this.tracker.start();
@@ -46,7 +47,7 @@ public class Minesweeper {
 
     public static void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            new ArrayList<>(minesweeperGames).forEach(game -> game.onMessage(event));
+            new ConcurrentHashMap<>(minesweeperGames).forEach((userId, game) -> game.onMessage(event));
         }
     }
 
@@ -333,6 +334,10 @@ public class Minesweeper {
         }
 
         this.images = images;
+    }
+
+    public void removeGame(long userId) {
+        minesweeperGames.remove(userId);
     }
 
 }

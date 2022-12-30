@@ -1,7 +1,7 @@
 package io.github.milobotdev.milobot.commands.command.extensions;
 
 import io.github.milobotdev.milobot.commands.GuildPrefixManager;
-import io.github.milobotdev.milobot.commands.command.INewCommand;
+import io.github.milobotdev.milobot.commands.command.ICommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -16,7 +16,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public interface SlashCommand extends INewCommand {
+public interface SlashCommand extends ICommand {
 
     void executeCommand(SlashCommandEvent event);
     @NotNull BaseCommand<?> getCommandData();
