@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DailyHistoryDao {
 
@@ -22,7 +24,7 @@ public class DailyHistoryDao {
     }
 
     public static DailyHistoryDao getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new DailyHistoryDao();
         }
         return instance;
@@ -56,5 +58,25 @@ public class DailyHistoryDao {
             ps.setInt(3, dailyHistory.getAmount());
             ps.executeUpdate();
         }
+    }
+
+    public List<DailyHistory> getLastDailyHistoryByUserDiscordId(Connection con, long userDiscordId, int limit) throws SQLException {
+        String query = "SELECT * FROM daily_history WHERE user_id = (SELECT id FROM users WHERE discord_id = ?) ORDER BY time DESC LIMIT ?";
+        List<DailyHistory> dailyHistories = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, userDiscordId);
+            ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    dailyHistories.add(new DailyHistory(
+                            rs.getInt("id"),
+                            rs.getInt("user_id"),
+                            rs.getTimestamp("time").toInstant(),
+                            rs.getInt("amount")
+                    ));
+                }
+            }
+        }
+        return dailyHistories;
     }
 }

@@ -9,12 +9,18 @@ public class DailyHistory {
     private final Instant time;
     private final int amount;
 
-
     public DailyHistory(int userId, Instant time, int amount) {
         this.userId = userId;
         this.time = time;
         this.amount = amount;
         this.id = -1;
+    }
+
+    public DailyHistory(int id, int userId, Instant time, int amount) {
+        this.id = id;
+        this.userId = userId;
+        this.time = time;
+        this.amount = amount;
     }
 
     public int getId() {

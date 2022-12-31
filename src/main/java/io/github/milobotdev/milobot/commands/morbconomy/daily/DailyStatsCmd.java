@@ -3,12 +3,16 @@ package io.github.milobotdev.milobot.commands.morbconomy.daily;
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
 import io.github.milobotdev.milobot.database.dao.DailyDao;
+import io.github.milobotdev.milobot.database.dao.DailyHistoryDao;
 import io.github.milobotdev.milobot.database.model.Daily;
+import io.github.milobotdev.milobot.database.model.DailyHistory;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
+import io.github.milobotdev.milobot.utility.chart.LineChart;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -19,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.ZoneId;
@@ -33,6 +38,7 @@ public class DailyStatsCmd extends SubCommand implements TextCommand, SlashComma
 
     private final ExecutorService executorService;
     private final DailyDao dailyDao = DailyDao.getInstance();
+    private final DailyHistoryDao dailyHistoryDao = DailyHistoryDao.getInstance();
     private final Logger logger = LoggerFactory.getLogger(DailyStatsCmd.class);
 
     public DailyStatsCmd(ExecutorService executorService) {
@@ -46,17 +52,15 @@ public class DailyStatsCmd extends SubCommand implements TextCommand, SlashComma
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        event.getChannel().sendMessageEmbeds(generateEmbed(event.getAuthor()).build()).setActionRow(
-                Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+        generateEmbed(event.getAuthor(), event.getChannel());
     }
 
     @Override
     public void executeCommand(@NotNull SlashCommandEvent event) {
-        event.replyEmbeds(generateEmbed(event.getUser()).build()).addActionRow(
-                Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
+        generateEmbed(event.getUser(), event.getChannel());
     }
 
-    private @NotNull EmbedBuilder generateEmbed(User user) {
+    private void generateEmbed(User user, MessageChannel channel) {
         EmbedBuilder dailyStatsEmbed = new EmbedBuilder();
         EmbedUtils.styleEmbed(dailyStatsEmbed, user);
         dailyStatsEmbed.setTitle(String.format("Daily Statistics for %s", user.getName()));
@@ -82,14 +86,26 @@ public class DailyStatsCmd extends SubCommand implements TextCommand, SlashComma
                 dailyStatsEmbed.addField("Highest Morbcoins Claim", String.valueOf(highestCurrencyClaimed), true);
                 dailyStatsEmbed.addField("Lowest Morbcoins Claim", String.valueOf(lowestCurrencyClaimed), true);
                 dailyStatsEmbed.addField("Average Morbcoins Claim", String.valueOf(averageClaim), true);
+
+                List<DailyHistory> dailyHistory = dailyHistoryDao.getLastDailyHistoryByUserDiscordId(con, user.getIdLong(), 10);
+                if(!dailyHistory.isEmpty()) {
+                    LineChart lineChart = new LineChart("Daily History", "Date", "Total Morbcoins Claimed");
+                    dailyHistory.forEach(dailyHistoryEntry -> lineChart.addPlotPoint(dailyHistoryEntry.getAmount(),
+                            "Total Morbcoins Claimed",  formatter.format(dailyHistoryEntry.getTime())));
+                    dailyStatsEmbed.setImage("attachment://dailyHistory.png");
+                    channel.sendMessageEmbeds(dailyStatsEmbed.build())
+                            .addFile(lineChart.createLineChart(), "dailyHistory.png")
+                            .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
+                    return;
+                }
             } else {
                 dailyStatsEmbed.setDescription("No Daily statistics on record.");
             }
         } catch (SQLException e) {
             logger.error("SQL Error while generating embed for user " + user.getId(), e);
         }
-
-        return dailyStatsEmbed;
+        channel.sendMessageEmbeds(dailyStatsEmbed.build()).setActionRow(
+                Button.secondary(user.getId() + ":delete", "Delete")).queue();
     }
 
     @Override
