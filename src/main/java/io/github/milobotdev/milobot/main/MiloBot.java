@@ -7,6 +7,7 @@ public class MiloBot {
 
     public static void main(String[] args) {
         BotInitializer.initialize();
+        ApiInitializer.initialize();
 
         // uncomment this line to generate documentation for all commands
         // CommandHandler.generateDocumentation();
