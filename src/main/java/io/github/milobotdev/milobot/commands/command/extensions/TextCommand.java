@@ -4,7 +4,7 @@ import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.model.User;
 import io.github.milobotdev.milobot.commands.GuildPrefixManager;
-import io.github.milobotdev.milobot.commands.command.INewCommand;
+import io.github.milobotdev.milobot.commands.command.ICommand;
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public interface TextCommand extends INewCommand {
+public interface TextCommand extends ICommand {
 
     /**
      * This method is fired when a command is executed.

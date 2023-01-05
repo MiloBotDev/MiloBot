@@ -10,6 +10,7 @@ import io.github.milobotdev.milobot.utility.chart.PieChart;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -42,9 +44,7 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
     @Override
     public void executeCommand(@NotNull SlashCommandEvent event) {
         try {
-            EmbedBuilder embedBuilder = generateEmbed(event.getUser());
-            event.replyEmbeds(embedBuilder.build()).addActionRow(
-                    Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
+            generateEmbed(event.getUser(), event.getChannel());
         } catch (SQLException e) {
             logger.error("SQL Error while generating embed for user " + event.getUser().getId(), e);
             event.reply("Sorry, something went wrong.").setEphemeral(true).queue();
@@ -57,9 +57,7 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         try {
-            EmbedBuilder embedBuilder = generateEmbed(event.getAuthor());
-            event.getChannel().sendMessageEmbeds(embedBuilder.build()).setActionRow(
-                    Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
+            generateEmbed(event.getAuthor(), event.getChannel());
         } catch (SQLException e) {
             logger.error("SQL Error while generating embed for user " + event.getAuthor().getId(), e);
             event.getChannel().sendMessage("Sorry, something went wrong.").queue();
@@ -84,7 +82,7 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
         return DefaultChannelTypes.super.getAllowedChannelTypes();
     }
 
-    private @NotNull EmbedBuilder generateEmbed(User user) throws SQLException, IOException {
+    private void generateEmbed(User user, MessageChannel channel) throws SQLException, IOException {
         EmbedBuilder embed = new EmbedBuilder();
         EmbedUtils.styleEmbed(embed, user);
         embed.setTitle(String.format("Blackjack Statistics for %s", user.getName()));
@@ -119,11 +117,13 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
             pieChart.addSection("Wins", totalWins, Color.GREEN);
             pieChart.addSection("Draws", totalDraws, Color.YELLOW);
             pieChart.addSection("Losses", totalLosses, Color.RED);
-            String circleDiagram = pieChart.createCircleDiagram();;
-            embed.setImage(circleDiagram);
+            embed.setImage("attachment://chart.png");
+            channel.sendMessageEmbeds(embed.build()).addFile(pieChart.createCircleDiagram(), "chart.png")
+                    .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
         } else {
             embed.setDescription("No blackjack statistics on record.");
+            channel.sendMessageEmbeds(embed.build()).queue();
         }
-        return embed;
+
     }
 }

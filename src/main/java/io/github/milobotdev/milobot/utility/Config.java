@@ -31,9 +31,6 @@ public class Config {
     private final String connectionUrl;
     private final String user;
     private final String password;
-    // imgur api
-    private final String imgurClientId;
-    private final String imgurClientSecret;
 
     /**
      * Instantiates all the configuration fields.
@@ -58,9 +55,6 @@ public class Config {
         this.privateChannelPrefix = (String) data.get("privateChannelPrefix");
         this.personalAccessToken = (String) data.get("personalAccessToken");
         this.repositoryName = (String) data.get("repositoryName");
-
-        this.imgurClientId = (String) data.get("imgurClientId");
-        this.imgurClientSecret = (String) data.get("imgurClientSecret");
     }
 
     /**
@@ -119,11 +113,4 @@ public class Config {
         return repositoryName;
     }
 
-    public String getImgurClientId() {
-        return imgurClientId;
-    }
-
-    public String getImgurClientSecret() {
-        return imgurClientSecret;
-    }
 }

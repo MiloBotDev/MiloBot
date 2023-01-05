@@ -2,8 +2,8 @@ package io.github.milobotdev.milobot.commands.games.blackjack;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
-import io.github.milobotdev.milobot.commands.instance.GameType;
-import io.github.milobotdev.milobot.commands.instance.InstanceData;
+import io.github.milobotdev.milobot.commands.instance.model.GameType;
+import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.games.BlackjackGame;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -22,6 +22,8 @@ public class BlackjackPlayCmd extends SubCommand implements TextCommand, SlashCo
         DefaultChannelTypes, Instance {
 
     private final ExecutorService executorService;
+    // TODO : Figure out a better way to request the instance data
+    public static InstanceData instanceData;
 
     public BlackjackPlayCmd(@NotNull ExecutorService executorService) {
         this.executorService = executorService;
@@ -84,6 +86,11 @@ public class BlackjackPlayCmd extends SubCommand implements TextCommand, SlashCo
 
     @Override
     public InstanceData isInstanced() {
-        return new InstanceData(true, 900, GameType.BLACKJACK);
+        instanceData = new InstanceData(true, 900, new GameType("blackjack", userId -> {
+            BlackjackGame blackjackGame = BlackjackGame.blackjackGames.get(userId);
+            blackjackGame.getMessage().delete().queue();
+            BlackjackGame.blackjackGames.remove(userId);
+        }));
+        return instanceData;
     }
 }

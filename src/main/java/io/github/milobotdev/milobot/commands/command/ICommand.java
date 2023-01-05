@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
-public interface INewCommand {
+public interface ICommand {
 
     @NotNull String getCommandName();
     @NotNull String getCommandDescription();

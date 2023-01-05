@@ -7,6 +7,8 @@ public class Wordle {
     private int gamesPlayed;
     private int wins;
     private int fastestTime;
+    // This variable is almost always 0
+    private int previousFastestTime;
     private int highestStreak;
     private int currentStreak;
 
@@ -58,14 +60,19 @@ public class Wordle {
         return currentStreak;
     }
 
+    public int getPreviousFastestTime() {
+        return previousFastestTime;
+    }
+
     public void addGame(boolean won, int time) {
         if (won) {
             currentStreak++;
             if (currentStreak > highestStreak) {
                 highestStreak = currentStreak;
             }
-            if (time < fastestTime) {
+            if (time <= fastestTime || fastestTime == 0) {
                 fastestTime = time;
+                previousFastestTime = time;
             }
             wins++;
         } else {

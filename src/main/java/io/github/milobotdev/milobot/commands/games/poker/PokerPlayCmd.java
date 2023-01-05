@@ -2,8 +2,11 @@ package io.github.milobotdev.milobot.commands.games.poker;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.instance.model.GameType;
+import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
+import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
 import io.github.milobotdev.milobot.games.PokerGame;
-import io.github.milobotdev.milobot.utility.paginator.lobby.Lobby;
+import io.github.milobotdev.milobot.utility.lobby.Lobby;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -61,4 +64,5 @@ public class PokerPlayCmd extends SubCommand implements TextCommand, SlashComman
     public @NotNull ExecutorService getExecutorService() {
         return this.executorService;
     }
+
 }

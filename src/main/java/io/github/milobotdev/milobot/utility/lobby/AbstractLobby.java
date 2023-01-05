@@ -1,4 +1,4 @@
-package io.github.milobotdev.milobot.utility.paginator.lobby;
+package io.github.milobotdev.milobot.utility.lobby;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;

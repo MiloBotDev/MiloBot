@@ -4,7 +4,7 @@ import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
 import io.github.milobotdev.milobot.games.hungergames.model.LobbyEntry;
 import io.github.milobotdev.milobot.games.uno.UnoGame;
-import io.github.milobotdev.milobot.utility.paginator.lobby.BotLobby;
+import io.github.milobotdev.milobot.utility.lobby.BotLobby;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;

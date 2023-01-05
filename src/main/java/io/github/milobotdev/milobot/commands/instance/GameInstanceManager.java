@@ -1,84 +1,92 @@
 package io.github.milobotdev.milobot.commands.instance;
 
+import io.github.milobotdev.milobot.commands.instance.model.GameInstanceData;
+import io.github.milobotdev.milobot.commands.instance.model.GameType;
+import io.github.milobotdev.milobot.main.JDAManager;
 import io.github.milobotdev.milobot.utility.TimeTracker;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static io.github.milobotdev.milobot.commands.command.extensions.Instance.cancelGameInstances;
+
 public class GameInstanceManager {
 
-    private final Map<Map<Long, GameType>, TimeTracker> gameInstances;
+    private final Map<Long, GameInstanceData> gameInstances = new ConcurrentHashMap<>();
     private static GameInstanceManager instance = null;
     private static final ScheduledExecutorService idleInstanceCleanupExecutorService =
             Executors.newScheduledThreadPool(1);
 
     private GameInstanceManager() {
-        this.gameInstances = new HashMap<>();
         this.setIdleInstanceCleanup();
     }
 
     public static GameInstanceManager getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new GameInstanceManager();
         }
         return instance;
     }
 
-    public boolean containsUser(long userId, GameType gameType) {
-        final boolean[] contains = {false};
-        gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
-                contains[0] = true;
+    public void initialize() {
+        JDAManager.getInstance().getJDABuilder().addEventListeners(new ListenerAdapter() {
+            @Override
+            public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+                if(event.getAuthor().isBot()) {
+                    return;
+                }
+                if(event.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
+                    cancelGameInstances.forEach((userId, cancelMessageData) -> {
+                        if (userId == event.getAuthor().getIdLong()) {
+                            GameType gameType = gameInstances.get(userId).gameType();
+                            gameType.removeInstanceMethod().removeGame(userId);
+                            removeUserGame(userId);
+                            cancelGameInstances.remove(userId);
+                            event.getMessage().reply(String.format("You have been removed from your %s game.", gameType.name())).queue();
+                        }
+                    });
+                }
             }
         });
-        return contains[0];
+    }
+
+    public boolean containsUser(long userId) {
+        return gameInstances.containsKey(userId);
     }
 
     public void addUser(long userId, GameType gameType, int duration) {
-        if(containsUser(userId, gameType)) {
+        if (containsUser(userId)) {
             throw new IllegalStateException("Tried adding a user to a game instance that already exists.");
         }
         TimeTracker tracker = new TimeTracker(duration);
         tracker.start();
-        this.gameInstances.put(Map.of(userId, gameType), tracker);
+        this.gameInstances.put(userId, new GameInstanceData(gameType, tracker));
     }
 
-    public void removeUserGame(long userId, GameType gameType) {
-        final Collection<Map<Long, GameType>> keyToRemove = new HashSet<>();
-        this.gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
-                keyToRemove.add(longStringMap);
-            }
-        });
-        if(keyToRemove.isEmpty()) {
-            throw new IllegalStateException("Tried to remove user game that doesn't exist");
-        }
-        gameInstances.remove(keyToRemove.iterator().next());
+    public void removeUserGame(long userId) {
+        gameInstances.remove(userId);
     }
 
-    public TimeTracker getUserTimeTracker(long userId, GameType gameType) {
-        final TimeTracker[] returnValue = new TimeTracker[1];
-        this.gameInstances.forEach((longStringMap, timeTracker) -> {
-            if(longStringMap.containsKey(userId) && longStringMap.containsValue(gameType)) {
-                returnValue[0] = timeTracker;
-            }
-        });
-        if(Arrays.stream(returnValue).sequential().allMatch(Objects::isNull)) {
-            throw new IllegalStateException("Tried to get user time tracker for a game that doesn't exist");
-        }
-        return returnValue[0];
+    public TimeTracker getUserTimeTracker(long userId) {
+        return gameInstances.get(userId).timeTracker();
     }
 
     private void setIdleInstanceCleanup() {
         idleInstanceCleanupExecutorService.schedule(() -> {
-            gameInstances.forEach((longGameTypeMap, timeTracker) -> {
-                if (timeTracker.isTimeSecondsPastDuration()) {
-                    gameInstances.remove(longGameTypeMap);
+            gameInstances.forEach((userId, gameInstanceData) -> {
+                if (gameInstanceData.timeTracker().isTimeSecondsPastDuration()) {
+                    gameInstances.remove(userId);
                 }
             });
         }, 1, TimeUnit.MINUTES);
     }
+
+
 
 }

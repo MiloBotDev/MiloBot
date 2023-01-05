@@ -1,9 +1,7 @@
 package io.github.milobotdev.milobot.commands.command;
 
-import io.github.milobotdev.milobot.commands.command.extensions.Flags;
-import io.github.milobotdev.milobot.commands.command.extensions.Permissions;
-import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
-import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
+import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -15,10 +13,10 @@ import org.slf4j.LoggerFactory;
 import io.github.milobotdev.milobot.utility.Users;
 
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
-public abstract class Command implements INewCommand {
+public abstract class Command implements ICommand {
+
     private final Logger logger = LoggerFactory.getLogger(Command.class);
 
     public final void onCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
@@ -28,8 +26,8 @@ public abstract class Command implements INewCommand {
             }
 
             if (args.size() > 0 && this instanceof Flags flags) {
-                if (flags.getFlags().contains(args.get(args.size()-1))) {
-                    flags.executeFlag(event, args.get(args.size()-1));
+                if (flags.getFlags().contains(args.get(args.size() - 1))) {
+                    flags.executeFlag(event, args.get(args.size() - 1));
                     return;
                 }
             }
@@ -43,6 +41,18 @@ public abstract class Command implements INewCommand {
 
             if (!textCommand.checkRequiredArgs(event, args)) {
                 return;
+            }
+
+            // put instance check here
+            if (textCommand instanceof Instance) {
+                InstanceData instanceData = ((Instance) textCommand).isInstanced();
+                if (instanceData.isInstanced()) {
+                    boolean inInstance = ((Instance) textCommand).manageInstance(event.getChannel(), event.getAuthor(),
+                            instanceData.gameType(), instanceData.duration());
+                    if(inInstance) {
+                        return;
+                    }
+                }
             }
 
             doUserCommandUpdates(event.getAuthor(), event.getChannel());
@@ -60,6 +70,18 @@ public abstract class Command implements INewCommand {
             if (this instanceof Permissions permissions) {
                 if (!permissions.hasPermission(Objects.requireNonNull(event.getMember()))) {
                     permissions.sendMissingPermissions(event);
+                }
+            }
+
+            // put instance check here
+            if (slashCommand instanceof Instance) {
+                InstanceData instanceData = ((Instance) slashCommand).isInstanced();
+                if (instanceData.isInstanced()) {
+                    boolean inInstance = ((Instance) slashCommand).manageInstance(event.getChannel(), event.getUser(),
+                            instanceData.gameType(), instanceData.duration());
+                    if(inInstance) {
+                        return;
+                    }
                 }
             }
 
