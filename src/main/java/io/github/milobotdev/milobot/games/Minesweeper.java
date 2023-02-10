@@ -68,7 +68,7 @@ public class Minesweeper {
                 boolean hitMine = this.reveal(row, col);
                 if (hitMine) {
                     event.getChannel().sendMessage("You hit a mine!").queue();
-                    minesweeperGames.remove(this);
+                    minesweeperGames.remove(this.author.getIdLong());
                     for (int i = 0; i < ROWS; i++) {
                         for (int j = 0; j < COLS; j++) {
                             if (mines[i][j]) {
@@ -110,7 +110,7 @@ public class Minesweeper {
         boolean hasWon = checkWin();
         if (hasWon) {
             event.getChannel().sendMessage("You won!").queue();
-            minesweeperGames.remove(this);
+            minesweeperGames.remove(this.author.getIdLong());
         }
 
     }
@@ -121,7 +121,7 @@ public class Minesweeper {
         explanation.setTimestamp(new Date().toInstant());
         explanation.setColor(Color.blue);
         explanation.addField("check x y", "Reveals the tile at (x, y) on the board. If the tile contains a mine, the game is over. Otherwise, the board is updated and the game continues.", false);
-        explanation.addField("flag x y", "Flags the tile at (x, y) on the board. Flagged tiles are marked with an 'F' on the board.", false);
+        explanation.addField("flag x y", "Flags the tile at (x, y) on the board. Flagged tiles are marked with a flag symbol on the board.", false);
         return explanation;
     }
 
