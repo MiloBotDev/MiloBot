@@ -23,9 +23,16 @@ public interface Instance {
         long userId = author.getIdLong();
         if (gameInstanceManager.containsUser(userId)) {
             TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId);
+            long waitTime = userTimeTracker.timeSecondsTillDuration();
+            // wait time can never be negative
+            if(waitTime <= 0 ) {
+                gameInstanceManager.removeUserGame(userId);
+                gameInstanceManager.addUser(userId, gameType, duration);
+                return false;
+            }
             channel.sendMessage(String.format("You are still in game. Please wait %d more seconds, " +
                             "or type cancel within 10 seconds to leave the game.",
-                    userTimeTracker.timeSecondsTillDuration())).queue(
+                    waitTime)).queue(
                     message -> {
                         if (!cancelGameInstances.containsKey(userId)) {
                             CancelMessageData cancelMessageData = new CancelMessageData(gameType, message,

@@ -78,13 +78,13 @@ public class GameInstanceManager {
     }
 
     private void setIdleInstanceCleanup() {
-        idleInstanceCleanupExecutorService.schedule(() -> {
+        idleInstanceCleanupExecutorService.scheduleWithFixedDelay(() -> {
             gameInstances.forEach((userId, gameInstanceData) -> {
                 if (gameInstanceData.timeTracker().isTimeSecondsPastDuration()) {
                     gameInstances.remove(userId);
                 }
             });
-        }, 1, TimeUnit.MINUTES);
+        }, 10, 10, TimeUnit.SECONDS);
     }
 
 

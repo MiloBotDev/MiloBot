@@ -41,14 +41,9 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
         DefaultFlags, DefaultChannelTypes, Instance {
 
     private final ExecutorService executorService;
-    private final WordleDao wordleDao;
-    private final UserDao userDao;
-    private final TimeTracker timeTracker = new TimeTracker();
 
     public WordlePlayCmd(ExecutorService executorService) {
         this.executorService = executorService;
-        this.wordleDao = WordleDao.getInstance();
-        this.userDao = UserDao.getInstance();
     }
 
     @Override

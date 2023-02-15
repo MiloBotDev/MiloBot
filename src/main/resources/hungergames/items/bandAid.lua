@@ -2,6 +2,7 @@ return {
     name = "band aid",
     rarity = 10,
     heals = 30,
+    description = "A first aid kit.",
     type = "consumable",
     onUse = function(self, lobbyEntry)
         lobbyEntry:heal(self.heals)

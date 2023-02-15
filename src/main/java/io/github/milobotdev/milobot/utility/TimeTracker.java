@@ -5,8 +5,8 @@ public class TimeTracker {
     private long startTime;
     private long endTime;
     private boolean isStarted;
-    private int durationSeconds;
-    private boolean isDurationSet;
+    private final int durationSeconds;
+    private final boolean isDurationSet;
 
     public TimeTracker() {
         this.startTime = 0;
@@ -74,6 +74,7 @@ public class TimeTracker {
 
     public boolean isTimeSecondsPastDuration() {
         if(isDurationSet) {
+            System.out.println(getElapsedTimeSecs() >= durationSeconds);
             return getElapsedTimeSecs() >= durationSeconds;
         } else {
             throw new IllegalStateException("Duration is not set");

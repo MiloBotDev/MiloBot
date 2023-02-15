@@ -1,8 +1,9 @@
 return {
     name = "pear",
-    rarity = 80,
+    rarity = 20,
     heals = 11,
     type = "consumable",
+    description = "A green pear.",
     messages = {
         "%s ate an %s and felt invigorated. It healed %d hp, their hp is now %d.",
         "%s gobbled up a juicy %s. It restored %d hp, their hp is now %d.",

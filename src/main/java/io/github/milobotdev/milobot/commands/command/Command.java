@@ -73,7 +73,6 @@ public abstract class Command implements ICommand {
                 }
             }
 
-            // put instance check here
             if (slashCommand instanceof Instance) {
                 InstanceData instanceData = ((Instance) slashCommand).isInstanced();
                 if (instanceData.isInstanced()) {

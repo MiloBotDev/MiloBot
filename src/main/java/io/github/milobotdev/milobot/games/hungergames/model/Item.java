@@ -13,12 +13,14 @@ public class Item {
     private final String type;
     private final int heal;
     private final int damage;
+    private final String description;
 
     public Item(@NotNull Globals globals, String code) {
         this.chunk = globals.load(code).call();
         this.name = this.chunk.get("name").toString();
         this.rarity = this.chunk.get("rarity").toint();
         this.type = this.chunk.get("type").toString();
+        this.description = this.chunk.get("description").toString();
         if (this.chunk.get("heals").isnil()) {
             this.heal = 0;
         } else {

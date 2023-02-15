@@ -55,6 +55,7 @@ public class WordleGame {
         this.guesses = 0;
         this.guessed = false;
         this.word = generateWord();
+        this.word = "ramen";
         wordleGames.put(userId, this);
         this.userId = userId;
         this.wordleDao = WordleDao.getInstance();
@@ -111,8 +112,9 @@ public class WordleGame {
                 optionalWordle.ifPresent(wordle -> {
                     if(!(wordle.getGamesPlayed() == 1)) {
                         if(wordle.getFastestTime() == timeTaken) {
+                            getPreviousFastestTime();
                             editDescription.append(String.format("\nThat's a new personal best with an improvement of %d seconds!",
-                                    wordle.getPreviousFastestTime() - timeTaken));
+                                    getPreviousFastestTime() - timeTaken));
                         } else if(!(wordle.getPreviousFastestTime() == 0)) {
                             editDescription.append("\nYou tied your personal best.");
                         }
@@ -151,8 +153,8 @@ public class WordleGame {
         }
     }
 
-    private Optional<Wordle> updateDatabase(boolean won, int timeTaken, long authorId){
-        try(Connection con =  DatabaseConnection.getConnection()) {
+    private Optional<Wordle> updateDatabase(boolean won, int timeTaken, long authorId) {
+        try(Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);
             Wordle userWordle = this.wordleDao.getByUserDiscordId(con, authorId, RowLockType.NONE);
             // if the user has never played wordle before we need to add them to the table
@@ -169,6 +171,19 @@ public class WordleGame {
         } catch (SQLException e) {
             logger.error("Something went wrong when trying to update the wordle database ", e);
             return Optional.empty();
+        }
+    }
+
+    private int getPreviousFastestTime() {
+        try(Connection con = DatabaseConnection.getConnection()) {
+            Wordle userWordle = this.wordleDao.getByUserDiscordId(con, userId, RowLockType.NONE);
+            if(userWordle != null) {
+                return userWordle.getFastestTime();
+            }
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Something went wrong when trying to get the previous fastest time ", e);
+            return 0;
         }
     }
 

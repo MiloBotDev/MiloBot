@@ -2,7 +2,6 @@ package io.github.milobotdev.milobot.games;
 
 import io.github.milobotdev.milobot.commands.games.blackjack.BlackjackPlayCmd;
 import io.github.milobotdev.milobot.commands.instance.GameInstanceManager;
-import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.database.dao.BlackjackDao;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.model.Blackjack;
