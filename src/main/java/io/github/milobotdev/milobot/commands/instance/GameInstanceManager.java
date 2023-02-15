@@ -1,5 +1,6 @@
 package io.github.milobotdev.milobot.commands.instance;
 
+import io.github.milobotdev.milobot.commands.instance.model.CancelMessageData;
 import io.github.milobotdev.milobot.commands.instance.model.GameInstanceData;
 import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.main.JDAManager;
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 import static io.github.milobotdev.milobot.commands.command.extensions.Instance.cancelGameInstances;
 
@@ -82,6 +84,12 @@ public class GameInstanceManager {
             gameInstances.forEach((userId, gameInstanceData) -> {
                 if (gameInstanceData.timeTracker().isTimeSecondsPastDuration()) {
                     gameInstances.remove(userId);
+                }
+            });
+
+            cancelGameInstances.forEach((userId, cancelMessageData) -> {
+                if(cancelMessageData.timeTracker().isTimeSecondsPastDuration()) {
+                    cancelGameInstances.remove(userId);
                 }
             });
         }, 10, 10, TimeUnit.SECONDS);

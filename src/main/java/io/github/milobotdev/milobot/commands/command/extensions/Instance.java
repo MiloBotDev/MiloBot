@@ -35,8 +35,10 @@ public interface Instance {
                     waitTime)).queue(
                     message -> {
                         if (!cancelGameInstances.containsKey(userId)) {
+                            TimeTracker timeTracker = new TimeTracker(10);
                             CancelMessageData cancelMessageData = new CancelMessageData(gameType, message,
-                                    new TimeTracker(10));
+                                    timeTracker);
+                            timeTracker.start();
                             cancelGameInstances.put(userId, cancelMessageData);
                         }
                     });

@@ -74,7 +74,6 @@ public class TimeTracker {
 
     public boolean isTimeSecondsPastDuration() {
         if(isDurationSet) {
-            System.out.println(getElapsedTimeSecs() >= durationSeconds);
             return getElapsedTimeSecs() >= durationSeconds;
         } else {
             throw new IllegalStateException("Duration is not set");
@@ -89,4 +88,7 @@ public class TimeTracker {
         }
     }
 
+    public int getDurationSeconds() {
+        return durationSeconds;
+    }
 }
