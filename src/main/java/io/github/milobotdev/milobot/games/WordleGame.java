@@ -144,6 +144,7 @@ public class WordleGame {
             event.getMessage().delete().queue();
             if(gameOver) {
                 GameInstanceManager.getInstance().removeUserGame(userId);
+                removeGame(userId);
                 message.editMessageEmbeds(newWordleEmbed.build()).setActionRow(
                         Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
             } else {
