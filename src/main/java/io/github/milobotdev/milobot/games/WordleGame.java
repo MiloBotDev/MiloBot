@@ -55,7 +55,6 @@ public class WordleGame {
         this.guesses = 0;
         this.guessed = false;
         this.word = generateWord();
-        this.word = "ramen";
         wordleGames.put(userId, this);
         this.userId = userId;
         this.wordleDao = WordleDao.getInstance();
