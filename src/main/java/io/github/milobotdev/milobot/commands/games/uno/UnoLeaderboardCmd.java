@@ -126,6 +126,22 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
                             List<Uno> topCurrentStreak = unoDao.getUnosLeaderboard(UnoDao.UnoLeaderboardType.CURRENT_STREAK);
                             buildUnoEmbeds(event, topCurrentStreak, "Current Streak", event.getJDA());
                         }
+                        case "totalGames" -> {
+                            List<Uno> topTotalGamesPlayed = unoDao.getUnosLeaderboard(UnoDao.UnoLeaderboardType.TOTAL_GAMES_PLAYED);
+                            buildUnoEmbeds(event, topTotalGamesPlayed, "Total Games Played", event.getJDA());
+                        }
+                        case "totalWins" -> {
+                            List<Uno> topTotalWins = unoDao.getUnosLeaderboard(UnoDao.UnoLeaderboardType.TOTAL_WINS);
+                            buildUnoEmbeds(event, topTotalWins, "Total Wins", event.getJDA());
+                        }
+                        case "totalCardsPlayed" -> {
+                            List<Uno> topTotalCardsPlayed = unoDao.getUnosLeaderboard(UnoDao.UnoLeaderboardType.TOTAL_CARDS_PLAYED);
+                            buildUnoEmbeds(event, topTotalCardsPlayed, "Total Cards Played", event.getJDA());
+                        }
+                        case "totalCardsDrawn" -> {
+                            List<Uno> topTotalCardsDrawn = unoDao.getUnosLeaderboard(UnoDao.UnoLeaderboardType.TOTAL_CARDS_DRAWN);
+                            buildUnoEmbeds(event, topTotalCardsDrawn, "Total Cards Drawn", event.getJDA());
+                        }
                     }
                 } catch (SQLException | IOException e) {
                     logger.error("Failed to get the uno leaderboard", e);
@@ -164,6 +180,18 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
                     case "Current Streak" -> {
                         desc[0].append(String.format("`%d.` %s - %d games.\n", rank[0], name, uno.getStreak()));
                         chart[0].addBar(name, uno.getStreak(), colors[counter[0]]);
+                    }
+                    case "Total Games Played" -> {
+
+                    }
+                    case "Total Wins" -> {
+
+                    }
+                    case "Total Cards Played" -> {
+
+                    }
+                    case "Total Cards Drawn" -> {
+
                     }
                 }
                 rank[0]++;

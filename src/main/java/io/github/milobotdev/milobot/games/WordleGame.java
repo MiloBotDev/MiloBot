@@ -108,13 +108,13 @@ public class WordleGame {
                 long timeTaken = timeTracker.getElapsedTimeSecs();
                 this.editDescription.append(String.format("You guessed the word in %d seconds.", timeTaken));
                 Optional<Wordle> optionalWordle = this.updateDatabase(true, (int) timeTracker.getElapsedTimeSecs(), userId);
-                optionalWordle.ifPresent(wordle -> {
-                    if(!(wordle.getGamesPlayed() == 1)) {
-                        if(wordle.getFastestTime() == timeTaken) {
+                optionalWordle.ifPresentOrElse(wordle -> {
+                    if (!(wordle.getGamesPlayed() == 1)) {
+                        if (wordle.getFastestTime() == timeTaken) {
                             getPreviousFastestTime();
                             editDescription.append(String.format("\nThat's a new personal best with an improvement of %d seconds!",
                                     getPreviousFastestTime() - timeTaken));
-                        } else if(!(wordle.getPreviousFastestTime() == 0)) {
+                        } else if (!(wordle.getPreviousFastestTime() == 0)) {
                             editDescription.append("\nYou tied your personal best.");
                         }
                     }
@@ -122,13 +122,13 @@ public class WordleGame {
                     editDescription.append(String.format("**Current Streak:** %d games.\n", wordle.getCurrentStreak()));
                     editDescription.append(String.format("**Highest Streak:** %d games.\n", wordle.getHighestStreak()));
                     editDescription.append(String.format("**Total Games Played:** %d games.", wordle.getGamesPlayed()));
-                });
+                }, () -> editDescription.append("Sorry, something went wrong."));
                 gameOver = true;
             } else if (this.guesses + 1 == this.maxGuesses) {
                 editDescription.append(String.format("You ran out of guesses. The correct word was: `%s`.",
                         this.word));
                 Optional<Wordle> optionalWordle = this.updateDatabase(false, 0, userId);
-                optionalWordle.ifPresent(wordle -> {
+                optionalWordle.ifPresentOrElse(wordle -> {
                     if (wordle.getFastestTime() == 0) {
                         editDescription.append("\n**Personal Best:** not set yet.\n");
                     } else {
@@ -136,7 +136,7 @@ public class WordleGame {
                     }
                     editDescription.append(String.format("**Highest Streak:** %s games.\n", wordle.getHighestStreak()));
                     editDescription.append(String.format("**Total Games Played:** %d games.", wordle.getGamesPlayed()));
-                });
+                }, () -> editDescription.append("Sorry, something went wrong."));
                 gameOver = true;
             }
 
