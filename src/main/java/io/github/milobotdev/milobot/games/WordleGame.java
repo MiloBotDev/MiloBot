@@ -263,7 +263,6 @@ public class WordleGame {
 
     public void removeGame(long userId) {
         wordleGames.remove(userId);
-        this.message.delete().queue();
     }
 
     public void attachMessage(Message gameMessage, EmbedBuilder wordleEmbed) {
