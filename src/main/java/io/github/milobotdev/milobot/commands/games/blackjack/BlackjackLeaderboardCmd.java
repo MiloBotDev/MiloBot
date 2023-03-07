@@ -111,27 +111,27 @@ public class BlackjackLeaderboardCmd extends SubCommand implements TextCommand, 
                 try {
                     switch (option) {
                         case "totalWins" -> {
-                            List<Blackjack> topTotalWins = blackjackDao.getTopTotalWins();
+                            List<Blackjack> topTotalWins = blackjackDao.getBlackjacks(BlackjackDao.BlackjackLeaderboardType.TOTAL_WINS);
                             embeds = buildBlackjackEmbeds(topTotalWins, "Total Wins", event.getJDA());
                         }
                         case "totalDraws" -> {
-                            List<Blackjack> topTotalDraws = blackjackDao.getTopTotalDraws();
+                            List<Blackjack> topTotalDraws = blackjackDao.getBlackjacks(BlackjackDao.BlackjackLeaderboardType.TOTAL_DRAWS);
                             embeds = buildBlackjackEmbeds(topTotalDraws, "Total Draws", event.getJDA());
                         }
                         case "totalGamesPlayed" -> {
-                            List<Blackjack> topTotalGamesPlayed = blackjackDao.getTopTotalGamesPlayed();
+                            List<Blackjack> topTotalGamesPlayed = blackjackDao.getBlackjacks(BlackjackDao.BlackjackLeaderboardType.TOTAL_GAMES_PLAYED);
                             embeds = buildBlackjackEmbeds(topTotalGamesPlayed, "Total Games Played", event.getJDA());
                         }
                         case "highestStreak" -> {
-                            List<Blackjack> topHighestStreak = blackjackDao.getTopHighestStreak();
+                            List<Blackjack> topHighestStreak = blackjackDao.getBlackjacks(BlackjackDao.BlackjackLeaderboardType.HIGHEST_STREAK);
                             embeds = buildBlackjackEmbeds(topHighestStreak, "Highest Streak", event.getJDA());
                         }
                         case "currentStreak" -> {
-                            List<Blackjack> topCurrentStreak = blackjackDao.getTopCurrentStreak();
+                            List<Blackjack> topCurrentStreak = blackjackDao.getBlackjacks(BlackjackDao.BlackjackLeaderboardType.CURRENT_STREAK);
                             embeds = buildBlackjackEmbeds(topCurrentStreak, "Current Streak", event.getJDA());
                         }
                         case "totalEarnings" -> {
-                            List<Blackjack> topTotalEarnings = blackjackDao.getTopTotalEarnings();
+                            List<Blackjack> topTotalEarnings = blackjackDao.getBlackjacks(BlackjackDao.BlackjackLeaderboardType.TOTAL_EARNINGS);
                             embeds = buildBlackjackEmbeds(topTotalEarnings, "Total Earnings", event.getJDA());
                         }
                     }
