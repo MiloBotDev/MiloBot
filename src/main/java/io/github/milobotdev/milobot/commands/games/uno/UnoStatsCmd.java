@@ -63,39 +63,36 @@ public class UnoStatsCmd extends SubCommand implements TextCommand, SlashCommand
             EmbedBuilder unoStatsEmbed = new EmbedBuilder();
             EmbedUtils.styleEmbed(unoStatsEmbed, user);
             Optional<Uno> byUserDiscordId = this.unoDao.getByUserDiscordId(con, user.getIdLong(), RowLockType.NONE);
-            byUserDiscordId.ifPresentOrElse(new Consumer<Uno>() {
-                @Override
-                public void accept(Uno uno) {
-                    int highestStreak = uno.getHighestStreak();
-                    int streak = uno.getStreak();
-                    int totalWins = uno.getTotalWins();
-                    int totalGamesPlayed = uno.getTotalGamesPlayed();
-                    int totalLosses = totalGamesPlayed - totalWins;
-                    double winRate = (double) totalWins / totalGamesPlayed;
-                    int roundedWinRate = (int) Math.ceil(winRate * 100);
-                    String winRateString = roundedWinRate + "%";
-                    int totalCardsDrawn = uno.getTotalCardsDrawn();
-                    int totalCardsPlayed = uno.getTotalCardsPlayed();
+            byUserDiscordId.ifPresentOrElse(uno -> {
+                int highestStreak = uno.getHighestStreak();
+                int streak = uno.getStreak();
+                int totalWins = uno.getTotalWins();
+                int totalGamesPlayed = uno.getTotalGamesPlayed();
+                int totalLosses = totalGamesPlayed - totalWins;
+                double winRate = (double) totalWins / totalGamesPlayed;
+                int roundedWinRate = (int) Math.ceil(winRate * 100);
+                String winRateString = roundedWinRate + "%";
+                int totalCardsDrawn = uno.getTotalCardsDrawn();
+                int totalCardsPlayed = uno.getTotalCardsPlayed();
 
-                    unoStatsEmbed.addField("Total Games Played", String.valueOf(totalGamesPlayed), true);
-                    unoStatsEmbed.addField("Total Wins", String.valueOf(totalWins), true);
-                    unoStatsEmbed.addField("Total Losses", String.valueOf(totalLosses), true);
-                    unoStatsEmbed.addField("Winrate", winRateString, true);
-                    unoStatsEmbed.addField("Current Streak", String.valueOf(streak), true);
-                    unoStatsEmbed.addField("Highest Streak", String.valueOf(highestStreak), true);
-                    unoStatsEmbed.addField("Total Cards Played", String.valueOf(totalCardsPlayed), true);
-                    unoStatsEmbed.addField("Total Cards Drawn", String.valueOf(totalCardsDrawn), true);
+                unoStatsEmbed.addField("Total Games Played", String.valueOf(totalGamesPlayed), true);
+                unoStatsEmbed.addField("Total Wins", String.valueOf(totalWins), true);
+                unoStatsEmbed.addField("Total Losses", String.valueOf(totalLosses), true);
+                unoStatsEmbed.addField("Winrate", winRateString, true);
+                unoStatsEmbed.addField("Current Streak", String.valueOf(streak), true);
+                unoStatsEmbed.addField("Highest Streak", String.valueOf(highestStreak), true);
+                unoStatsEmbed.addField("Total Cards Played", String.valueOf(totalCardsPlayed), true);
+                unoStatsEmbed.addField("Total Cards Drawn", String.valueOf(totalCardsDrawn), true);
 
-                    PieChart pieChart = new PieChart("Wins / Losses", user.getId());
-                    pieChart.addSection("Wins", totalWins, Color.GREEN);
-                    pieChart.addSection("Losses", totalLosses, Color.RED);
-                    unoStatsEmbed.setImage("attachment://chart.png");
-                    try {
-                        channel.sendMessageEmbeds(unoStatsEmbed.build()).addFile(pieChart.createCircleDiagram(), "chart.png")
-                                .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
-                    } catch (IOException e) {
-                        logger.error("An error occured while making a pie chart", e);
-                    }
+                PieChart pieChart = new PieChart("Wins / Losses", user.getId());
+                pieChart.addSection("Wins", totalWins, Color.GREEN);
+                pieChart.addSection("Losses", totalLosses, Color.RED);
+                unoStatsEmbed.setImage("attachment://chart.png");
+                try {
+                    channel.sendMessageEmbeds(unoStatsEmbed.build()).addFile(pieChart.createCircleDiagram(), "chart.png")
+                            .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
+                } catch (IOException e) {
+                    logger.error("An error occured while making a pie chart", e);
                 }
             }, () -> {
                 unoStatsEmbed.setDescription("No uno statistics on record.");

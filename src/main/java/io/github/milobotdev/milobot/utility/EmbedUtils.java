@@ -15,11 +15,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-/**
- * Helpful functions for embeds.
- *
- * @author Ruben Eekhof - rubeneekhof@gmail.com
- */
 public class EmbedUtils {
 
     /**
@@ -54,8 +49,10 @@ public class EmbedUtils {
      */
     public static void styleEmbed(@NotNull EmbedBuilder embed, @NotNull User user) {
         embed.setColor(Color.BLUE);
-        embed.setAuthor(user.getName(), null, user.getAvatarUrl());
+        String avatarUrl = user.getAvatarUrl();
+        embed.setAuthor(user.getName(), null, avatarUrl);
         embed.setTimestamp(new Date().toInstant());
+        embed.setFooter(user.getName(), avatarUrl);
     }
 
 
