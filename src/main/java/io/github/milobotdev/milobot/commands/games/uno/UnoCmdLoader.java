@@ -14,6 +14,7 @@ public class UnoCmdLoader {
         unoCmd.addSubCommand(new UnoHostCmd(unoExecutor));
         unoCmd.addSubCommand(new UnoInfoCmd(unoExecutor));
         unoCmd.addSubCommand(new UnoLeaderboardCmd(unoExecutor));
+        unoCmd.addSubCommand(new UnoStatsCmd(unoExecutor));
         CommandHandler.getInstance().registerCommand(unoCmd);
     }
 }

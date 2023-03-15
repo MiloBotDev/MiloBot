@@ -59,7 +59,6 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
 
     private void generateEmbed(User user, MessageChannel channel) {
         try(Connection con = DatabaseConnection.getConnection()) {
-            con.setAutoCommit(false);
             EmbedBuilder embed = new EmbedBuilder();
             EmbedUtils.styleEmbed(embed, user);
             embed.setTitle(String.format("Wordle Statistics for %s", user.getName()));
