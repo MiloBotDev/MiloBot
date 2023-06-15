@@ -13,12 +13,12 @@ import jakarta.ws.rs.core.Response;
 @Path("/json")
 public class App {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
     @GET
+    @Path("/hello")
     @Produces(MediaType.APPLICATION_JSON)
     public Person hello() {
-
+        //  System.out.println(httpSession.getId());
+        //System.out.println(num.getValue().getNum());
         return new Person();
     }
 
