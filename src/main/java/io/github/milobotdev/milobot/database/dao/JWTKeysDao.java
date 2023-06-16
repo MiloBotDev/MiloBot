@@ -1,9 +1,7 @@
 package io.github.milobotdev.milobot.database.dao;
 
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import io.github.milobotdev.milobot.api.session.JWTKeyGenerator;
+import io.github.milobotdev.milobot.api.session.JWTKeys;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,14 +66,14 @@ public class JWTKeysDao {
             }
             if (addKeys) {
                 logger.debug("No keys in jwt_keys table, adding keys");
-                JWTKeyGenerator.Keys keys = JWTKeyGenerator.generateKeys();
+                JWTKeys keys = JWTKeyGenerator.generateKeys();
 
                 query = "INSERT INTO jwt_keys (signature_public_key, signature_private_key, encryption_public_key, encryption_private_key) VALUES (?, ?, ?, ?)";
                 try (java.sql.PreparedStatement ps = con.prepareStatement(query)) {
-                    ps.setBlob(1, new ByteArrayInputStream(keys.signaturePublicKey()));
-                    ps.setBlob(2, new ByteArrayInputStream(keys.signaturePrivateKey()));
-                    ps.setBlob(3, new ByteArrayInputStream(keys.encryptionPublicKey()));
-                    ps.setBlob(4, new ByteArrayInputStream(keys.encryptionPrivateKey()));
+                    ps.setBytes(1, keys.signaturePublicKey());
+                    ps.setBytes(2, keys.signaturePrivateKey());
+                    ps.setBytes(3, keys.encryptionPublicKey());
+                    ps.setBytes(4, keys.encryptionPrivateKey());
                     ps.executeUpdate();
                 } catch (SQLException e) {
                     logger.error("Error inserting keys into jwt_keys ", e);
@@ -91,5 +89,25 @@ public class JWTKeysDao {
         } catch (SQLException e) {
             logger.error("Error adding keys to jwt_keys table", e);
         }
+    }
+
+    public JWTKeys getKeys() {
+        JWTKeys keys = null;
+        String query = "SELECT * FROM jwt_keys";
+        try (Connection con = DatabaseConnection.getConnection();
+             Statement st = con.createStatement()) {
+            ResultSet rs = st.executeQuery(query);
+            if (rs.next()) {
+                keys = new JWTKeys(
+                        rs.getBytes("signature_public_key"),
+                        rs.getBytes("signature_private_key"),
+                        rs.getBytes("encryption_public_key"),
+                        rs.getBytes("encryption_private_key")
+                );
+            }
+        } catch (SQLException e) {
+            logger.error("Error getting keys from jwt_keys table", e);
+        }
+        return keys;
     }
 }

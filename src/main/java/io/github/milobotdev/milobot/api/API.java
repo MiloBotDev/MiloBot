@@ -1,6 +1,6 @@
 package io.github.milobotdev.milobot.api;
 
-import io.github.milobotdev.milobot.api.session.JWTKeys;
+import io.github.milobotdev.milobot.api.session.JWTKeysManager;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import java.util.Map;
@@ -10,6 +10,6 @@ public class API extends ResourceConfig {
         packages("io.github.milobotdev.milobot.api");
         register(App.class);
         setProperties(Map.of("jersey.config.server.wadl.disableWadl", "true"));
-        JWTKeys.getInstance(); // Call getInstance() to initialize the JWT keys
+        JWTKeysManager.getInstance(); // Call getInstance() to initialize the JWT keys
     }
 }

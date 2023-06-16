@@ -11,11 +11,8 @@ import org.slf4j.LoggerFactory;
 public class JWTKeyGenerator {
     private static final Logger logger = LoggerFactory.getLogger(JWTKeyGenerator.class);
 
-    public record Keys(byte[] signaturePublicKey, byte[] signaturePrivateKey, byte[] encryptionPublicKey, byte[] encryptionPrivateKey) {
-    }
-
     @NotNull
-    public static Keys generateKeys() {
+    public static JWTKeys generateKeys() {
         logger.debug("Generating JWT signature and encryption keys");
 
         byte[] signaturePublicKey;
@@ -38,6 +35,6 @@ public class JWTKeyGenerator {
             logger.error("Error generating JWT signature and encryption keys", e);
             throw new RuntimeException(e);
         }
-        return new Keys(signaturePublicKey, signaturePrivateKey, encryptionPublicKey, encryptionPrivateKey);
+        return new JWTKeys(signaturePublicKey, signaturePrivateKey, encryptionPublicKey, encryptionPrivateKey);
     }
 }
