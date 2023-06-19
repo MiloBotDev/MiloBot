@@ -4,12 +4,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.milobotdev.milobot.api.session.JWTException;
 import io.github.milobotdev.milobot.api.session.JWTManager;
+import jakarta.inject.Inject;
+import jakarta.interceptor.Interceptors;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 @Path("/json")
+@Interceptors(io.github.milobotdev.milobot.api.AuthorizedAPI.class)
 public class App {
+
+    //@Inject
+    //AuthorizedAPI authorizedAPI;
 
     @GET
     @Path("/hello")
