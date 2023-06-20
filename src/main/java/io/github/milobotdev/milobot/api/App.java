@@ -17,12 +17,17 @@ public class App {
     //@Inject
     //AuthorizedAPI authorizedAPI;
 
+    @Inject
+    private DependencyInjectionService depserv;
+
     @GET
     @Path("/hello")
     @Produces(MediaType.APPLICATION_JSON)
     public Person hello() {
         //  System.out.println(httpSession.getId());
         //System.out.println(num.getValue().getNum());
+        depserv.getstg();
+        depserv.num();
         return new Person();
     }
 
@@ -31,6 +36,7 @@ public class App {
     public Response getjwt(@QueryParam("data") String data) {
         //  System.out.println(httpSession.getId());
         //System.out.println(num.getValue().getNum());
+        depserv.num();
         System.out.println(data);
         try {
             return Response.ok().entity(JWTManager.generateJWT(data)).build();
@@ -44,6 +50,7 @@ public class App {
     public Response processjwt(@QueryParam("jwt") String jwt) {
         //  System.out.println(httpSession.getId());
         //System.out.println(num.getValue().getNum());
+        depserv.num();
         System.out.println(jwt);
         try {
             return Response.ok().entity(JWTManager.decryptJWT(jwt)).build();
