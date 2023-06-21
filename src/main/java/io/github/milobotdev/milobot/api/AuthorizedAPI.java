@@ -28,5 +28,6 @@ public class AuthorizedAPI implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         System.out.println("Hello");
+        System.out.println(containerRequestContext.getProperty("hello"));
     }
 }
