@@ -2,6 +2,7 @@ package io.github.milobotdev.milobot.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.google.gson.Gson;
 import io.github.milobotdev.milobot.api.session.JWTException;
 import io.github.milobotdev.milobot.api.session.JWTManager;
 import jakarta.inject.Inject;
@@ -28,6 +29,13 @@ public class App {
         //System.out.println(num.getValue().getNum());
         depserv.getstg();
         depserv.num();
+        SessionData data = new SessionData(33);
+        Gson gson = new Gson();
+        //gson.toJson(data);
+        System.out.println(gson.toJson(data));
+        Gson gson2 = new Gson();
+        SessionData data2 = gson2.fromJson(gson.toJson(data), SessionData.class);
+        System.out.println(data2.userId());
         return new Person();
     }
 
