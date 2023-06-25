@@ -22,6 +22,8 @@ public class Config {
     private final String defaultPrefix;
     private final String privateChannelPrefix;
     private final String botToken;
+    private final String botSecret;
+    private final String botClientId;
     private final String testGuildId;
     private final String loggingChannelName;
     //github
@@ -35,6 +37,8 @@ public class Config {
     private final String imgurClientId;
     private final String imgurClientSecret;
 
+    private final String apiRedirectUri;
+
     /**
      * Instantiates all the configuration fields.
      *
@@ -47,6 +51,8 @@ public class Config {
         HashMap<String, Object> data = yaml.load(inputStream);
 
         this.botToken = (String) data.get("token");
+        this.botSecret = (String) data.get("secret");
+        this.botClientId = (String) data.get("clientId");
         this.testGuildId = Long.toString(((Long) data.get("testGuildId")));
         this.loggingChannelName = (String) data.get("loggingChannelName");
 
@@ -61,6 +67,8 @@ public class Config {
 
         this.imgurClientId = (String) data.get("imgurClientId");
         this.imgurClientSecret = (String) data.get("imgurClientSecret");
+
+        this.apiRedirectUri = (String) data.get("apiRedirectUri");
     }
 
     /**
@@ -81,6 +89,14 @@ public class Config {
 
     public String getBotToken() {
         return botToken;
+    }
+
+    public String getBotSecret() {
+        return botSecret;
+    }
+
+    public String getBotClientId() {
+        return botClientId;
     }
 
     public String getTestGuildId() {
@@ -125,5 +141,9 @@ public class Config {
 
     public String getImgurClientSecret() {
         return imgurClientSecret;
+    }
+
+    public String apiRedirectUri() {
+        return apiRedirectUri;
     }
 }

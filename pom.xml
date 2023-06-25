@@ -170,6 +170,12 @@
             <version>2.1.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.github.milobotdev.discordoauth2api</groupId>
+            <artifactId>discord-oauth2-api-parent</artifactId>
+            <version>1.0-alpha.1</version>
+        </dependency>
+
         <!--
             <dependency>
                 <groupId>org.glassfish.jersey</groupId>
