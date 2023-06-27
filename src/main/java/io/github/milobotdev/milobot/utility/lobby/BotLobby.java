@@ -1,6 +1,9 @@
 package io.github.milobotdev.milobot.utility.lobby;
 
+import io.github.milobotdev.milobot.commands.instance.LobbyInstanceManager;
+import io.github.milobotdev.milobot.commands.instance.model.CantCreateLobbyException;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
@@ -23,9 +26,14 @@ public class BotLobby extends AbstractLobby {
     private final String title;
     private final User creator;
     private boolean started = false;
+    private final LobbyInstanceManager lobbyInstanceManager = LobbyInstanceManager.getInstance();
 
     public BotLobby(String title, User creator, BiConsumer<Map<List<User>, List<NonPlayerCharacter>>, Message> startConsumer,
-                    int minPlayers, int maxPlayers) {
+                    int minPlayers, int maxPlayers) throws CantCreateLobbyException {
+        if(lobbyInstanceManager.isUserInLobby(creator.getIdLong())) {
+            throw new CantCreateLobbyException("Can't create a new lobby when you are already in one.");
+        }
+        lobbyInstanceManager.addUser(creator.getIdLong());
         this.creator = creator;
         players.add(this.creator);
         this.title = title;
@@ -85,11 +93,17 @@ public class BotLobby extends AbstractLobby {
         if (!cancelIdleInstanceCleanup()) {
             return;
         }
-        if ((players.size() + bots.size()) < maxPlayers) {
+        long userIdLong = user.getIdLong();
+        if ((players.size() + bots.size()) < maxPlayers && !lobbyInstanceManager.isUserInLobby(userIdLong)) {
             if (players.add(user)) {
+                lobbyInstanceManager.addUser(userIdLong);
                 editMessage();
             } else {
-                message.reply(user.getAsMention() + " You are already in this lobby.").queue();
+                players.stream()
+                        .filter(u -> u.getIdLong() == userIdLong)
+                        .findFirst()
+                        .ifPresentOrElse(u -> message.reply(u.getAsMention() + " You are already in this lobby.").queue(),
+                                () -> message.reply(user.getAsMention() + " You are already in another lobby.").queue());
             }
         }
         setIdleInstanceCleanup();
@@ -124,7 +138,9 @@ public class BotLobby extends AbstractLobby {
             return;
         }
         if (!user.equals(creator)) {
-            if (players.remove(user)) {
+            long userIdLong = user.getIdLong();
+            if (players.remove(user) && lobbyInstanceManager.isUserInLobby(userIdLong)) {
+                lobbyInstanceManager.removeUser(userIdLong);
                 editMessage();
             } else {
                 message.reply(user.getAsMention() + " You are not in this lobby.").queue();
@@ -148,10 +164,20 @@ public class BotLobby extends AbstractLobby {
             HashMap<List<User>, List<NonPlayerCharacter>> participants = new HashMap<>();
             participants.put(players.stream().toList(), bots.stream().toList());
             startConsumer.accept(participants, message);
+            removePlayersFromInstanceManager();
+
         } else {
             message.reply("Not enough players to start the lobby.").queue();
             setIdleInstanceCleanup();
         }
+    }
+
+    public void removePlayersFromInstanceManager() {
+        players.stream().mapToLong(ISnowflake::getIdLong).forEach(idLong -> {
+            if (lobbyInstanceManager.isUserInLobby(idLong)) {
+                lobbyInstanceManager.removeUser(idLong);
+            }
+        });
     }
 
     public void setMaxPlayers(int maxPlayers) {

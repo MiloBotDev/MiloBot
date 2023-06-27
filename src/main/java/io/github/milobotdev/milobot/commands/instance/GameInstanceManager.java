@@ -1,6 +1,5 @@
 package io.github.milobotdev.milobot.commands.instance;
 
-import io.github.milobotdev.milobot.commands.instance.model.CancelMessageData;
 import io.github.milobotdev.milobot.commands.instance.model.GameInstanceData;
 import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.main.JDAManager;
@@ -9,12 +8,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 import static io.github.milobotdev.milobot.commands.command.extensions.Instance.cancelGameInstances;
 
@@ -94,7 +92,5 @@ public class GameInstanceManager {
             });
         }, 10, 10, TimeUnit.SECONDS);
     }
-
-
 
 }

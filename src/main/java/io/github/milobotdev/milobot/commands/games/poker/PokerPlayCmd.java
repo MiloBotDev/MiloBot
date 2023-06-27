@@ -2,6 +2,7 @@ package io.github.milobotdev.milobot.commands.games.poker;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.instance.model.CantCreateLobbyException;
 import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
@@ -19,7 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public class PokerPlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags, Aliases,
-        DefaultCommandArgs {
+        DefaultCommandArgs, Instance {
 
     private final ExecutorService executorService;
 
@@ -34,20 +35,28 @@ public class PokerPlayCmd extends SubCommand implements TextCommand, SlashComman
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        new Lobby("Poker lobby", event.getAuthor(),
-                (players, message) -> {
-                    PokerGame pokerGame = new PokerGame(players);
-                    pokerGame.start();
-                }, 2, 5).initialize(event.getChannel());
+        try {
+            new Lobby("Poker lobby", event.getAuthor(),
+                    (players, message) -> {
+                        PokerGame pokerGame = new PokerGame(players);
+                        pokerGame.start();
+                    }, 2, 5).initialize(event.getChannel());
+        } catch (CantCreateLobbyException e) {
+            event.getMessage().reply("You can't create a new lobby when you are already in one.").queue();
+        }
     }
 
     @Override
     public void executeCommand(@NotNull SlashCommandEvent event) {
-        new Lobby("Poker lobby", event.getUser(),
-                (players, message) -> {
-                    PokerGame pokerGame = new PokerGame(players);
-                    pokerGame.start();
-                }, 2, 5).initialize(event);
+        try {
+            new Lobby("Poker lobby", event.getUser(),
+                    (players, message) -> {
+                        PokerGame pokerGame = new PokerGame(players);
+                        pokerGame.start();
+                    }, 2, 5).initialize(event);
+        } catch (CantCreateLobbyException e) {
+            event.reply("You can't create a new lobby when you are already in one.").queue();
+        }
     }
 
     @Override
@@ -65,4 +74,8 @@ public class PokerPlayCmd extends SubCommand implements TextCommand, SlashComman
         return this.executorService;
     }
 
+    @Override
+    public InstanceData isInstanced() {
+        return new InstanceData(true, 900, null);
+    }
 }

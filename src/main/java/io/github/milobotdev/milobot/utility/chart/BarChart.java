@@ -55,7 +55,6 @@ public class BarChart {
      * The image file is then uploaded to Imgur and the URL for the uploaded image is returned.
      *
      * @return the URL of the uploaded image on Imgur
-     * @throws IOException           if there is an error reading or writing to the image file
      * @throws IllegalStateException if the bar chart has no bars
      */
     public byte[] createBarChart() throws IllegalStateException {

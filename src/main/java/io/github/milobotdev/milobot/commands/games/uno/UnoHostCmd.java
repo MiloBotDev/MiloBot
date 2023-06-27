@@ -2,6 +2,10 @@ package io.github.milobotdev.milobot.commands.games.uno;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.instance.model.CantCreateLobbyException;
+import io.github.milobotdev.milobot.commands.instance.model.GameType;
+import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
+import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
 import io.github.milobotdev.milobot.games.hungergames.model.LobbyEntry;
 import io.github.milobotdev.milobot.games.uno.UnoGame;
 import io.github.milobotdev.milobot.utility.lobby.BotLobby;
@@ -19,9 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
-        DefaultChannelTypes, Aliases {
+        DefaultChannelTypes, Aliases, Instance {
 
     private final ExecutorService executorService;
 
@@ -60,50 +65,60 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        int maxPlayers = 4;
-        MessageChannel channel = event.getChannel();
-        BotLobby unoLobby = new BotLobby("Uno Lobby", event.getAuthor(),
-                (entries, message) -> {
-                    ArrayList<LobbyEntry> participants = new ArrayList<>();
-                    entries.forEach((players, npcs) -> {
-                        npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
-                        players.forEach(user -> participants.add(new LobbyEntry(user)));
-                    });
-                    UnoGame unoGame = new UnoGame(participants);
-                    unoGame.start(channel);
-                }, 2, 4);
-        if (args.size() > 0) {
-            int i = Integer.parseInt(args.get(0));
-            unoLobby.setMaxPlayers(i);
-            unoLobby.initialize(channel);
-        } else {
-            unoLobby.setMaxPlayers(maxPlayers);
-            unoLobby.initialize(channel);
+        try {
+            int maxPlayers = 4;
+            MessageChannel channel = event.getChannel();
+            BotLobby unoLobby = new BotLobby("Uno Lobby", event.getAuthor(),
+                    (entries, message) -> {
+                        ArrayList<LobbyEntry> participants = new ArrayList<>();
+                        entries.forEach((players, npcs) -> {
+                            npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
+                            players.forEach(user -> participants.add(new LobbyEntry(user)));
+                        });
+                        UnoGame unoGame = new UnoGame(participants);
+                        unoGame.start(channel);
+                    }, 2, 4);
+            if (args.size() > 0) {
+                int i = Integer.parseInt(args.get(0));
+                unoLobby.setMaxPlayers(i);
+                unoLobby.initialize(channel);
+            } else {
+                unoLobby.setMaxPlayers(maxPlayers);
+                unoLobby.initialize(channel);
+            }
+        } catch (CantCreateLobbyException e) {
+            event.getMessage().reply("You can't create a new lobby when you are already in one.").queue();
         }
+
     }
 
     @Override
     public void executeCommand(SlashCommandEvent event) {
-        int maxPlayers = 4;
-        MessageChannel channel = event.getChannel();
-        BotLobby unoLobby = new BotLobby("Uno Lobby", event.getUser(),
-                (entries, message) -> {
-                    ArrayList<LobbyEntry> participants = new ArrayList<>();
-                    entries.forEach((players, npcs) -> {
-                        npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
-                        players.forEach(user -> participants.add(new LobbyEntry(user)));
-                    });
-                    UnoGame unoGame = new UnoGame(participants);
-                    unoGame.start(channel);
-                }, 2, 4);
-        if (event.getOption("max-players") != null) {
-            int i = Integer.parseInt(String.valueOf(event.getOption("max-players").getAsLong()));
-            unoLobby.setMaxPlayers(i);
-            unoLobby.initialize(event);
-        } else {
-            unoLobby.setMaxPlayers(maxPlayers);
-            unoLobby.initialize(event);
+        try {
+            int maxPlayers = 4;
+            MessageChannel channel = event.getChannel();
+            BotLobby unoLobby = new BotLobby("Uno Lobby", event.getUser(),
+                    (entries, message) -> {
+                        ArrayList<LobbyEntry> participants = new ArrayList<>();
+                        entries.forEach((players, npcs) -> {
+                            npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
+                            players.forEach(user -> participants.add(new LobbyEntry(user)));
+                        });
+                        UnoGame unoGame = new UnoGame(participants);
+                        unoGame.start(channel);
+                    }, 2, 4);
+            if (event.getOption("max-players") != null) {
+                int i = Integer.parseInt(String.valueOf(event.getOption("max-players").getAsLong()));
+                unoLobby.setMaxPlayers(i);
+                unoLobby.initialize(event);
+            } else {
+                unoLobby.setMaxPlayers(maxPlayers);
+                unoLobby.initialize(event);
+            }
+        } catch (CantCreateLobbyException e) {
+            event.reply("You can't create a new lobby when you are already in one.").queue();
         }
+
     }
 
     @Override
@@ -119,5 +134,11 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
     @Override
     public @NotNull ExecutorService getExecutorService() {
         return executorService;
+    }
+
+    @Override
+    public InstanceData isInstanced() {
+        return new InstanceData(true, 1800, new GameType("Uno",
+                userId -> UnoGame.unoGames.forEach(unoGame -> unoGame.removePlayerMidGame(userId))));
     }
 }

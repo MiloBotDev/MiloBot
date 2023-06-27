@@ -87,7 +87,6 @@ public class MinesweeperPlayCmd extends SubCommand implements TextCommand, Slash
         return executorService;
     }
 
-
     @Override
     public InstanceData isInstanced() {
         return new InstanceData(true, 1200,

@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 public class UnoGame {
 
@@ -41,7 +42,7 @@ public class UnoGame {
     private static final int TURN_TIME_LIMIT = 60;
     private static final int TIMEOUT_CLEANUP_FREQUENCY = 5;
     private static final Logger logger = LoggerFactory.getLogger(UnoGame.class);
-    private static final ObservableList<UnoGame> unoGames = new ObservableList<>();
+    public static final ObservableList<UnoGame> unoGames = new ObservableList<>();
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private static boolean schedulerOn = false;
 
@@ -896,5 +897,27 @@ public class UnoGame {
         }
     }
 
+    public void removePlayerMidGame(long userId) {
+        LobbyEntry userToRemove = this.playerList.toList().stream()
+                .filter(lobbyEntry -> !lobbyEntry.isBot() && lobbyEntry.getUser().getIdLong() == userId)
+                .findFirst()
+                .orElse(null);
+        if (userToRemove != null) {
+            sendEmbedToPlayers(generateStatusEmbed(String.format("%s has left the game.", userToRemove.getMention())).build());
+            if(playerToMove.equals(userToRemove)){
+                if (this.isReversed) {
+                    this.playerList.removeToPrevious();
+                } else {
+                    this.playerList.removeToNext();
+                }
+                nextRound();
+            } else {
+                this.playerList.remove(userToRemove);
+            }
+            if (this.playerList.size() == 1) {
+                this.endGame();
+            }
+        }
+    }
 }
 

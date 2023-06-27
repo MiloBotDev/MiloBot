@@ -51,6 +51,25 @@ public class CircularLinkedList<T> {
         }
     }
 
+    public void remove(T data) {
+        if (head == null) {
+            return;
+        }
+        Node<T> temp = head;
+        do {
+            if (temp.data.equals(data)) {
+                if (temp == head) {
+                    removeToNext();
+                } else {
+                    temp.next.prev = temp.prev;
+                    temp.prev.next = temp.next;
+                }
+                return;
+            }
+            temp = temp.next;
+        } while (temp != head);
+    }
+
     public void goToNext() {
         head = head.next;
     }

@@ -1,6 +1,7 @@
 package io.github.milobotdev.milobot.commands.command;
 
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.instance.LobbyInstanceManager;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -18,6 +19,7 @@ import java.util.*;
 public abstract class Command implements ICommand {
 
     private final Logger logger = LoggerFactory.getLogger(Command.class);
+    private final LobbyInstanceManager lobbyInstanceManager = LobbyInstanceManager.getInstance();
 
     public final void onCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         if (this instanceof TextCommand textCommand) {
@@ -44,10 +46,15 @@ public abstract class Command implements ICommand {
             }
 
             // put instance check here
+            User author = event.getAuthor();
             if (textCommand instanceof Instance) {
+                if(lobbyInstanceManager.isUserInLobby(author.getIdLong())) {
+                    event.getMessage().reply("You can't play another game when you are already in a lobby.").queue();
+                    return;
+                }
                 InstanceData instanceData = ((Instance) textCommand).isInstanced();
                 if (instanceData.isInstanced()) {
-                    boolean inInstance = ((Instance) textCommand).manageInstance(event.getChannel(), event.getAuthor(),
+                    boolean inInstance = ((Instance) textCommand).manageInstance(event.getChannel(), author,
                             instanceData.gameType(), instanceData.duration());
                     if(inInstance) {
                         return;
@@ -55,7 +62,7 @@ public abstract class Command implements ICommand {
                 }
             }
 
-            doUserCommandUpdates(event.getAuthor(), event.getChannel());
+            doUserCommandUpdates(author, event.getChannel());
 
             ((TextCommand) this).executeCommand(event, args);
         }
@@ -73,10 +80,15 @@ public abstract class Command implements ICommand {
                 }
             }
 
+            User user = event.getUser();
             if (slashCommand instanceof Instance) {
                 InstanceData instanceData = ((Instance) slashCommand).isInstanced();
                 if (instanceData.isInstanced()) {
-                    boolean inInstance = ((Instance) slashCommand).manageInstance(event.getChannel(), event.getUser(),
+                    if(lobbyInstanceManager.isUserInLobby(user.getIdLong())) {
+                        event.reply("You can't play another game when you are already in a lobby.").queue();
+                        return;
+                    }
+                    boolean inInstance = ((Instance) slashCommand).manageInstance(event.getChannel(), user,
                             instanceData.gameType(), instanceData.duration());
                     if(inInstance) {
                         return;
@@ -84,7 +96,7 @@ public abstract class Command implements ICommand {
                 }
             }
 
-            doUserCommandUpdates(event.getUser(), event.getChannel());
+            doUserCommandUpdates(user, event.getChannel());
 
             ((SlashCommand) this).executeCommand(event);
         }

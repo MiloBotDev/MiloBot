@@ -2,6 +2,10 @@ package io.github.milobotdev.milobot.commands.games.hungergames;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.instance.model.CantCreateLobbyException;
+import io.github.milobotdev.milobot.commands.instance.model.GameType;
+import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
+import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
 import io.github.milobotdev.milobot.database.dao.HungerGamesDao;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
@@ -35,7 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class HungerGamesStartCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
-        DefaultChannelTypes, Aliases {
+        DefaultChannelTypes, Aliases, Instance {
 
     private final ExecutorService executorService;
     private static final Logger logger = LoggerFactory.getLogger(HungerGamesStartCmd.class);
@@ -84,48 +88,58 @@ public class HungerGamesStartCmd extends SubCommand implements TextCommand, Slas
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        User author = event.getAuthor();
-        int maxPlayers = 8;
-        BotLobby hungerGamesLobby = new BotLobby("Hunger Games Lobby", author,
-                (entries, message) -> {
-                    ArrayList<LobbyEntry> participants = new ArrayList<>();
-                    entries.forEach((players, npcs) -> {
-                        npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
-                        players.forEach(user -> participants.add(new LobbyEntry(user.getIdLong(), user.getName(), user.getAsMention())));
-                    });
-                    HungerGames game = new HungerGames(participants);
-                    game.startGame();
-                    HungerGamesStartCmd.runGame(event.getChannel(), game);
-                }, 2, maxPlayers);
-        if (args.size() > 0) {
-            maxPlayers = Integer.parseInt(args.get(0));
-            hungerGamesLobby.setMaxPlayers(maxPlayers);
-            hungerGamesLobby.initialize(event.getChannel());
-        } else {
-            hungerGamesLobby.initialize(event.getChannel());
+        try {
+            User author = event.getAuthor();
+            int maxPlayers = 8;
+            BotLobby hungerGamesLobby = new BotLobby("Hunger Games Lobby", author,
+                    (entries, message) -> {
+                        ArrayList<LobbyEntry> participants = new ArrayList<>();
+                        entries.forEach((players, npcs) -> {
+                            npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
+                            players.forEach(user -> participants.add(new LobbyEntry(user.getIdLong(), user.getName(), user.getAsMention())));
+                        });
+                        HungerGames game = new HungerGames(participants);
+                        game.startGame();
+                        HungerGamesStartCmd.runGame(event.getChannel(), game);
+                    }, 2, maxPlayers);
+            if (args.size() > 0) {
+                maxPlayers = Integer.parseInt(args.get(0));
+                hungerGamesLobby.setMaxPlayers(maxPlayers);
+                hungerGamesLobby.initialize(event.getChannel());
+            } else {
+                hungerGamesLobby.initialize(event.getChannel());
+            }
+        } catch (CantCreateLobbyException e) {
+            event.getMessage().reply("You can't create a new lobby when you are already in one.").queue();
         }
+
     }
 
     @Override
     public void executeCommand(@NotNull SlashCommandEvent event) {
-        event.deferReply().queue();
-        User author = event.getUser();
-        int maxPlayers = 8;
-        if (event.getOption("max-players") != null) {
-            maxPlayers = Integer.parseInt(String.valueOf(Objects.requireNonNull(event.getOption("max-players")).getAsLong()));
+        try {
+            event.deferReply().queue();
+            User author = event.getUser();
+            int maxPlayers = 8;
+            if (event.getOption("max-players") != null) {
+                maxPlayers = Integer.parseInt(String.valueOf(Objects.requireNonNull(event.getOption("max-players")).getAsLong()));
+            }
+            BotLobby hungerGamesLobby = new BotLobby("Hunger Games Lobby", author,
+                    (entries, message) -> {
+                        ArrayList<LobbyEntry> participants = new ArrayList<>();
+                        entries.forEach((players, npcs) -> {
+                            npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
+                            players.forEach(user -> participants.add(new LobbyEntry(user.getIdLong(), user.getName(), user.getAsMention())));
+                        });
+                        HungerGames game = new HungerGames(participants);
+                        game.startGame();
+                        HungerGamesStartCmd.runGame(event.getChannel(), game);
+                    }, 2, maxPlayers);
+            hungerGamesLobby.initialize(event);
+        } catch (CantCreateLobbyException e) {
+            event.reply("You can't create a new lobby when you are already in one.").queue();
         }
-        BotLobby hungerGamesLobby = new BotLobby("Hunger Games Lobby", author,
-                (entries, message) -> {
-                    ArrayList<LobbyEntry> participants = new ArrayList<>();
-                    entries.forEach((players, npcs) -> {
-                        npcs.forEach(npc -> participants.add(new LobbyEntry(npc.getName())));
-                        players.forEach(user -> participants.add(new LobbyEntry(user.getIdLong(), user.getName(), user.getAsMention())));
-                    });
-                    HungerGames game = new HungerGames(participants);
-                    game.startGame();
-                    HungerGamesStartCmd.runGame(event.getChannel(), game);
-                }, 2, maxPlayers);
-        hungerGamesLobby.initialize(event);
+
     }
 
 
@@ -249,6 +263,11 @@ public class HungerGamesStartCmd extends SubCommand implements TextCommand, Slas
     @Override
     public @NotNull ExecutorService getExecutorService() {
         return executorService;
+    }
+
+    @Override
+    public InstanceData isInstanced() {
+        return new InstanceData(true, 0, null);
     }
 }
 

@@ -182,16 +182,20 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
                         chart[0].addBar(name, uno.getStreak(), colors[counter[0]]);
                     }
                     case "Total Games Played" -> {
-
+                        desc[0].append(String.format("`%d.` %s - %d games.\n", rank[0], name, uno.getStreak()));
+                        chart[0].addBar(name, uno.getTotalCardsPlayed(), colors[counter[0]]);
                     }
                     case "Total Wins" -> {
-
+                        desc[0].append(String.format("`%d.` %s - %d wins.\n", rank[0], name, uno.getTotalWins()));
+                        chart[0].addBar(name, uno.getTotalWins(), colors[counter[0]]);
                     }
                     case "Total Cards Played" -> {
-
+                        desc[0].append(String.format("`%d.` %s - %d cards.\n", rank[0], name, uno.getTotalCardsPlayed()));
+                        chart[0].addBar(name, uno.getTotalCardsPlayed(), colors[counter[0]]);
                     }
                     case "Total Cards Drawn" -> {
-
+                        desc[0].append(String.format("`%d.` %s - %d cards.\n", rank[0], name, uno.getTotalCardsDrawn()));
+                        chart[0].addBar(name, uno.getTotalCardsDrawn(), colors[counter[0]]);
                     }
                 }
                 rank[0]++;

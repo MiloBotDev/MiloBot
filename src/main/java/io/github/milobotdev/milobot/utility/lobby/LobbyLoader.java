@@ -48,6 +48,12 @@ public class LobbyLoader {
             if (lobby != null) {
                 lobby.remove();
             }
+            if(lobby instanceof BotLobby botLobby) {
+                botLobby.removePlayersFromInstanceManager();
+            }
+            if(lobby instanceof Lobby normalLobby) {
+                normalLobby.removePlayersFromInstanceManager();
+            }
         });
     }
 }

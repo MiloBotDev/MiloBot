@@ -1,5 +1,6 @@
 package io.github.milobotdev.milobot.games;
 
+import io.github.milobotdev.milobot.commands.instance.GameInstanceManager;
 import io.github.milobotdev.milobot.utility.TimeTracker;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.PrivateChannel;
@@ -69,6 +70,7 @@ public class Minesweeper {
                 if (hitMine) {
                     event.getChannel().sendMessage("You hit a mine!").queue();
                     minesweeperGames.remove(this.author.getIdLong());
+                    GameInstanceManager.getInstance().removeUserGame(this.author.getIdLong());
                     for (int i = 0; i < ROWS; i++) {
                         for (int j = 0; j < COLS; j++) {
                             if (mines[i][j]) {
@@ -110,6 +112,7 @@ public class Minesweeper {
         boolean hasWon = checkWin();
         if (hasWon) {
             event.getChannel().sendMessage("You won!").queue();
+            GameInstanceManager.getInstance().removeUserGame(this.author.getIdLong());
             minesweeperGames.remove(this.author.getIdLong());
         }
 
