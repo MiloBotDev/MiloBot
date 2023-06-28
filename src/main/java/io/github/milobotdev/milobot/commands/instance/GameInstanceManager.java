@@ -8,7 +8,9 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -38,10 +40,10 @@ public class GameInstanceManager {
         JDAManager.getInstance().getJDABuilder().addEventListeners(new ListenerAdapter() {
             @Override
             public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-                if(event.getAuthor().isBot()) {
+                if (event.getAuthor().isBot()) {
                     return;
                 }
-                if(event.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
+                if (event.getMessage().getContentRaw().equalsIgnoreCase("cancel")) {
                     cancelGameInstances.forEach((userId, cancelMessageData) -> {
                         if (userId == event.getAuthor().getIdLong()) {
                             GameType gameType = gameInstances.get(userId).gameType();
@@ -86,11 +88,47 @@ public class GameInstanceManager {
             });
 
             cancelGameInstances.forEach((userId, cancelMessageData) -> {
-                if(cancelMessageData.timeTracker().isTimeSecondsPastDuration()) {
+                if (cancelMessageData.timeTracker().isTimeSecondsPastDuration()) {
                     cancelGameInstances.remove(userId);
                 }
             });
         }, 10, 10, TimeUnit.SECONDS);
+    }
+
+    public boolean isUserInGame(long userId) {
+        Collection<GameInstanceData> values = gameInstances.values();
+        for (GameInstanceData gameInstanceData : values) {
+            if (gameInstanceData.gameType().multiplayer()) {
+                if (gameInstanceData.gameType().retrievePlayerMethod().isPlayerInGame(userId)) {
+                    return true;
+                }
+            }
+        }
+        return cancelGameInstances.containsKey(userId);
+    }
+
+    public boolean isUserInMultiplayerGame(long userId) {
+        Collection<GameInstanceData> values = gameInstances.values();
+        for (GameInstanceData gameInstanceData : values) {
+            if (gameInstanceData.gameType().multiplayer()) {
+                if (gameInstanceData.gameType().retrievePlayerMethod().isPlayerInGame(userId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Optional<GameInstanceData> getInstanceDataForUserGame(long userId) {
+        Collection<GameInstanceData> values = gameInstances.values();
+        for (GameInstanceData gameInstanceData : values) {
+            if(gameInstanceData.gameType().multiplayer()) {
+                if(gameInstanceData.gameType().retrievePlayerMethod().isPlayerInGame(userId)) {
+                    return Optional.of(gameInstanceData);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
 }

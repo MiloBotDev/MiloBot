@@ -2,12 +2,10 @@ package io.github.milobotdev.milobot.commands.games.uno;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
-import io.github.milobotdev.milobot.commands.instance.model.CantCreateLobbyException;
-import io.github.milobotdev.milobot.commands.instance.model.GameType;
-import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
-import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
+import io.github.milobotdev.milobot.commands.instance.model.*;
 import io.github.milobotdev.milobot.games.hungergames.model.LobbyEntry;
 import io.github.milobotdev.milobot.games.uno.UnoGame;
+import io.github.milobotdev.milobot.utility.datatypes.CircularLinkedList;
 import io.github.milobotdev.milobot.utility.lobby.BotLobby;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -24,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
         DefaultChannelTypes, Aliases, Instance {
@@ -139,6 +138,17 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
     @Override
     public InstanceData isInstanced() {
         return new InstanceData(true, 1800, new GameType("Uno",
-                userId -> UnoGame.unoGames.forEach(unoGame -> unoGame.removePlayerMidGame(userId))));
+                userId -> UnoGame.unoGames.forEach(unoGame -> unoGame.removePlayerMidGame(userId)),
+                true,
+                userId -> {
+                    for(UnoGame unoGame : UnoGame.unoGames) {
+                        for(LobbyEntry lobbyEntry : unoGame.getPlayerList().toList()) {
+                            if(lobbyEntry.getUserId() == userId) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }));
     }
 }

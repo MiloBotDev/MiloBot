@@ -90,6 +90,7 @@ public class MinesweeperPlayCmd extends SubCommand implements TextCommand, Slash
     @Override
     public InstanceData isInstanced() {
         return new InstanceData(true, 1200,
-                new GameType("minesweeper", userId -> Minesweeper.minesweeperGames.get(userId).removeGame(userId)));
+                new GameType("minesweeper", userId -> Minesweeper.minesweeperGames.get(userId).removeGame(userId),
+                        false, null));
     }
 }

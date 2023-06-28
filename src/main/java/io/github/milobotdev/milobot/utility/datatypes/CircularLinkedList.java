@@ -101,4 +101,5 @@ public class CircularLinkedList<T> {
         } while (temp != head);
         return size;
     }
+
 }

@@ -1,4 +1,4 @@
-package commands.newcommand.extensions;
+package io.github.milobotdev.milobot.commands.command.extensions;
 
 public interface DefaultCommandChannels {
 

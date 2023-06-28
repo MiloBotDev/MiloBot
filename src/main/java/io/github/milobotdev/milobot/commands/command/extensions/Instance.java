@@ -2,6 +2,7 @@ package io.github.milobotdev.milobot.commands.command.extensions;
 
 import io.github.milobotdev.milobot.commands.instance.GameInstanceManager;
 import io.github.milobotdev.milobot.commands.instance.model.CancelMessageData;
+import io.github.milobotdev.milobot.commands.instance.model.GameInstanceData;
 import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.utility.TimeTracker;
@@ -10,6 +11,7 @@ import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface Instance {
@@ -21,7 +23,24 @@ public interface Instance {
     default boolean manageInstance(MessageChannel channel, @NotNull User author, GameType gameType, int duration) {
         GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
         long userId = author.getIdLong();
-        if (gameInstanceManager.containsUser(userId)) {
+
+        boolean isUserInGame = gameInstanceManager.isUserInGame(userId);
+
+
+
+        if (isUserInGame) {
+            // if the game is a multiplayer game we also have to check if the user is in that game instead of just being the host
+            if(gameInstanceManager.isUserInMultiplayerGame(userId)) {
+                Optional<GameInstanceData> instanceDataForUserGame = gameInstanceManager.getInstanceDataForUserGame(userId);
+                if(instanceDataForUserGame.isPresent()) {
+                    GameInstanceData gameInstanceData = instanceDataForUserGame.get();
+                    if(gameInstanceData.gameType().multiplayer()) {
+                        channel.sendMessage("You are already in a multiplayer game. Please wait for the game to finish.").queue();
+                        return true;
+                    }
+                }
+            }
+
             TimeTracker userTimeTracker = gameInstanceManager.getUserTimeTracker(userId);
             long waitTime = userTimeTracker.timeSecondsTillDuration();
             // wait time can never be negative

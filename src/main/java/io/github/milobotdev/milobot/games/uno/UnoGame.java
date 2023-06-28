@@ -919,5 +919,9 @@ public class UnoGame {
             }
         }
     }
+
+    public CircularLinkedList<LobbyEntry> getPlayerList() {
+        return playerList;
+    }
 }
 

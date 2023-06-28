@@ -90,6 +90,6 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
     @Override
     public InstanceData isInstanced() {
         return new InstanceData(true, 900, new GameType("wordle",
-                userId -> WordleGame.wordleGames.get(userId).removeGame(userId)));
+                userId -> WordleGame.wordleGames.get(userId).removeGame(userId), false, null));
     }
 }

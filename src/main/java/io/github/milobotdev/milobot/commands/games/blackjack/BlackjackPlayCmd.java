@@ -90,7 +90,7 @@ public class BlackjackPlayCmd extends SubCommand implements TextCommand, SlashCo
             BlackjackGame blackjackGame = BlackjackGame.blackjackGames.get(userId);
             blackjackGame.getMessage().delete().queue();
             BlackjackGame.blackjackGames.remove(userId);
-        }));
+        }, false, null));
         return instanceData;
     }
 }
