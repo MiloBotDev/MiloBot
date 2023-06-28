@@ -9,9 +9,7 @@ import io.github.milobotdev.milobot.games.uno.model.UnoPlayerData;
 import io.github.milobotdev.milobot.models.CustomEmoji;
 import io.github.milobotdev.milobot.models.cards.CardDeck;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,7 +149,7 @@ public class UnoGame {
         this.turnTimeTracker.start();
     }
 
-    public void start(MessageChannel channel) {
+    public void start(MessageChannel channel, Message lobbyMessage) {
         if (playerList.size() < 2) {
             throw new IllegalStateException("Not enough players to start a game of uno.");
         } else {

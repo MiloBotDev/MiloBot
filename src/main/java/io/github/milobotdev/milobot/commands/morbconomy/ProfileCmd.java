@@ -5,8 +5,8 @@ import io.github.milobotdev.milobot.commands.command.extensions.DefaultChannelTy
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
-import io.github.milobotdev.milobot.database.dao.UserDao;
-import io.github.milobotdev.milobot.database.model.User;
+import io.github.milobotdev.milobot.database.dao.*;
+import io.github.milobotdev.milobot.database.model.*;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -37,6 +37,10 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
     private static final Logger logger = LoggerFactory.getLogger(ProfileCmd.class);
     private final Users user;
     private final UserDao userDao = UserDao.getInstance();
+    private final DailyDao dailyDao = DailyDao.getInstance();
+    private final BlackjackDao blackjackDao = BlackjackDao.getInstance();
+    private final WordleDao wordleDao = WordleDao.getInstance();
+    private final UnoDao unoDao = UnoDao.getInstance();
 
     public ProfileCmd(ExecutorService executorService) {
         this.executorService = executorService;
@@ -67,7 +71,7 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
         net.dv8tion.jda.api.entities.User author = event.getAuthor();
         if (args.size() == 0) {
             String name = author.getName();
-            Optional<EmbedBuilder> embedBuilder = makeEmbed(name, author, author.getId());
+            Optional<EmbedBuilder> embedBuilder = makeEmbed(name, author, author);
             if (embedBuilder.isPresent()) {
                 event.getChannel().sendMessageEmbeds(embedBuilder.get().build()).setActionRow(
                         Button.secondary(author.getId() + ":delete", "Delete")).queue();
@@ -87,7 +91,7 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
                             } else {
                                 net.dv8tion.jda.api.entities.User user = usersByName.get(0).getUser();
                                 String name = user.getName();
-                                Optional<EmbedBuilder> embed = makeEmbed(name, author, user.getId());
+                                Optional<EmbedBuilder> embed = makeEmbed(name, author, user);
                                 if (embed.isPresent()) {
                                     event.getChannel().sendMessageEmbeds(embed.get().build()).setActionRow(
                                             Button.secondary(author.getId() + ":delete", "Delete")).queue();
@@ -108,7 +112,7 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
         net.dv8tion.jda.api.entities.User author = event.getUser();
         if (event.getOption("user") == null) {
             String name = author.getName();
-            Optional<EmbedBuilder> embedBuilder = makeEmbed(name, author, author.getId());
+            Optional<EmbedBuilder> embedBuilder = makeEmbed(name, author, author);
             if (embedBuilder.isPresent()) {
                 event.getHook().sendMessageEmbeds(embedBuilder.get().build()).addActionRow(
                         Button.secondary(author.getId() + ":delete", "Delete")).queue();
@@ -127,7 +131,7 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
                             } else {
                                 net.dv8tion.jda.api.entities.User user = usersByName.get(0).getUser();
                                 String name = user.getName();
-                                Optional<EmbedBuilder> embed = makeEmbed(name, author, user.getId());
+                                Optional<EmbedBuilder> embed = makeEmbed(name, author, user);
                                 if (embed.isPresent()) {
                                     event.getHook().sendMessageEmbeds(embed.get().build()).addActionRow(
                                             Button.secondary(author.getId() + ":delete", "Delete")).queue();
@@ -145,43 +149,94 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
     /**
      * Builds the embed for the Profile command.
      */
-    private Optional<EmbedBuilder> makeEmbed(String name, net.dv8tion.jda.api.entities.User author, String id) {
+    private Optional<EmbedBuilder> makeEmbed(String name, net.dv8tion.jda.api.entities.User author,
+                                             net.dv8tion.jda.api.entities.User userToLookup) {
         User userDbObj;
+        Daily dailyDbObj;
+        Optional<Uno> unoDbObj;
+        Blackjack blackjackDbObj;
+        Wordle wordleDbObj;
+        int rank;
+        int totalUsers;
+        long userIdToLookup = userToLookup.getIdLong();
         try (Connection con = DatabaseConnection.getConnection()) {
-            userDbObj = userDao.getUserByDiscordId(con, author.getIdLong(), RowLockType.NONE);
+            userDbObj = userDao.getUserByDiscordId(con, userIdToLookup, RowLockType.NONE);
+            dailyDbObj = dailyDao.getDailyByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
+            rank = userDao.getUserRank(con, Objects.requireNonNull(userDbObj).getId());
+            totalUsers = userDao.getTotalUserCount(con, RowLockType.NONE);
+            unoDbObj = unoDao.getByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
+            blackjackDbObj = blackjackDao.getByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
+            wordleDbObj = wordleDao.getByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
         } catch (SQLException e) {
             logger.error("Error getting user at making user embed at profile command", e);
             return Optional.empty();
         }
-        int rank;
-        try (Connection con = DatabaseConnection.getConnection()) {
-            rank = userDao.getUserRank(con, Objects.requireNonNull(userDbObj).getId());
-        } catch (SQLException e) {
-            logger.error("Error getting user rank at making user embed at profile command", e);
-            return Optional.empty();
-        }
-        String userName = author.getName();
+
         int currency = userDbObj.getCurrency();
         int level = userDbObj.getLevel();
         int experience = userDbObj.getExperience();
-        int userAmount = userDbObj.getCurrency();
+        int morbcoinsClaimed = 0;
+        int dailyStreak = 0;
+        int totalClaimed = 0;
+        if(dailyDbObj != null) {
+            morbcoinsClaimed = dailyDbObj.getTotalCurrencyClaimed();
+            dailyStreak = dailyDbObj.getStreak();
+            totalClaimed = dailyDbObj.getTotalClaimed();
+        }
 
         EmbedBuilder embed = new EmbedBuilder();
         EmbedUtils.styleEmbed(embed, author);
         embed.setTitle(name);
+        embed.setThumbnail(userToLookup.getEffectiveAvatarUrl());
 
         StringBuilder levelDescription = new StringBuilder();
         Optional<String> levelProgressBar = generateLevelProgressBar(level, experience);
-        levelDescription.append(String.format("**Level:** `%s`\n", level));
-        levelDescription.append(String.format("**Experience:** `%s`\n", experience));
+        levelDescription.append(String.format("Level: `%s`\n", level));
+        levelDescription.append(String.format("Experience: `%s`\n", experience));
         if (levelProgressBar.isPresent()) {
-            levelDescription.append("**Progress till next level:** ");
+            levelDescription.append("Progress till next level: ");
             levelDescription.append(String.format("`%s`\n", levelProgressBar.get()));
         } else {
             levelDescription.append("You are at the maximum level.\n");
         }
-        levelDescription.append(String.format("**Rank:** `%s`", rank));
+
+        // generate the right ordinal for the rank
+        if(rank == 1) {
+        	levelDescription.append(String.format("Rank: `%sst` out of `%d` players.\n", rank, totalUsers));
+        } else if(rank == 2) {
+        	levelDescription.append(String.format("Rank: `%snd` out of `%d` players.\n", rank, totalUsers));
+        } else if(rank == 3) {
+        	levelDescription.append(String.format("Rank: `%srd` out of `%d` players.\n", rank, totalUsers));
+        } else {
+        	levelDescription.append(String.format("Rank: `%sth` out of `%d` players.\n", rank, totalUsers));
+        }
         embed.setDescription(levelDescription.toString());
+
+        StringBuilder morbcoinStats = new StringBuilder();
+        morbcoinStats.append(String.format("Total Morbcoins: `%s`\n", currency));
+        morbcoinStats.append(String.format("Morbcoins Claimed: `%s`\n", morbcoinsClaimed));
+        morbcoinStats.append(String.format("Daily Streak: `%s`\n", dailyStreak));
+        morbcoinStats.append(String.format("Total Dailies Claimed: `%s`\n", totalClaimed));
+        embed.addField("Morbcoin Stats", morbcoinStats.toString(), false);
+
+        int unoWins = 0;
+        int blackjackWins = 0;
+        int wordleWins = 0;
+        if(unoDbObj.isPresent()) {
+            unoWins = unoDbObj.get().getTotalWins();
+        }
+        if(blackjackDbObj != null) {
+            blackjackWins = blackjackDbObj.getTotalWins();
+        }
+        if(wordleDbObj != null) {
+            wordleWins = wordleDbObj.getTotalWins();
+        }
+
+        StringBuilder gameStats = new StringBuilder();
+        gameStats.append(String.format("Uno Wins: `%s`\n", unoWins));
+        gameStats.append(String.format("Blackjack Wins: `%s`\n", blackjackWins));
+        gameStats.append(String.format("Wordle Wins: `%s`\n", wordleWins));
+        embed.addField("Game Stats", gameStats.toString(), false);
 
         return Optional.of(embed);
     }
@@ -213,6 +268,9 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
             percentageDoneString = "0";
         } else {
             percentageDoneString = percentageDoneFormat.substring(percentageDoneFormat.length() - 2);
+        }
+        if(percentageDoneString.length() == 2 && percentageDoneString.charAt(0) == '0') {
+            percentageDoneString = percentageDoneString.substring(1);
         }
 
         StringBuilder progressBar = new StringBuilder("[");

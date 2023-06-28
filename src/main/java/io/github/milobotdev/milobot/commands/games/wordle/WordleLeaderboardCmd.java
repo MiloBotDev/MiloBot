@@ -175,8 +175,8 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
                         chart[0].addBar(name, wordle.getFastestTime(), colors[counter[0]]);
                     }
                     case "Total Wins" -> {
-                        desc[0].append(String.format("`%d.` %s - %d wins.\n", rank[0], name, wordle.getWins()));
-                        chart[0].addBar(name, wordle.getWins(), colors[counter[0]]);
+                        desc[0].append(String.format("`%d.` %s - %d wins.\n", rank[0], name, wordle.getTotalWins()));
+                        chart[0].addBar(name, wordle.getTotalWins(), colors[counter[0]]);
                     }
                     case "Total Games Played" -> {
                         desc[0].append(String.format("`%d.` %s - %d games.\n", rank[0], name, wordle.getGamesPlayed()));

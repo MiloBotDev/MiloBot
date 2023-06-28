@@ -75,7 +75,7 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
                 int currentStreak = userWordle.getCurrentStreak();
                 int totalGames = userWordle.getGamesPlayed();
                 int highestStreak = userWordle.getHighestStreak();
-                int totalWins = userWordle.getWins();
+                int totalWins = userWordle.getTotalWins();
                 int totalLosses = totalGames - totalWins;
 
                 double winRate = (double) totalWins / totalGames;

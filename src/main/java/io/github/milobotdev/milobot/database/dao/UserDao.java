@@ -130,4 +130,17 @@ public class UserDao {
             throw new IllegalArgumentException("User with id " + userId + " not found");
         }
     }
+
+    public int getTotalUserCount(@NotNull Connection con, RowLockType rowLockType) throws SQLException {
+        String query = rowLockType.getQueryWithLock("SELECT COUNT(*) FROM users");
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    throw new SQLException("Error getting total user count");
+                }
+            }
+        }
+    }
 }

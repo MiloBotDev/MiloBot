@@ -44,7 +44,7 @@ public class Wordle {
         return gamesPlayed;
     }
 
-    public int getWins() {
+    public int getTotalWins() {
         return wins;
     }
 

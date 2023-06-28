@@ -75,7 +75,7 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
                             players.forEach(user -> participants.add(new LobbyEntry(user)));
                         });
                         UnoGame unoGame = new UnoGame(participants);
-                        unoGame.start(channel);
+                        unoGame.start(channel, message);
                     }, 2, 4);
             if (args.size() > 0) {
                 int i = Integer.parseInt(args.get(0));
@@ -104,7 +104,7 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
                             players.forEach(user -> participants.add(new LobbyEntry(user)));
                         });
                         UnoGame unoGame = new UnoGame(participants);
-                        unoGame.start(channel);
+                        unoGame.start(channel, message);
                     }, 2, 4);
             if (event.getOption("max-players") != null) {
                 int i = Integer.parseInt(String.valueOf(event.getOption("max-players").getAsLong()));

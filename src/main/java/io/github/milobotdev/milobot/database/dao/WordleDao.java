@@ -58,7 +58,7 @@ public class WordleDao {
         PreparedStatement ps = con.prepareStatement(query);
         ps.setInt(1, wordle.getUserId());
         ps.setInt(2, wordle.getGamesPlayed());
-        ps.setInt(3, wordle.getWins());
+        ps.setInt(3, wordle.getTotalWins());
         ps.setInt(4, wordle.getFastestTime());
         ps.setInt(5, wordle.getHighestStreak());
         ps.setInt(6, wordle.getCurrentStreak());
@@ -69,7 +69,7 @@ public class WordleDao {
         String query = "UPDATE wordle SET games_played = ?, wins = ?, fastest_time = ?, highest_streak = ?, current_streak = ? WHERE id = ?";
         PreparedStatement ps = con.prepareStatement(query);
         ps.setInt(1, wordle.getGamesPlayed());
-        ps.setInt(2, wordle.getWins());
+        ps.setInt(2, wordle.getTotalWins());
         ps.setInt(3, wordle.getFastestTime());
         ps.setInt(4, wordle.getHighestStreak());
         ps.setInt(5, wordle.getCurrentStreak());
