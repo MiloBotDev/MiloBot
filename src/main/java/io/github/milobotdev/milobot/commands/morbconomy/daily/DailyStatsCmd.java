@@ -28,6 +28,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -88,6 +89,8 @@ public class DailyStatsCmd extends SubCommand implements TextCommand, SlashComma
                 dailyStatsEmbed.addField("Average Morbcoins Claim", String.valueOf(averageClaim), true);
 
                 List<DailyHistory> dailyHistory = dailyHistoryDao.getLastDailyHistoryByUserDiscordId(con, user.getIdLong(), 10);
+                // reverse the dailyhistory list so its in the right order for the chart
+                dailyHistory.sort(Comparator.comparing(DailyHistory::getTime));
                 if(!dailyHistory.isEmpty()) {
                     LineChart lineChart = new LineChart("Daily History", "Date", "Total Morbcoins Claimed");
                     dailyHistory.forEach(dailyHistoryEntry -> lineChart.addPlotPoint(dailyHistoryEntry.getAmount(),
