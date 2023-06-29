@@ -2,6 +2,7 @@ return {
     name = "apple",
     rarity = 20,
     heals = 10,
+    description = "A red apple.",
     type = "consumable",
     onUse = function(self, lobbyEntry)
         lobbyEntry:heal(self.heals)

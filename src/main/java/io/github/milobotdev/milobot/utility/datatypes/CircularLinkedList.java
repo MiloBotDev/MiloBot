@@ -19,7 +19,7 @@ public class CircularLinkedList<T> {
 
     public void append(T new_data) {
         Node<T> new_node = new Node<>(new_data);
-        if(head == null) {
+        if (head == null) {
             head = new_node;
             head.next = head;
             head.prev = head;
@@ -32,7 +32,7 @@ public class CircularLinkedList<T> {
     }
 
     public void removeToNext() {
-        if(head == head.next) {
+        if (head == head.next) {
             head = null;
         } else {
             head.next.prev = head.prev;
@@ -42,13 +42,32 @@ public class CircularLinkedList<T> {
     }
 
     public void removeToPrevious() {
-        if(head == head.next) {
+        if (head == head.next) {
             head = null;
         } else {
             head.next.prev = head.prev;
             head.prev.next = head.next;
             head = head.prev;
         }
+    }
+
+    public void remove(T data) {
+        if (head == null) {
+            return;
+        }
+        Node<T> temp = head;
+        do {
+            if (temp.data.equals(data)) {
+                if (temp == head) {
+                    removeToNext();
+                } else {
+                    temp.next.prev = temp.prev;
+                    temp.prev.next = temp.next;
+                }
+                return;
+            }
+            temp = temp.next;
+        } while (temp != head);
     }
 
     public void goToNext() {
@@ -65,7 +84,7 @@ public class CircularLinkedList<T> {
         do {
             list.add(temp.data);
             temp = temp.next;
-        } while(temp != head);
+        } while (temp != head);
         return list;
     }
 
@@ -79,7 +98,8 @@ public class CircularLinkedList<T> {
         do {
             size++;
             temp = temp.next;
-        } while(temp != head);
+        } while (temp != head);
         return size;
     }
+
 }

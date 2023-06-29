@@ -12,15 +12,12 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 import org.jfree.ui.RectangleInsets;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
-
-import static io.github.milobotdev.milobot.utility.ImgurFunctions.uploadImageToImgur;
 
 /**
  * A class that represents a pie chart with multiple sections.
@@ -32,12 +29,6 @@ public class PieChart {
     private final String title;
     private final String filename;
 
-    /**
-     * Creates a new pie chart with the specified title and filename.
-     *
-     * @param title    the title of the pie chart
-     * @param filename the name of the image file that the pie chart will be saved as
-     */
     public PieChart(String title, String filename) {
         this.sections = new ArrayList<>();
         this.title = title;
@@ -55,16 +46,7 @@ public class PieChart {
         this.sections.add(new ChartSection(key, value, color));
     }
 
-    /**
-     * Creates the pie chart and saves it as a PNG image file.
-     * The image file is then uploaded to Imgur and the URL for the uploaded image is returned.
-     *
-     * @return the URL of the uploaded image on Imgur
-     * @throws IOException           if there is an error reading or writing to the image file
-     * @throws IllegalStateException if the pie chart has no sections
-     * @see io.github.milobotdev.milobot.utility.ImgurFunctions
-     */
-    public @NotNull String createCircleDiagram() throws IOException, IllegalStateException {
+    public byte @NotNull [] createCircleDiagram() throws IOException, IllegalStateException {
         if (this.sections.size() == 0) {
             throw new IllegalStateException("PieChart must have at least one section");
         }
@@ -79,66 +61,15 @@ public class PieChart {
                 true,
                 false);
 
-        Color blackBackgroundColor = Color.decode("#2f2f2f");
-        Color blackShadowCoLor = Color.decode("#696969");
-
-        // Set the font for the chart title
-        chart.getTitle().setFont(new Font("SansSerif", Font.BOLD, 18));
-        // Set the title text white
-        chart.getTitle().setPaint(Color.WHITE);
-        // Set the color of the background
-        chart.setBackgroundPaint(blackBackgroundColor);
-        // Set the background color of the legend
-        LegendTitle legend = chart.getLegend();
-        legend.setBackgroundPaint(blackBackgroundColor);
-        // Set the padding of the legend
-        legend.setItemLabelPadding(new RectangleInsets(2, 10, 2, 10));
-        // Set the outline of the legend
-        legend.setFrame(new BlockBorder(blackBackgroundColor));
-        // Set the text color of the legend
-        legend.setItemPaint(Color.WHITE);
-        // Set the font of the legend
-        legend.setItemFont(new Font("SansSerif", Font.PLAIN, 16));
+        ChartFunctions.styleChart(chart);
 
         // Get the plot object for the pie chart
         PiePlot plot = (PiePlot) chart.getPlot();
 
-        // Set the label font
-        plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
-        // Make the label color white
-        plot.setLabelBackgroundPaint(Color.WHITE);
-        // Make the text on the label white
-        plot.setLabelPaint(Color.BLACK);
-        // Set the label generator
-        plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{0} ({2})"));
-        // Set the shadow color of the label
-        plot.setLabelShadowPaint(blackShadowCoLor);
-        // Set the opacity
-        plot.setForegroundAlpha(0.8f);
-        // Set the background color
-        plot.setBackgroundPaint(blackBackgroundColor);
-        // Change the color of the outline
-        plot.setOutlinePaint(blackBackgroundColor);
-
         // Set the colors for the sections
         sections.forEach(section -> plot.setSectionPaint(section.key(), section.color()));
 
-        // Save the pie chart as an image file
-        int width = 640;
-        int height = 480;
-
-        File file = new File(String.format("temp/charts/%s.png", filename));
-        if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
-            ChartUtilities.saveChartAsPNG(file, chart, width, height);
-            BufferedImage image;
-            image = ImageIO.read(new File(file.getPath()));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", baos);
-            byte[] imageBytes = baos.toByteArray();
-
-            return uploadImageToImgur(imageBytes);
-        }
-        return null;
+        return ChartFunctions.chartToByteArray(chart, 640, 480);
     }
 
     private @NotNull PieDataset createDataset() {

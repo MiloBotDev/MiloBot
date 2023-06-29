@@ -115,23 +115,23 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
                 try {
                     switch (option) {
                         case "highestStreak" -> {
-                            List<Wordle> topHighestStreak = wordleDao.getTopHighestStreak();
+                            List<Wordle> topHighestStreak = wordleDao.getWordlesLeaderboard(WordleDao.WordleLeaderboardType.HIGHEST_STREAK);
                             buildWordleEmbeds(event, topHighestStreak, "Highest Streak", event.getJDA());
                         }
                         case "fastestTime" -> {
-                            List<Wordle> topFastestTime = wordleDao.getTopFastestTime();
+                            List<Wordle> topFastestTime = wordleDao.getWordlesLeaderboard(WordleDao.WordleLeaderboardType.FASTEST_TIME);
                             buildWordleEmbeds(event, topFastestTime, "Fastest Time", event.getJDA());
                         }
                         case "totalWins" -> {
-                            List<Wordle> topTotalWins = wordleDao.getTopTotalWins();
+                            List<Wordle> topTotalWins = wordleDao.getWordlesLeaderboard(WordleDao.WordleLeaderboardType.TOTAL_WINS);
                             buildWordleEmbeds(event, topTotalWins, "Total Wins", event.getJDA());
                         }
                         case "totalGames" -> {
-                            List<Wordle> topTotalGames = wordleDao.getTopTotalGames();
+                            List<Wordle> topTotalGames = wordleDao.getWordlesLeaderboard(WordleDao.WordleLeaderboardType.TOTAL_GAMES);
                             buildWordleEmbeds(event, topTotalGames, "Total Games Played", event.getJDA());
                         }
                         case "currentStreak" -> {
-                            List<Wordle> topCurrentStreak = wordleDao.getTopCurrentStreak();
+                            List<Wordle> topCurrentStreak = wordleDao.getWordlesLeaderboard(WordleDao.WordleLeaderboardType.CURRENT_STREAK);
                             buildWordleEmbeds(event, topCurrentStreak, "Current Streak", event.getJDA());
                         }
                     }
@@ -175,8 +175,8 @@ public class WordleLeaderboardCmd extends SubCommand implements TextCommand, Sla
                         chart[0].addBar(name, wordle.getFastestTime(), colors[counter[0]]);
                     }
                     case "Total Wins" -> {
-                        desc[0].append(String.format("`%d.` %s - %d wins.\n", rank[0], name, wordle.getWins()));
-                        chart[0].addBar(name, wordle.getWins(), colors[counter[0]]);
+                        desc[0].append(String.format("`%d.` %s - %d wins.\n", rank[0], name, wordle.getTotalWins()));
+                        chart[0].addBar(name, wordle.getTotalWins(), colors[counter[0]]);
                     }
                     case "Total Games Played" -> {
                         desc[0].append(String.format("`%d.` %s - %d games.\n", rank[0], name, wordle.getGamesPlayed()));

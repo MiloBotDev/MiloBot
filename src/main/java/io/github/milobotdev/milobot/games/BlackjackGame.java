@@ -1,7 +1,7 @@
 package io.github.milobotdev.milobot.games;
 
+import io.github.milobotdev.milobot.commands.games.blackjack.BlackjackPlayCmd;
 import io.github.milobotdev.milobot.commands.instance.GameInstanceManager;
-import io.github.milobotdev.milobot.commands.instance.GameType;
 import io.github.milobotdev.milobot.database.dao.BlackjackDao;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.model.Blackjack;
@@ -9,6 +9,7 @@ import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.models.cards.CardDeck;
 import io.github.milobotdev.milobot.models.cards.PlayingCard;
+import io.github.milobotdev.milobot.utility.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -21,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.milobotdev.milobot.utility.EmbedUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -33,7 +33,7 @@ import java.util.concurrent.*;
 
 public class BlackjackGame {
 
-    private static final Map<Long, BlackjackGame> blackjackGames = new ConcurrentHashMap<>();
+    public static final Map<Long, BlackjackGame> blackjackGames = new ConcurrentHashMap<>();
     private static final ScheduledExecutorService idleInstanceCleanupExecutorService =
             Executors.newScheduledThreadPool(1);
     private volatile ScheduledFuture<?> idleInstanceCleanupFuture;
@@ -49,7 +49,7 @@ public class BlackjackGame {
     private boolean dealerStand;
     private boolean finished;
     private int winnings;
-    private volatile Message message;
+    private Message message;
     private static int duration;
 
     private BlackjackGame(long userDiscordId, int bet, int instanceDuration) {
@@ -227,7 +227,6 @@ public class BlackjackGame {
         }
         String description = event.getMessage().getEmbeds().get(0).getDescription();
         BlackjackGame blackjack;
-        GameInstanceManager.getInstance().addUser(event.getUser().getIdLong(), GameType.BLACKJACK, duration);
         if (description == null) {
             blackjack = new BlackjackGame(event.getUser().getIdLong(), 0, duration);
         } else {
@@ -251,6 +250,7 @@ public class BlackjackGame {
                 logger.error("Error updating blackjack data when user wanted to replay blackjack.", e);
                 return;
             }
+            GameInstanceManager.getInstance().addUser(event.getUser().getIdLong(), BlackjackPlayCmd.instanceData.gameType(), duration);
         }
 
         blackjack.initializeGame();
@@ -349,7 +349,7 @@ public class BlackjackGame {
 
         }
         if(finished) {
-            GameInstanceManager.getInstance().removeUserGame(user.getIdLong(), GameType.BLACKJACK);
+            GameInstanceManager.getInstance().removeUserGame(user.getIdLong());
         }
         return embed;
     }
@@ -499,8 +499,8 @@ public class BlackjackGame {
         GameInstanceManager gameInstanceManager = GameInstanceManager.getInstance();
         idleInstanceCleanupFuture = idleInstanceCleanupExecutorService.schedule(() -> {
             blackjackGames.remove(userDiscordId);
-            if(gameInstanceManager.containsUser(userDiscordId, GameType.BLACKJACK)) {
-                gameInstanceManager.removeUserGame(userDiscordId, GameType.BLACKJACK);
+            if(gameInstanceManager.containsUser(userDiscordId)) {
+                gameInstanceManager.removeUserGame(userDiscordId);
             }
             message.delete().queue();
         }, 15, TimeUnit.MINUTES);
@@ -552,6 +552,10 @@ public class BlackjackGame {
                 Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
                 Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
         blackjackGames.remove(event.getUser().getIdLong());
+    }
+
+    public Message getMessage() {
+        return message;
     }
 
     public enum BlackjackStates {

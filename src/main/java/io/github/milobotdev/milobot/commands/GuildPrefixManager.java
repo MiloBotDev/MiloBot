@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GuildPrefixManager {
+
     private static GuildPrefixManager instance;
     private final PrefixDao prefixDao = PrefixDao.getInstance();
     public final ConcurrentHashMap<Long, String> prefixes = new ConcurrentHashMap<>();

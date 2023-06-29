@@ -3,6 +3,7 @@ return {
     rarity = 10,
     heals = 7,
     type = "consumable",
+    description = "Its iced coffee.",
     onUse = function(self, lobbyEntry)
         lobbyEntry:heal(self.heals)
         lobbyEntry:removeItem(self.name)

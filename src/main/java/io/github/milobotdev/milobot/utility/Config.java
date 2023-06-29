@@ -33,9 +33,6 @@ public class Config {
     private final String connectionUrl;
     private final String user;
     private final String password;
-    // imgur api
-    private final String imgurClientId;
-    private final String imgurClientSecret;
 
     private final String apiRedirectUri;
 

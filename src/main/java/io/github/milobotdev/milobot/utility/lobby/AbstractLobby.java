@@ -1,4 +1,4 @@
-package io.github.milobotdev.milobot.utility.paginator.lobby;
+package io.github.milobotdev.milobot.utility.lobby;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -59,6 +59,13 @@ public abstract class AbstractLobby {
     protected final void setIdleInstanceCleanup() {
         idleInstanceCleanupFuture = idleInstanceCleanupExecutorService.schedule(() -> {
             lobbyInstances.remove(message);
+            AbstractLobby lobby = lobbyInstances.get(message);
+            if(lobby instanceof BotLobby botLobby) {
+                botLobby.removePlayersFromInstanceManager();
+            }
+            if(lobby instanceof Lobby normalLobby) {
+                normalLobby.removePlayersFromInstanceManager();
+            }
             message.delete().queue();
         }, 15, TimeUnit.MINUTES);
     }

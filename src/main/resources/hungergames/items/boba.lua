@@ -2,6 +2,7 @@ return {
     name = "boba",
     rarity = 8,
     heals = 7,
+    description = "Bubble thea.",
     type = "consumable",
     onUse = function(self, lobbyEntry)
         lobbyEntry:heal(self.heals)

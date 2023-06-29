@@ -1,5 +1,6 @@
 package io.github.milobotdev.milobot.database.dao;
 
+import io.github.milobotdev.milobot.database.model.CommandTracker;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import org.jetbrains.annotations.NotNull;
@@ -7,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommandTrackerDao {
 
@@ -107,6 +110,41 @@ public class CommandTrackerDao {
             }
         }
     }
+
+    public int getUserTotalCommandUsage(int userId) throws SQLException {
+        String query = "SELECT sum(amount) from command_tracker WHERE user_id = ?;";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    public String getUserMostUsedCommand(int userId) throws SQLException {
+        String query = "SELECT c.command_name FROM command_tracker AS ct " +
+                "JOIN commands AS c ON ct.command = c.id " +
+                "WHERE ct.user_id = ? " +
+                "ORDER BY ct.amount DESC " +
+                "LIMIT 1;";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("command_name");
+                } else {
+                    return null;
+                }
+            }
+        }
+    }
+
     public int getGlobalCommandUsage(String commandName) throws SQLException {
         String query = "SELECT sum(amount) from command_tracker WHERE command = " +
                 "(SELECT id FROM commands WHERE command_name = ?);";
@@ -121,5 +159,21 @@ public class CommandTrackerDao {
                 }
             }
         }
+    }
+
+    public List<CommandTracker> getTotalCommandUsage() throws SQLException {
+        List<CommandTracker> commandTrackers = new ArrayList<>();
+        String query = "SELECT SUM(ct.amount) AS amount, c.command_name AS name FROM command_tracker AS ct " +
+                "JOIN commands AS c ON ct.command = c.id " +
+                "GROUP BY c.command_name;";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while(rs.next()) {
+                    commandTrackers.add(new CommandTracker(rs.getString("name"), rs.getInt("amount")));
+                }
+            }
+        }
+        return commandTrackers;
     }
 }

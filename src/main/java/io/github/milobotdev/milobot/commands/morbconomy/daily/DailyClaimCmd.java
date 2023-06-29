@@ -3,8 +3,10 @@ package io.github.milobotdev.milobot.commands.morbconomy.daily;
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
 import io.github.milobotdev.milobot.database.dao.DailyDao;
+import io.github.milobotdev.milobot.database.dao.DailyHistoryDao;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.model.Daily;
+import io.github.milobotdev.milobot.database.model.DailyHistory;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -36,6 +38,7 @@ public class DailyClaimCmd extends SubCommand implements TextCommand, SlashComma
     private final Random random = new Random();
     private final UserDao userDao = UserDao.getInstance();
     private final DailyDao dailyDao = DailyDao.getInstance();
+    private final DailyHistoryDao dailyHistoryDao = DailyHistoryDao.getInstance();
 
     public DailyClaimCmd(ExecutorService executorService) {
         this.executorService = executorService;
@@ -78,11 +81,12 @@ public class DailyClaimCmd extends SubCommand implements TextCommand, SlashComma
             con.setAutoCommit(false);
             io.github.milobotdev.milobot.database.model.User userDbObj = Objects.requireNonNull(
                     userDao.getUserByDiscordId(con, user.getIdLong(), RowLockType.FOR_UPDATE));
-            Daily daily = dailyDao.getDailyByUserId(con, userDbObj.getId(), RowLockType.FOR_UPDATE);
+            int userId = userDbObj.getId();
+            Daily daily = dailyDao.getDailyByUserId(con, userId, RowLockType.FOR_UPDATE);
             if (daily == null) {
-                daily = new Daily(userDbObj.getId());
+                daily = new Daily(userId);
                 dailyDao.add(con, daily);
-                daily = dailyDao.getDailyByUserId(con, userDbObj.getId(), RowLockType.FOR_UPDATE);
+                daily = dailyDao.getDailyByUserId(con, userId, RowLockType.FOR_UPDATE);
             }
 
             boolean claimed = true;
@@ -123,9 +127,10 @@ public class DailyClaimCmd extends SubCommand implements TextCommand, SlashComma
             }
 
             if (claimed) {
-                daily.incrementTotalClaimed();
+                daily.incrementTotalClaimed(reward);
                 daily.setLastDailyTime(timeNow);
                 dailyDao.update(con, daily);
+                dailyHistoryDao.add(con, new DailyHistory(userId, timeNow, reward));
 
                 userDbObj.setCurrency(userDbObj.getCurrency() + reward);
                 userDao.update(con, userDbObj);

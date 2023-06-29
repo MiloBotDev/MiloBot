@@ -48,7 +48,7 @@ public class Uno {
         return totalWins;
     }
 
-    public int getHigheststreak() {
+    public int getHighestStreak() {
         return higheststreak;
     }
 

@@ -89,41 +89,31 @@ public class BlackjackDao {
         }
     }
 
-    public List<Blackjack> getTopTotalGamesPlayed() throws SQLException {
-        String query = "SELECT * FROM blackjack ORDER BY total_games DESC LIMIT 100";
-        return getBlackjacks(query);
+    public enum BlackjackLeaderboardType {
+
+        TOTAL_GAMES_PLAYED("SELECT * FROM blackjack ORDER BY total_games DESC LIMIT 100"),
+        TOTAL_DRAWS("SELECT * FROM blackjack ORDER BY total_draws DESC LIMIT 100"),
+        TOTAL_EARNINGS("SELECT * FROM blackjack ORDER BY total_earnings DESC LIMIT 100"),
+        HIGHEST_STREAK("SELECT * FROM blackjack ORDER BY highest_streak DESC LIMIT 100"),
+        CURRENT_STREAK("SELECT * FROM blackjack ORDER BY streak DESC LIMIT 100"),
+        TOTAL_WINS("SELECT * FROM blackjack ORDER BY total_wins DESC LIMIT 100");
+
+        private final String query;
+
+        BlackjackLeaderboardType(String query) {
+            this.query = query;
+        }
+
+        public String getQuery() {
+            return query;
+        }
     }
 
-    public List<Blackjack> getTopTotalWins() throws SQLException {
-        String query = "SELECT * FROM blackjack ORDER BY total_wins DESC LIMIT 100";
-        return getBlackjacks(query);
-    }
-
-    public List<Blackjack> getTopTotalDraws() throws SQLException {
-        String query = "SELECT * FROM blackjack ORDER BY total_draws DESC LIMIT 100";
-        return getBlackjacks(query);
-    }
-
-    public List<Blackjack> getTopTotalEarnings() throws SQLException {
-        String query = "SELECT * FROM blackjack ORDER BY total_earnings DESC LIMIT 100";
-        return getBlackjacks(query);
-    }
-
-    public List<Blackjack> getTopHighestStreak() throws SQLException {
-        String query = "SELECT * FROM blackjack ORDER BY highest_streak DESC LIMIT 100";
-        return getBlackjacks(query);
-    }
-
-    public List<Blackjack> getTopCurrentStreak() throws SQLException {
-        String query = "SELECT * FROM blackjack ORDER BY streak DESC LIMIT 100";
-        return getBlackjacks(query);
-    }
-
-    private @NotNull List<Blackjack> getBlackjacks(String query) throws SQLException {
+    public @NotNull List<Blackjack> getBlackjacks(BlackjackLeaderboardType type) throws SQLException {
         ArrayList<Blackjack> blackjacks = new ArrayList<>();
         try (Connection con = DatabaseConnection.getConnection();
              Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery(query)) {
+             ResultSet rs = st.executeQuery(type.getQuery())) {
             while (rs.next()) {
                 blackjacks.add(new Blackjack(
                         rs.getInt("id"),

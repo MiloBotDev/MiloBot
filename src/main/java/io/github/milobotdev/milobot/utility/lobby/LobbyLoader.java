@@ -1,4 +1,4 @@
-package io.github.milobotdev.milobot.utility.paginator.lobby;
+package io.github.milobotdev.milobot.utility.lobby;
 
 import io.github.milobotdev.milobot.commands.ButtonHandler;
 
@@ -47,6 +47,12 @@ public class LobbyLoader {
             AbstractLobby lobby = AbstractLobby.getLobbyByMessage(event.getMessage());
             if (lobby != null) {
                 lobby.remove();
+            }
+            if(lobby instanceof BotLobby botLobby) {
+                botLobby.removePlayersFromInstanceManager();
+            }
+            if(lobby instanceof Lobby normalLobby) {
+                normalLobby.removePlayersFromInstanceManager();
             }
         });
     }

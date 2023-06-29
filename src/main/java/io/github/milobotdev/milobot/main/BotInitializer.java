@@ -1,6 +1,8 @@
 package io.github.milobotdev.milobot.main;
 
 import io.github.milobotdev.milobot.commands.CommandLoader;
+import io.github.milobotdev.milobot.commands.command.extensions.Instance;
+import io.github.milobotdev.milobot.commands.instance.GameInstanceManager;
 import io.github.milobotdev.milobot.events.EventLoader;
 import io.github.milobotdev.milobot.commands.ButtonHandler;
 import io.github.milobotdev.milobot.commands.GuildPrefixManager;
@@ -13,6 +15,7 @@ public class BotInitializer {
         // or SomeClass.getInstance().initialize()
         // if you need more than one line to initialize something, it means that it should be in its own class
         GuildPrefixManager.getInstance().initialize();
+        GameInstanceManager.getInstance().initialize();
         CommandLoader.initialize();
         ButtonHandler.getInstance().initialize();
         EventLoader.load();

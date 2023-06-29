@@ -9,9 +9,7 @@ import io.github.milobotdev.milobot.games.uno.model.UnoPlayerData;
 import io.github.milobotdev.milobot.models.CustomEmoji;
 import io.github.milobotdev.milobot.models.cards.CardDeck;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 public class UnoGame {
 
@@ -41,7 +40,7 @@ public class UnoGame {
     private static final int TURN_TIME_LIMIT = 60;
     private static final int TIMEOUT_CLEANUP_FREQUENCY = 5;
     private static final Logger logger = LoggerFactory.getLogger(UnoGame.class);
-    private static final ObservableList<UnoGame> unoGames = new ObservableList<>();
+    public static final ObservableList<UnoGame> unoGames = new ObservableList<>();
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private static boolean schedulerOn = false;
 
@@ -150,7 +149,7 @@ public class UnoGame {
         this.turnTimeTracker.start();
     }
 
-    public void start(MessageChannel channel) {
+    public void start(MessageChannel channel, Message lobbyMessage) {
         if (playerList.size() < 2) {
             throw new IllegalStateException("Not enough players to start a game of uno.");
         } else {
@@ -896,5 +895,31 @@ public class UnoGame {
         }
     }
 
+    public void removePlayerMidGame(long userId) {
+        LobbyEntry userToRemove = this.playerList.toList().stream()
+                .filter(lobbyEntry -> !lobbyEntry.isBot() && lobbyEntry.getUser().getIdLong() == userId)
+                .findFirst()
+                .orElse(null);
+        if (userToRemove != null) {
+            sendEmbedToPlayers(generateStatusEmbed(String.format("%s has left the game.", userToRemove.getMention())).build());
+            if(playerToMove.equals(userToRemove)){
+                if (this.isReversed) {
+                    this.playerList.removeToPrevious();
+                } else {
+                    this.playerList.removeToNext();
+                }
+                nextRound();
+            } else {
+                this.playerList.remove(userToRemove);
+            }
+            if (this.playerList.size() == 1) {
+                this.endGame();
+            }
+        }
+    }
+
+    public CircularLinkedList<LobbyEntry> getPlayerList() {
+        return playerList;
+    }
 }
 
