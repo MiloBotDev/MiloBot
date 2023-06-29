@@ -41,8 +41,12 @@ public class Login {
             logger.error("InterruptedException thrown while exchanging access token", e);
             throw new WebApplicationException();
         } catch (HttpException e) {
-            logger.error("DiscordOAuth2API HttpException thrown while exchanging access token", e);
-            throw new WebApplicationException();
+            if (e.getResponse().statusCode() == 400) {
+                throw new WebApplicationException(400);
+            } else {
+                logger.error("DiscordOAuth2API HttpException thrown while exchanging access token", e);
+                throw new WebApplicationException();
+            }
         }
         // split resp.scope() into a list of strings whitespaces
         // check if the list contains "identify" and "guilds"
