@@ -65,9 +65,6 @@ public class Config {
         this.personalAccessToken = (String) data.get("personalAccessToken");
         this.repositoryName = (String) data.get("repositoryName");
 
-        this.imgurClientId = (String) data.get("imgurClientId");
-        this.imgurClientSecret = (String) data.get("imgurClientSecret");
-
         this.apiRedirectUri = (String) data.get("apiRedirectUri");
 
         this.botEnabled = (boolean) data.get("botEnabled");
@@ -136,14 +133,6 @@ public class Config {
 
     public String getRepositoryName() {
         return repositoryName;
-    }
-
-    public String getImgurClientId() {
-        return imgurClientId;
-    }
-
-    public String getImgurClientSecret() {
-        return imgurClientSecret;
     }
 
     public String apiRedirectUri() {
