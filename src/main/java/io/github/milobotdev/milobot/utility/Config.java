@@ -39,6 +39,9 @@ public class Config {
 
     private final String apiRedirectUri;
 
+    private final boolean botEnabled;
+    private final boolean apiEnabled;
+
     /**
      * Instantiates all the configuration fields.
      *
@@ -69,6 +72,9 @@ public class Config {
         this.imgurClientSecret = (String) data.get("imgurClientSecret");
 
         this.apiRedirectUri = (String) data.get("apiRedirectUri");
+
+        this.botEnabled = (boolean) data.get("botEnabled");
+        this.apiEnabled = (boolean) data.get("apiEnabled");
     }
 
     /**
@@ -145,5 +151,13 @@ public class Config {
 
     public String apiRedirectUri() {
         return apiRedirectUri;
+    }
+
+    public boolean isBotEnabled() {
+        return botEnabled;
+    }
+
+    public boolean isApiEnabled() {
+        return apiEnabled;
     }
 }
