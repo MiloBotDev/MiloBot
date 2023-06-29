@@ -22,6 +22,8 @@ public class Config {
     private final String defaultPrefix;
     private final String privateChannelPrefix;
     private final String botToken;
+    private final String botSecret;
+    private final String botClientId;
     private final String testGuildId;
     private final String loggingChannelName;
     //github
@@ -31,6 +33,11 @@ public class Config {
     private final String connectionUrl;
     private final String user;
     private final String password;
+
+    private final String apiRedirectUri;
+
+    private final boolean botEnabled;
+    private final boolean apiEnabled;
 
     /**
      * Instantiates all the configuration fields.
@@ -44,6 +51,8 @@ public class Config {
         HashMap<String, Object> data = yaml.load(inputStream);
 
         this.botToken = (String) data.get("token");
+        this.botSecret = (String) data.get("secret");
+        this.botClientId = (String) data.get("clientId");
         this.testGuildId = Long.toString(((Long) data.get("testGuildId")));
         this.loggingChannelName = (String) data.get("loggingChannelName");
 
@@ -55,6 +64,11 @@ public class Config {
         this.privateChannelPrefix = (String) data.get("privateChannelPrefix");
         this.personalAccessToken = (String) data.get("personalAccessToken");
         this.repositoryName = (String) data.get("repositoryName");
+
+        this.apiRedirectUri = (String) data.get("apiRedirectUri");
+
+        this.botEnabled = (boolean) data.get("botEnabled");
+        this.apiEnabled = (boolean) data.get("apiEnabled");
     }
 
     /**
@@ -75,6 +89,14 @@ public class Config {
 
     public String getBotToken() {
         return botToken;
+    }
+
+    public String getBotSecret() {
+        return botSecret;
+    }
+
+    public String getBotClientId() {
+        return botClientId;
     }
 
     public String getTestGuildId() {
@@ -113,4 +135,15 @@ public class Config {
         return repositoryName;
     }
 
+    public String apiRedirectUri() {
+        return apiRedirectUri;
+    }
+
+    public boolean isBotEnabled() {
+        return botEnabled;
+    }
+
+    public boolean isApiEnabled() {
+        return apiEnabled;
+    }
 }

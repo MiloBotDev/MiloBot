@@ -1,19 +1,20 @@
 # bot
+botEnabled: true/false
 prefix: ";"
 privateChannelPrefix: "!"
 token:
 testGuildId:
 loggingChannelName:
 
+# dashboard API
+dashboardEnabled: true/false
+clientId: ""
+secret: ""
+apiRedirectUri: ""
+
 # github
 personalAccessToken:
 repositoryName: ""
-
-# paths
-levelsJsonPath: /levels.json
-wordleWordsPath: wordle_words.txt
-monstersCsvPath: monsters.csv
-hungerGamesPath: /hungergames
 
 # database
 connectionUrl: "jdbc:mysql://localhost/milobot"
