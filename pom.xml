@@ -171,9 +171,9 @@
         </dependency>
 
         <dependency>
-            <groupId>io.github.milobotdev.discordoauth2api</groupId>
-            <artifactId>discord-oauth2-api-parent</artifactId>
-            <version>1.0-alpha.1</version>
+            <groupId>io.github.milobotdev</groupId>
+            <artifactId>discord-oauth2-api</artifactId>
+            <version>1.0-alpha.2</version>
         </dependency>
 
         <!--
