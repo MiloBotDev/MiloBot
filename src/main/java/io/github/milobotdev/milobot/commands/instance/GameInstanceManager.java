@@ -104,7 +104,7 @@ public class GameInstanceManager {
                 }
             }
         }
-        return cancelGameInstances.containsKey(userId);
+        return gameInstances.containsKey(userId);
     }
 
     public boolean isUserInMultiplayerGame(long userId) {

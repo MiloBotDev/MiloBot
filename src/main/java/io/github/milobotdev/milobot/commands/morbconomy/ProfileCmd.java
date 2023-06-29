@@ -25,7 +25,6 @@ import io.github.milobotdev.milobot.utility.EmbedUtils;
 import io.github.milobotdev.milobot.utility.Users;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -41,6 +40,8 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
     private final BlackjackDao blackjackDao = BlackjackDao.getInstance();
     private final WordleDao wordleDao = WordleDao.getInstance();
     private final UnoDao unoDao = UnoDao.getInstance();
+    private final CommandTrackerDao commandTrackerDao = CommandTrackerDao.getInstance();
+    private final HungerGamesDao hungerGamesDao = HungerGamesDao.getInstance();
 
     public ProfileCmd(ExecutorService executorService) {
         this.executorService = executorService;
@@ -156,18 +157,27 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
         Optional<Uno> unoDbObj;
         Blackjack blackjackDbObj;
         Wordle wordleDbObj;
-        int rank;
+        HungerGames hungerGamesDbObj;
+        int experienceRank;
+        int currencyRank;
         int totalUsers;
         long userIdToLookup = userToLookup.getIdLong();
+        int totalCommandsUsed;
+        String mostUsedCommand;
         try (Connection con = DatabaseConnection.getConnection()) {
             userDbObj = userDao.getUserByDiscordId(con, userIdToLookup, RowLockType.NONE);
             dailyDbObj = dailyDao.getDailyByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
-            rank = userDao.getUserRank(con, Objects.requireNonNull(userDbObj).getId());
+            experienceRank = userDao.getUserExperienceRank(con, Objects.requireNonNull(userDbObj).getId());
             totalUsers = userDao.getTotalUserCount(con, RowLockType.NONE);
             unoDbObj = unoDao.getByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
             blackjackDbObj = blackjackDao.getByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
             wordleDbObj = wordleDao.getByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
-        } catch (SQLException e) {
+            int userId = userDbObj.getId();
+            totalCommandsUsed = commandTrackerDao.getUserTotalCommandUsage(userId);
+            hungerGamesDbObj = hungerGamesDao.getByUserDiscordId(con, userIdToLookup, RowLockType.NONE);
+            mostUsedCommand = commandTrackerDao.getUserMostUsedCommand(userId);
+            currencyRank = userDao.getUserCurrencyRank(con, userId);
+        } catch (Exception e) {
             logger.error("Error getting user at making user embed at profile command", e);
             return Optional.empty();
         }
@@ -199,29 +209,21 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
         } else {
             levelDescription.append("You are at the maximum level.\n");
         }
-
-        // generate the right ordinal for the rank
-        if(rank == 1) {
-        	levelDescription.append(String.format("Rank: `%sst` out of `%d` players.\n", rank, totalUsers));
-        } else if(rank == 2) {
-        	levelDescription.append(String.format("Rank: `%snd` out of `%d` players.\n", rank, totalUsers));
-        } else if(rank == 3) {
-        	levelDescription.append(String.format("Rank: `%srd` out of `%d` players.\n", rank, totalUsers));
-        } else {
-        	levelDescription.append(String.format("Rank: `%sth` out of `%d` players.\n", rank, totalUsers));
-        }
+        levelDescription.append(String.format("Rank: `%s` out of `%d` players.\n", generateOrdinal(experienceRank), totalUsers));
         embed.setDescription(levelDescription.toString());
 
-        StringBuilder morbcoinStats = new StringBuilder();
-        morbcoinStats.append(String.format("Total Morbcoins: `%s`\n", currency));
-        morbcoinStats.append(String.format("Morbcoins Claimed: `%s`\n", morbcoinsClaimed));
-        morbcoinStats.append(String.format("Daily Streak: `%s`\n", dailyStreak));
-        morbcoinStats.append(String.format("Total Dailies Claimed: `%s`\n", totalClaimed));
-        embed.addField("Morbcoin Stats", morbcoinStats.toString(), false);
+
+        String morbcoinStats = String.format("Total Morbcoins: `%s`\n", currency) +
+                String.format("Morbcoins Claimed: `%s`\n", morbcoinsClaimed) +
+                String.format("Daily Streak: `%s`\n", dailyStreak) +
+                String.format("Total Dailies Claimed: `%s`\n", totalClaimed) +
+                String.format("Rank: `%s` out of `%d` players.\n", generateOrdinal(currencyRank), totalUsers);
+        embed.addField("Morbcoin Stats", morbcoinStats, false);
 
         int unoWins = 0;
         int blackjackWins = 0;
         int wordleWins = 0;
+        int hungerGamesWins = 0;
         if(unoDbObj.isPresent()) {
             unoWins = unoDbObj.get().getTotalWins();
         }
@@ -231,12 +233,23 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
         if(wordleDbObj != null) {
             wordleWins = wordleDbObj.getTotalWins();
         }
+        if(hungerGamesDbObj != null) {
+            hungerGamesWins = hungerGamesDbObj.getTotalWins();
+        }
 
-        StringBuilder gameStats = new StringBuilder();
-        gameStats.append(String.format("Uno Wins: `%s`\n", unoWins));
-        gameStats.append(String.format("Blackjack Wins: `%s`\n", blackjackWins));
-        gameStats.append(String.format("Wordle Wins: `%s`\n", wordleWins));
-        embed.addField("Game Stats", gameStats.toString(), false);
+        String gameStats = String.format("Uno Wins: `%s`\n", unoWins) +
+                String.format("Blackjack Wins: `%s`\n", blackjackWins) +
+                String.format("Wordle Wins: `%s`\n", wordleWins) +
+                String.format("Hunger Games Wins: `%s`\n", hungerGamesWins);
+        embed.addField("Game Statistics", gameStats, false);
+
+        if(mostUsedCommand == null) {
+        	mostUsedCommand = "None";
+        }
+
+        String miscStats = String.format("Total Commands Used: `%s`\n", totalCommandsUsed) +
+                String.format("Most Used Command: `%s`\n", mostUsedCommand);
+        embed.addField("Misc Statistics", miscStats, false);
 
         return Optional.of(embed);
     }
@@ -285,6 +298,19 @@ public class ProfileCmd extends ParentCommand implements TextCommand, SlashComma
         progressBar.append(String.format("] %s", percentageDoneString)).append("%");
 
         return Optional.of(progressBar.toString());
+    }
+
+    private String generateOrdinal(int number) {
+        if (number >= 11 && number <= 13) {
+            return number + "th";
+        }
+
+        return switch (number % 10) {
+            case 1 -> number + "st";
+            case 2 -> number + "nd";
+            case 3 -> number + "rd";
+            default -> number + "th";
+        };
     }
 
     @Override

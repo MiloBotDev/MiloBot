@@ -94,6 +94,7 @@ public class DailyDao {
             ps.executeUpdate();
         }
     }
+    
 
     @Nullable
     public Daily getDailyByUserDiscordId(@NotNull Connection con, long userDiscordId, @NotNull RowLockType lockType) throws SQLException {

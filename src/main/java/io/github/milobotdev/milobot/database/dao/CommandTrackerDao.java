@@ -110,6 +110,41 @@ public class CommandTrackerDao {
             }
         }
     }
+
+    public int getUserTotalCommandUsage(int userId) throws SQLException {
+        String query = "SELECT sum(amount) from command_tracker WHERE user_id = ?;";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setLong(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    public String getUserMostUsedCommand(int userId) throws SQLException {
+        String query = "SELECT c.command_name FROM command_tracker AS ct " +
+                "JOIN commands AS c ON ct.command = c.id " +
+                "WHERE ct.user_id = ? " +
+                "ORDER BY ct.amount DESC " +
+                "LIMIT 1;";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("command_name");
+                } else {
+                    return null;
+                }
+            }
+        }
+    }
+
     public int getGlobalCommandUsage(String commandName) throws SQLException {
         String query = "SELECT sum(amount) from command_tracker WHERE command = " +
                 "(SELECT id FROM commands WHERE command_name = ?);";
