@@ -12,9 +12,6 @@ public class MiloBot {
     private static final Logger logger = LoggerFactory.getLogger(MiloBot.class);
 
     public static void main(String[] args) {
-        // Glassfish Jersey and Grizzly (for API) use java.util.logging, so we need to redirect java.util.logging to slf4j
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
 
         boolean somethingInitialized = false;
         if (Config.getInstance().isBotEnabled()) {
@@ -26,6 +23,9 @@ public class MiloBot {
         }
         if (Config.getInstance().isApiEnabled()) {
             logger.debug("API enabled - initializing API");
+            // Glassfish Jersey and Grizzly (for API) use java.util.logging, so we need to redirect java.util.logging to slf4j
+            SLF4JBridgeHandler.removeHandlersForRootLogger();
+            SLF4JBridgeHandler.install();
             ApiInitializer.initialize();
             somethingInitialized = true;
         } else {
