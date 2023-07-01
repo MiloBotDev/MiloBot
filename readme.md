@@ -1,6 +1,6 @@
 # main.io.github.milobotdev.milobot.MiloBot
 
-Play games with your friends, earn Morbcoins and climb up the leaderboards.  ttfff
+Play games with your friends, earn Morbcoins and climb up the leaderboards.  ttfffzxczx
 
 ## Contributing
 
