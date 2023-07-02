@@ -39,7 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class HungerGamesStartCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
-        DefaultChannelTypes, Aliases, Instance {
+        DefaultChannelTypes, Aliases {
 
     private final ExecutorService executorService;
     private static final Logger logger = LoggerFactory.getLogger(HungerGamesStartCmd.class);
@@ -265,9 +265,5 @@ public class HungerGamesStartCmd extends SubCommand implements TextCommand, Slas
         return executorService;
     }
 
-    @Override
-    public InstanceData isInstanced() {
-        return new InstanceData(true, 0, null);
-    }
 }
 
