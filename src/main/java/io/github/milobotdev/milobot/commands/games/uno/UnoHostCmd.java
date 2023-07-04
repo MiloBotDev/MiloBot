@@ -94,6 +94,7 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
     @Override
     public void executeCommand(SlashCommandEvent event) {
         try {
+            event.deferReply().queue();
             int maxPlayers = 4;
             MessageChannel channel = event.getChannel();
             BotLobby unoLobby = new BotLobby("Uno Lobby", event.getUser(),
