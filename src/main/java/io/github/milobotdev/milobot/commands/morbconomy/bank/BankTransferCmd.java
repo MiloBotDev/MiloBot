@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 public class BankTransferCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
         DefaultChannelTypes {
@@ -50,7 +51,7 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
 
     @Override
     public List<String> getCommandArgs() {
-        return List.of("amount", "player");
+        return List.of("amount", "user");
     }
 
     @Override
@@ -139,9 +140,9 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
         }
     }
 
-    private void transferMorbcoins(@NotNull Event event, long transferDiscordId, int amount,
+    private void transferMorbcoins(@NotNull Event event, long userToTransferToDiscordId, int amount,
                                    net.dv8tion.jda.api.entities.User user, Connection con) throws SQLException {
-        User userToTransferTo = userDao.getUserByDiscordId(con, transferDiscordId, RowLockType.FOR_UPDATE);
+        User userToTransferTo = userDao.getUserByDiscordId(con, userToTransferToDiscordId, RowLockType.FOR_UPDATE);
         if (userToTransferTo == null) {
             if (event instanceof MessageReceivedEvent) {
                 ((MessageReceivedEvent) event).getChannel().sendMessage("Unable to find user to transfer to.").queue();
@@ -154,11 +155,17 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
             userDao.update(con, userToTransferFrom);
             userToTransferTo.setCurrency(userToTransferTo.getCurrency() + amount);
             userDao.update(con, userToTransferTo);
-            if (event instanceof MessageReceivedEvent) {
-                ((MessageReceivedEvent) event).getChannel().sendMessage(String.format("Successfully sent `%d` morbcoins.", amount)).queue();
-            } else if (event instanceof SlashCommandEvent) {
-                ((SlashCommandEvent) event).reply(String.format("Successfully sent `%d` morbcoins.", amount)).queue();
-            }
+            event.getJDA().retrieveUserById(userToTransferToDiscordId).queue(userToTransferTo1 -> {
+                String userToTransferToAsMention = userToTransferTo1.getAsMention();
+                if (event instanceof MessageReceivedEvent) {
+                    ((MessageReceivedEvent) event).getChannel().sendMessage(String.format("Successfully sent `%d` morbcoin(s) to %s.",
+                            amount, userToTransferToAsMention)).queue();
+                } else if (event instanceof SlashCommandEvent) {
+                    ((SlashCommandEvent) event).reply(String.format("Successfully sent `%d` morbcoin(s) to %s.",
+                            amount, userToTransferToAsMention)).queue();
+                }
+            });
+
         }
     }
 
