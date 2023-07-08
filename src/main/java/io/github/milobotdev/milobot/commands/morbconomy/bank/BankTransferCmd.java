@@ -10,9 +10,11 @@ import io.github.milobotdev.milobot.database.model.User;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class BankTransferCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
@@ -107,7 +110,7 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
                         transferMorbcoins(event, transferDiscordId[0], amount, author, con);
                         con.commit();
                     } catch (SQLException ex) {
-                        throw new RuntimeException(ex);
+                        logger.error("Error while trying to load a user by its discord id at bank transfer command.", e);
                     }
 
                 }
@@ -117,7 +120,7 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
                 }
             });
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            logger.error("Error while trying to load a user by its discord id at bank transfer command.", e);
         }
     }
 
@@ -155,16 +158,23 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
             userDao.update(con, userToTransferFrom);
             userToTransferTo.setCurrency(userToTransferTo.getCurrency() + amount);
             userDao.update(con, userToTransferTo);
-            event.getJDA().retrieveUserById(userToTransferToDiscordId).queue(userToTransferTo1 -> {
-                String userToTransferToAsMention = userToTransferTo1.getAsMention();
-                if (event instanceof MessageReceivedEvent) {
-                    ((MessageReceivedEvent) event).getChannel().sendMessage(String.format("Successfully sent `%d` morbcoin(s) to %s.",
+            final Message[] loadingMessage = new Message[1];
+            Consumer<Message> sentMorbcoinsConsumer = message -> {
+                loadingMessage[0] = message;
+                event.getJDA().retrieveUserById(userToTransferToDiscordId).queue(user1 -> {
+                    String userToTransferToAsMention = user1.getAsMention();
+                    loadingMessage[0].editMessage(String.format("Successfully sent `%d` morbcoin(s) to %s",
                             amount, userToTransferToAsMention)).queue();
-                } else if (event instanceof SlashCommandEvent) {
-                    ((SlashCommandEvent) event).reply(String.format("Successfully sent `%d` morbcoin(s) to %s.",
-                            amount, userToTransferToAsMention)).queue();
-                }
-            });
+                });
+            };
+            if(event instanceof MessageReceivedEvent) {
+                ((MessageReceivedEvent) event).getChannel().sendMessage("Attempting to transfer morbcoins.").queue(
+                        sentMorbcoinsConsumer);
+            } else if(event instanceof SlashCommandEvent) {
+                ((SlashCommandEvent) event).getHook().sendMessage("Attempting to transfer morbcoins.").queue(
+                        sentMorbcoinsConsumer);
+            }
+
 
         }
     }
