@@ -13,6 +13,9 @@ import java.net.URI;
 public class ApiInitializer {
     private static final Logger logger = LoggerFactory.getLogger(ApiInitializer.class);
 
+    /**
+     * Starts the API server (for the dashboard).
+     */
     public static void initialize() {
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://localhost:8080/"), new APIConfig());
         try {

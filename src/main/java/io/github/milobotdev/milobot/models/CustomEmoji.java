@@ -3,6 +3,9 @@ package io.github.milobotdev.milobot.models;
 import net.dv8tion.jda.api.entities.Emoji;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This enum holds custom emojis for the bot (e.g. for playing cards)
+ */
 public enum CustomEmoji {
 
     // playing card emojis
@@ -107,10 +110,20 @@ public enum CustomEmoji {
         this.emoji = emoji;
     }
 
+    /**
+     * Returns the discord emoji.
+     *
+     * @return the discord emoji
+     */
     public Emoji getEmoji() {
         return emoji;
     }
 
+    /**
+     * Returns the emoji URL.
+     *
+     * @return the emoji URL
+     */
     public @NotNull String getCustomEmojiUrl() {
         return "https://cdn.discordapp.com/emojis/" + emoji.getId() + (emoji.isAnimated() ? ".gif" : ".png");
     }

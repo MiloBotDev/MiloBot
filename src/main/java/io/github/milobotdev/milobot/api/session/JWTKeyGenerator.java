@@ -8,9 +8,17 @@ import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Generates the keys used for signing and encrypting JWTs.
+ */
 public class JWTKeyGenerator {
     private static final Logger logger = LoggerFactory.getLogger(JWTKeyGenerator.class);
 
+    /**
+     * Generates the keys used for signing and encrypting JWTs.
+     *
+     * @return The keys used for signing and encrypting JWTs.
+     */
     @NotNull
     public static JWTKeys generateKeys() {
         logger.debug("Generating JWT signature and encryption keys");
