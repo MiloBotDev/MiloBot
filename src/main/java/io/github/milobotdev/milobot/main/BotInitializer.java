@@ -9,6 +9,9 @@ import io.github.milobotdev.milobot.commands.GuildPrefixManager;
 
 public class BotInitializer {
 
+    /**
+     * Starts the discord bot (JDA).
+     */
     public static void initialize() {
         // put everything that has to be initialized in the bot here
         // keep this method as short as possible, you should only have one-liners here, like SomeClass.initialize()

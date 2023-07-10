@@ -14,6 +14,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+/**
+ * Manages the keys used for signing and encrypting JWTs.
+ */
 public class JWTKeysManager {
     private static final Logger logger = LoggerFactory.getLogger(JWTKeysManager.class);
 
@@ -49,10 +52,20 @@ public class JWTKeysManager {
         return instance;
     }
 
+    /**
+     * Returns the keys used for signing and encrypting JWTs in byte array format.
+     *
+     * @return The keys used for signing and encrypting JWTs in byte array format.
+     */
     public JWTKeys getKeys() {
         return keys;
     }
 
+    /**
+     * Returns the keys used for signing and encrypting JWTs in java security RSA key format.
+     *
+     * @return The keys used for signing and encrypting JWTs in java security RSA key format.
+     */
     public JWTRSAKeys getRSAKeys() {
         return rsaKeys;
     }

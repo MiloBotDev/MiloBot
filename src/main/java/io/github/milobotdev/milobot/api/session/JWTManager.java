@@ -18,6 +18,13 @@ import java.util.Date;
 public class JWTManager {
     private final static JWTKeys keys = JWTKeysManager.getInstance().getKeys();
 
+    /**
+     * Generates a JWT with the given data.
+     *
+     * @param data The data to be stored in the JWT.
+     * @return The JWT.
+     * @throws JWTException If an error occurs while generating the JWT.
+     */
     public static String generateJWT(String data) throws JWTException {
         try {
             // Create JWT
@@ -50,6 +57,13 @@ public class JWTManager {
         }
     }
 
+    /**
+     * Decrypts a JWT and returns the data stored in it.
+     *
+     * @param jwt The JWT to decrypt.
+     * @return The data stored in the JWT.
+     * @throws JWTException If an error occurs while decrypting the JWT.
+     */
     public static String decryptJWT(String jwt) throws JWTException {
         try {
             // Parse the JWE string
