@@ -1,6 +1,6 @@
 # Database Access
 
-This guide provides instructions on how to store data in the MySQL database used by MiloBot.
+This guide provides instructions on how to store data in the MySQL/MariaDB database used by MiloBot.
 
 ## Daos and Models
 

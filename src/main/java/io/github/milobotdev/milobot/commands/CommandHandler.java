@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * This class is responsible for handling the commands of the bot. This class is a singleton.
+ */
 public class CommandHandler {
 
     private static CommandHandler instance;
@@ -31,6 +34,7 @@ public class CommandHandler {
     private final List<CommandData> commandDatas = new ArrayList<>();
 
     private CommandHandler() {
+        // register the event listeners that will handle the commands to the JDA
         JDAManager.getInstance().getJDABuilder().addEventListeners(new ListenerAdapter() {
             @Override
             public void onMessageReceived(@NotNull MessageReceivedEvent event) {
@@ -46,6 +50,11 @@ public class CommandHandler {
         JDAManager.getInstance().addJdaBuiltAction(jda -> jda.updateCommands().addCommands(commandDatas).queue());
     }
 
+    /**
+     * Returns an instance of the command handler.
+     *
+     * @return an instance of the command handler.
+     */
     public static synchronized CommandHandler getInstance() {
         if (instance == null) {
             instance = new CommandHandler();
@@ -53,13 +62,23 @@ public class CommandHandler {
         return instance;
     }
 
+    /**
+     * Registers a parent command and all of its subcommands to the command handler. The parent command should have
+     * all its subcommands added to it before registering it to the command handler.
+     *
+     * @param command the command to be registered.
+     */
     public void registerCommand(@NotNull ParentCommand command) {
         commands.add(command);
+
+        // register the event listeners of the command
         if (command instanceof EventListeners listeners) {
             for (EventListener listener : listeners.getEventListeners()) {
                 JDAManager.getInstance().getJDABuilder().addEventListeners(listener);
             }
         }
+
+        // register the vent listeners of the command's subcommands
         command.getSubCommands().forEach(subCommand -> {
             if (subCommand instanceof EventListeners subListeners) {
                 for (EventListener listener : subListeners.getEventListeners()) {
@@ -68,6 +87,8 @@ public class CommandHandler {
             }
         });
 
+        // If the command is a slash command, build its JDA CommandData. This is necessary to register it on Discord
+        // as a slash command.
         if (command instanceof SlashCommand slashCommand) {
             CommandData commandData;
             try {
@@ -86,10 +107,18 @@ public class CommandHandler {
                     commandData.addSubcommands(subcommandData);
                 }
             }
+
+            // Add the command data to the list of command datas waiting to be registered. These command datas will
+            // be registered to the JDA once the JDA is built.
             commandDatas.add(commandData);
         }
     }
 
+    /**
+     * Event handler for text commands.
+     *
+     * @param event the event that triggered this handler.
+     */
     private void handleMessageReceived(@NotNull MessageReceivedEvent event) {
         if (event.getMessage().getAuthor().isBot()) {
             return;
@@ -134,6 +163,13 @@ public class CommandHandler {
         }, () -> logger.trace("Command not found: " + messageParts.get(0)));
     }
 
+    /**
+     * Executes a text command.
+     *
+     * @param command the command to be executed.
+     * @param event the event that triggered this command.
+     * @param args the arguments of the command.
+     */
     private void executeCommand(@NotNull Command command, @NotNull MessageReceivedEvent event, @NotNull List<String> args) {
         String fullCommandName = command.getFullCommandName();
         logger.trace("Executing text command " + fullCommandName);
@@ -146,6 +182,11 @@ public class CommandHandler {
         });
     }
 
+    /**
+     * Event handler for slash commands.
+     *
+     * @param event the event that triggered this handler.
+     */
     private void handleSlashCommand(@NotNull SlashCommandEvent event) {
         if (event.getUser().isBot()) {
             return;
@@ -161,6 +202,12 @@ public class CommandHandler {
         }, () -> logger.trace("Command not found: " + event.getName()));
     }
 
+    /**
+     * Executes a slash command.
+     *
+     * @param command the command to be executed.
+     * @param event the event that triggered this command.
+     */
     private void executeCommand(@NotNull Command command, @NotNull SlashCommandEvent event) {
         command.getExecutorService().execute(() -> {
             try {
@@ -171,6 +218,11 @@ public class CommandHandler {
         });
     }
 
+    /**
+     * Returns a list of all registered commands.
+     *
+     * @return a list of all registered commands.
+     */
     public List<ParentCommand> getCommands() {
         return commands;
     }

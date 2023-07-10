@@ -7,6 +7,9 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * This class manages connections to the bot's database.
+ */
 public class DatabaseConnection {
 
     private static DataSource ds;
@@ -20,6 +23,12 @@ public class DatabaseConnection {
         setupDataSource(url, user, pass);
     }
 
+    /**
+     * Returns a connection to the bot's database.
+     *
+     * @return a connection to the bot's database
+     * @throws SQLException if a database access error occurs
+     */
     public static Connection getConnection() throws SQLException {
         return ds.getConnection();
     }
