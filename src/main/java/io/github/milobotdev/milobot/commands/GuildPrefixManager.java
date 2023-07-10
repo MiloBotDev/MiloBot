@@ -15,12 +15,23 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * This class is responsible for managing the prefixes of the guilds.
+ * This class is a singleton.
+ */
 public class GuildPrefixManager {
 
     private static GuildPrefixManager instance;
     private final PrefixDao prefixDao = PrefixDao.getInstance();
     public final ConcurrentHashMap<Long, String> prefixes = new ConcurrentHashMap<>();
 
+    private GuildPrefixManager() {}
+
+    /**
+     * Returns an instance of the guild prefix manager.
+     *
+     * @return an instance of the guild prefix manager.
+     */
     public static synchronized GuildPrefixManager getInstance() {
         if (instance == null) {
             instance = new GuildPrefixManager();
@@ -28,6 +39,9 @@ public class GuildPrefixManager {
         return instance;
     }
 
+    /**
+     * Initializes the guild prefix manager.
+     */
     public void initialize() {
         JDAManager.getInstance().getJDABuilder().addEventListeners(new ListenerAdapter() {
             @Override
@@ -46,6 +60,12 @@ public class GuildPrefixManager {
         };
     }
 
+    /**
+     * Sets the prefix of the guild.
+     *
+     * @param guildId the id of the guild.
+     * @param prefix the prefix of the guild.
+     */
     public void setPrefix(long guildId, String prefix) {
         prefixes.compute(guildId, (id, oldPrefix) -> {
             try (Connection con = DatabaseConnection.getConnection()) {
@@ -69,10 +89,24 @@ public class GuildPrefixManager {
         });
     }
 
+    /**
+     * Returns the prefix of the guild.
+     *
+     * @param guildId the id of the guild.
+     * @return the prefix of the guild.
+     */
     public String getPrefix(long guildId) {
         return prefixes.computeIfAbsent(guildId, this::getGuildPrefixFromDb);
     }
 
+    /**
+     * Returns the prefix of the guild from the database. This method is marked as private because
+     * it is intended to be used only in this class. Other classes should use the {@link #getPrefix(long)}
+     * method instead, which caches guild prefixes in memory.
+     *
+     * @param guildId the id of the guild.
+     * @return the prefix of the guild from the database.
+     */
     private String getGuildPrefixFromDb(long guildId) {
         String dbPrefix;
         try (Connection con = DatabaseConnection.getConnection()) {

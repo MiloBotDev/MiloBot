@@ -16,6 +16,9 @@ import io.github.milobotdev.milobot.commands.games.uno.UnoCmdLoader;
 import io.github.milobotdev.milobot.commands.morbconomy.MorbconomyCmdLoader;
 import io.github.milobotdev.milobot.commands.morbconomy.bank.BankCmdLoader;
 
+/**
+ * This class is responsible for loading all commands.
+ */
 public class CommandLoader {
 
     public static void initialize() {
