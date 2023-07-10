@@ -13,8 +13,12 @@ public class PingEvent extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (event.getMessage().getMentionedUsers().contains(event.getJDA().getSelfUser())) {
             if (event.getChannelType().equals(ChannelType.TEXT)) {
-                event.getChannel().sendMessage("My prefix is `" + GuildPrefixManager.getInstance()
-                        .getPrefix(event.getGuild().getIdLong()) + "`").queue();
+                boolean isReplyToSelf = event.getMessage().getReferencedMessage() != null &&
+                        event.getMessage().getReferencedMessage().getAuthor().equals(event.getJDA().getSelfUser());
+                if (!isReplyToSelf) {
+                    event.getChannel().sendMessage("My prefix is `" + GuildPrefixManager.getInstance()
+                            .getPrefix(event.getGuild().getIdLong()) + "`").queue();
+                }
             } else if (event.getChannelType().equals(ChannelType.PRIVATE)) {
                 event.getChannel().sendMessage("My prefix is `" + Config.getInstance().getPrivateChannelPrefix() +
                         "`").queue();
