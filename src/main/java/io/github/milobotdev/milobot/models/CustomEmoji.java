@@ -81,7 +81,7 @@ public enum CustomEmoji {
     UNO_RED_FIVE(Emoji.fromEmote("R5", 999688011426041907L, false)),
     UNO_RED_SIX(Emoji.fromEmote("R6", 999688013078593576L, false)),
     UNO_RED_SEVEN(Emoji.fromEmote("R7", 999688014542418002L, false)),
-    UNO_RED_EIGHT(Emoji.fromEmote("unoR8", 528389554655199242L, false)),
+    UNO_RED_EIGHT(Emoji.fromEmote("R8", 999688016593420328L, false)),
     UNO_RED_NINE(Emoji.fromEmote("R9", 999688018430533663L, false)),
     UNO_RED_SKIP(Emoji.fromEmote("RS", 999688023178481684L, false)),
     UNO_RED_REVERSE(Emoji.fromEmote("RR", 999688021525934230L, false)),
