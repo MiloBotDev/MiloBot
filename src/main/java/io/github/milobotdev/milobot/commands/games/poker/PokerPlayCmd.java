@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public class PokerPlayCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags, Aliases,
-        DefaultCommandArgs, Instance {
+        DefaultCommandArgs {
 
     private final ExecutorService executorService;
 
@@ -72,10 +72,5 @@ public class PokerPlayCmd extends SubCommand implements TextCommand, SlashComman
     @Override
     public @NotNull ExecutorService getExecutorService() {
         return this.executorService;
-    }
-
-    @Override
-    public InstanceData isInstanced() {
-        return new InstanceData(true, 900, null);
     }
 }
