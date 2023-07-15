@@ -39,6 +39,8 @@ public class Config {
     private final boolean botEnabled;
     private final boolean apiEnabled;
 
+    private final int apiPort;
+
     /**
      * Instantiates all the configuration fields.
      *
@@ -69,6 +71,8 @@ public class Config {
 
         this.botEnabled = (boolean) data.get("botEnabled");
         this.apiEnabled = (boolean) data.get("apiEnabled");
+
+        this.apiPort = (int) data.get("apiPort");
     }
 
     /**
@@ -145,5 +149,9 @@ public class Config {
 
     public boolean isApiEnabled() {
         return apiEnabled;
+    }
+
+    public int getApiPort() {
+        return apiPort;
     }
 }

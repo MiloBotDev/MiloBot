@@ -1,6 +1,7 @@
 package io.github.milobotdev.milobot.main;
 
 import io.github.milobotdev.milobot.api.APIConfig;
+import io.github.milobotdev.milobot.utility.Config;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.slf4j.Logger;
@@ -17,7 +18,8 @@ public class ApiInitializer {
      * Starts the API server (for the dashboard).
      */
     public static void initialize() {
-        HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://localhost:8080/"), new APIConfig());
+        int port = Config.getInstance().getApiPort();
+        HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://localhost:" + port + "/"), new APIConfig());
         try {
             server.start();
         } catch (IOException e) {
