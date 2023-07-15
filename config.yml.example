@@ -11,6 +11,7 @@ dashboardEnabled: true/false
 clientId: ""
 secret: ""
 apiRedirectUri: ""
+apiPort: 8080
 
 # github
 personalAccessToken:
