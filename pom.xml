@@ -52,6 +52,13 @@
     </properties>
 
     <dependencies>
+        <!-- This has to be the first dependency: https://stackoverflow.com/questions/44552733/jersey-maven-messagebodywriter-not-found-for-media-type-application-json/52291171 -->
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.luaj</groupId>
             <artifactId>luaj-jse</artifactId>
@@ -153,11 +160,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.14.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-jackson</artifactId>
-            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.nimbusds</groupId>
