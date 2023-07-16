@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 
 import java.util.Map;
@@ -33,12 +33,12 @@ public abstract class AbstractLobby {
     }
 
     /**
-     * Initializes the lobby with the SlashCommandEvent. All subsequent outside method calls on this class and static
+     * Initializes the lobby with the SlashCommandInteractionEvent. All subsequent outside method calls on this class and static
      * methods calls intending to operate on this lobby MUST be from the same thread.
      *
-     * @param event The SlashCommandEvent that was triggered.
+     * @param event The SlashCommandInteractionEvent that was triggered.
      */
-    public final void initialize(SlashCommandEvent event) {
+    public final void initialize(SlashCommandInteractionEvent event) {
         if (initialized) {
             throw new IllegalStateException("Lobby already initialized.");
         }

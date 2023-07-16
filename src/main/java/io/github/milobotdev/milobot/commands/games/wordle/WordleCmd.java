@@ -27,7 +27,7 @@ public class WordleCmd extends ParentCommand implements DefaultTextParentCommand
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("wordle", "Wordle brought to discord.");
     }
 

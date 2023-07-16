@@ -6,10 +6,11 @@ import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.games.BlackjackGame;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
@@ -35,13 +36,13 @@ public class BlackjackPlayCmd extends SubCommand implements TextCommand, SlashCo
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         BlackjackGame.newGame(event, isInstanced().duration());
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("play", "Play a game of blackjack on discord.")
                 .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
                         .setRequiredRange(1, 10000));

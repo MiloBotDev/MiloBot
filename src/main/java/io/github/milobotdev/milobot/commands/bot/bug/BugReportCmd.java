@@ -6,7 +6,7 @@ import io.github.milobotdev.milobot.utility.Config;
 import io.github.milobotdev.milobot.utility.GitHubBot;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -68,7 +68,7 @@ public class BugReportCmd extends SubCommand implements TextCommand, SlashComman
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("report", "Report a bug you found.");
     }
 
@@ -87,7 +87,7 @@ public class BugReportCmd extends SubCommand implements TextCommand, SlashComman
     }
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(SlashCommandInteractionEvent event) {
         if (bugReportInstances.containsKey(event.getUser().getIdLong())) {
             event.reply("You already have an active bug report instance.").queue();
             return;

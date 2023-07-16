@@ -5,7 +5,7 @@ import io.github.milobotdev.milobot.commands.command.extensions.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -25,7 +25,7 @@ public class InviteCmd extends ParentCommand implements TextCommand, SlashComman
 
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("invite", "Sends an invite link to add the bot to another server.");
     }
 
@@ -35,7 +35,7 @@ public class InviteCmd extends ParentCommand implements TextCommand, SlashComman
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         event.reply(generateInviteUrl(event.getJDA())).setEphemeral(true).queue();
     }
 

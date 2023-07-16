@@ -8,7 +8,7 @@ import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
 import net.dv8tion.jda.api.hooks.EventListener;
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -42,7 +42,7 @@ public class CommandHandler {
             }
 
             @Override
-            public void onSlashCommand(@NotNull SlashCommandEvent event) {
+            public void onSlashCommand(@NotNull SlashCommandInteractionEvent event) {
                 handleSlashCommand(event);
             }
         });
@@ -187,7 +187,7 @@ public class CommandHandler {
      *
      * @param event the event that triggered this handler.
      */
-    private void handleSlashCommand(@NotNull SlashCommandEvent event) {
+    private void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
         if (event.getUser().isBot()) {
             return;
         }
@@ -208,7 +208,7 @@ public class CommandHandler {
      * @param command the command to be executed.
      * @param event the event that triggered this command.
      */
-    private void executeCommand(@NotNull Command command, @NotNull SlashCommandEvent event) {
+    private void executeCommand(@NotNull Command command, @NotNull SlashCommandInteractionEvent event) {
         command.getExecutorService().execute(() -> {
             try {
                 command.onCommand(event);

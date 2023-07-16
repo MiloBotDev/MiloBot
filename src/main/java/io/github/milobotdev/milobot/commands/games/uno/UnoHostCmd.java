@@ -9,7 +9,7 @@ import io.github.milobotdev.milobot.utility.datatypes.CircularLinkedList;
 import io.github.milobotdev.milobot.utility.lobby.BotLobby;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
@@ -34,7 +34,7 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("host", "Host a game of Uno!")
                 .addOptions(new OptionData(OptionType.INTEGER, "max-players", "Maximum number of players", false)
                         .setRequiredRange(2, 8));
@@ -92,7 +92,7 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(SlashCommandInteractionEvent event) {
         try {
             event.deferReply().queue();
             int maxPlayers = 4;

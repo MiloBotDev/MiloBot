@@ -7,7 +7,7 @@ import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
@@ -34,7 +34,7 @@ public class PrefixCmd extends ParentCommand implements TextCommand, SlashComman
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("prefix", "Change the prefix of the guild you're in.")
                 .addOptions(new OptionData(OptionType.STRING, "prefix", "The new prefix for the guild.")
                         .setRequired(true));
@@ -71,7 +71,7 @@ public class PrefixCmd extends ParentCommand implements TextCommand, SlashComman
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         String prefix = Objects.requireNonNull(event.getOption("prefix")).getAsString();
         if (prefix.length() > 2) {
             event.reply("A prefix cant be longer then 2 characters.").queue();

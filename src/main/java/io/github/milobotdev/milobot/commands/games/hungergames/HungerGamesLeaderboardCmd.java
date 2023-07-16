@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -49,7 +49,7 @@ public class HungerGamesLeaderboardCmd extends SubCommand implements TextCommand
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("leaderboard", "View the hungergames leaderboards.");
     }
 
@@ -74,7 +74,7 @@ public class HungerGamesLeaderboardCmd extends SubCommand implements TextCommand
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         SelectionMenu menu = SelectionMenu.create(event.getUser().getId() + ":hgLeaderboard")
                 .setPlaceholder("Select a leaderboard")
                 .addOption("Total Kills", "totalKills")

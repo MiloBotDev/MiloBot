@@ -24,7 +24,7 @@ public class BankCmd extends ParentCommand implements DefaultTextParentCommand, 
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("bank", "All commands related to your virtual bank.");
     }
 

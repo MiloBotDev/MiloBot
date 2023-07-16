@@ -9,7 +9,7 @@ import io.github.milobotdev.milobot.games.Minesweeper;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -34,7 +34,7 @@ public class MinesweeperPlayCmd extends SubCommand implements TextCommand, Slash
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("play", "Play a game of minesweeper");
     }
 
@@ -56,7 +56,7 @@ public class MinesweeperPlayCmd extends SubCommand implements TextCommand, Slash
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         event.reply("A game has been started in your dms.").queue();
         User user = event.getUser();
         user.openPrivateChannel().queue(privateChannel -> {

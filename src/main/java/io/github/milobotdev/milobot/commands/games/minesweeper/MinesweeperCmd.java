@@ -26,7 +26,7 @@ public class MinesweeperCmd extends ParentCommand implements DefaultTextParentCo
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("minesweeper", "Minesweeper? On discord? Yes!");
     }
 

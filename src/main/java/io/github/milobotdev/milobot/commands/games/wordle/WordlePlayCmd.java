@@ -17,12 +17,12 @@ import io.github.milobotdev.milobot.utility.TimeTracker;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -47,7 +47,7 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("play", "Play a game of wordle.");
     }
 
@@ -65,7 +65,7 @@ public class WordlePlayCmd extends SubCommand implements TextCommand, SlashComma
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         WordleGame wordleGame = new WordleGame(event.getUser().getIdLong());
         EmbedBuilder wordleEmbed = new EmbedBuilder();

@@ -14,10 +14,10 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -149,7 +149,7 @@ public class BlackjackGame {
         }
     }
 
-    public static void newGame(@NotNull SlashCommandEvent event, int instanceDuration) {
+    public static void newGame(@NotNull SlashCommandInteractionEvent event, int instanceDuration) {
         duration = instanceDuration;
         long authorIdLong = event.getUser().getIdLong();
         String authorId = event.getUser().getId();

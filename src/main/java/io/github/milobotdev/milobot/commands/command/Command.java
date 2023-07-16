@@ -6,7 +6,7 @@ import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -68,7 +68,7 @@ public abstract class Command implements ICommand {
         }
     }
 
-    public final void onCommand(@NotNull SlashCommandEvent event) {
+    public final void onCommand(@NotNull SlashCommandInteractionEvent event) {
         if (this instanceof SlashCommand slashCommand) {
             if (!slashCommand.getAllowedChannelTypes().contains(event.getChannelType())) {
                 slashCommand.sendInvalidChannelMessage(event);

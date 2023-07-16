@@ -20,7 +20,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
@@ -51,7 +51,7 @@ public class HungerGamesStartCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("start", "Starts the Hunger Games")
                 .addOptions(new OptionData(OptionType.INTEGER, "max-players", "Maximum number of players", false)
                         .setRequiredRange(2, 8));
@@ -116,7 +116,7 @@ public class HungerGamesStartCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         try {
             event.deferReply().queue();
             User author = event.getUser();

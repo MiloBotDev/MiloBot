@@ -4,7 +4,7 @@ import io.github.milobotdev.milobot.commands.GuildPrefixManager;
 import io.github.milobotdev.milobot.commands.command.IParentCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import io.github.milobotdev.milobot.utility.Config;
 import io.github.milobotdev.milobot.utility.EmbedUtils;

@@ -26,7 +26,7 @@ public class PokerCmd extends ParentCommand implements DefaultTextParentCommand,
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("poker", "5-card Poker brought to discord.");
     }
 

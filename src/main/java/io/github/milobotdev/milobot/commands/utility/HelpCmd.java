@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.Event;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
@@ -44,7 +44,7 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("help", "Shows the user an overview of every command, or detailed information on a specific command.")
                 .addOptions(new OptionData(OptionType.STRING, "command", "The command to get help for.")
                         .setRequired(false));
@@ -70,7 +70,7 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         if(event.getOption("command") != null) {
             sendCommandSpecificHelpEmbed(event.getOption("command").getAsString(), event);
         } else {
@@ -84,8 +84,8 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
             if (command.getFullCommandName().equalsIgnoreCase(commandName)) {
                 if(event instanceof MessageReceivedEvent) {
                     ((TextCommand) command).generateHelp((MessageReceivedEvent) event);
-                } else if(event instanceof SlashCommandEvent) {
-                    ((SlashCommand) command).generateHelp((SlashCommandEvent) event);
+                } else if(event instanceof SlashCommandInteractionEvent) {
+                    ((SlashCommand) command).generateHelp((SlashCommandInteractionEvent) event);
                 }
                 foundCommand[0] = true;
             } else {
@@ -93,8 +93,8 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
                     if (subCommand.getFullCommandName().equalsIgnoreCase(commandName)) {
                         if(event instanceof MessageReceivedEvent) {
                             ((TextCommand) subCommand).generateHelp((MessageReceivedEvent) event);
-                        } else if(event instanceof SlashCommandEvent) {
-                            ((SlashCommand) subCommand).generateHelp((SlashCommandEvent) event);
+                        } else if(event instanceof SlashCommandInteractionEvent) {
+                            ((SlashCommand) subCommand).generateHelp((SlashCommandInteractionEvent) event);
                         }
                         foundCommand[0] = true;
                     }
@@ -104,8 +104,8 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
         if(!foundCommand[0]) {
             if(event instanceof MessageReceivedEvent) {
                 ((MessageReceivedEvent) event).getChannel().sendMessage(String.format("Command `%s` not found.", commandName)).queue();
-            } else if(event instanceof SlashCommandEvent) {
-                ((SlashCommandEvent) event).reply(String.format("Command `%s` not found.", commandName)).setEphemeral(true).queue();
+            } else if(event instanceof SlashCommandInteractionEvent) {
+                ((SlashCommandInteractionEvent) event).reply(String.format("Command `%s` not found.", commandName)).setEphemeral(true).queue();
             }
         }
     }

@@ -21,7 +21,7 @@ public class BugCmd extends ParentCommand implements TextCommand, SlashCommand, 
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("bug", "Add bugs to the bots issue tracker, or view them.");
     }
 

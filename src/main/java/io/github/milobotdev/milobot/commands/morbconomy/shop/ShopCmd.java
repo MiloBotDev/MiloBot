@@ -24,7 +24,7 @@ public class ShopCmd extends ParentCommand implements DefaultTextParentCommand, 
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("shop", "Buy items from the shop.");
     }
 

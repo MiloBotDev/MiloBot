@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -20,7 +20,7 @@ import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +77,7 @@ public class EncounterGeneratorCmd extends SubCommand implements TextCommand, Sl
 
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(SlashCommandInteractionEvent event) {
         int partySize = Math.toIntExact(Objects.requireNonNull(event.getOption("size")).getAsLong());
         int partyLevel = Math.toIntExact(Objects.requireNonNull(event.getOption("level")).getAsLong());
         String difficulty = Objects.requireNonNull(event.getOption("difficulty")).getAsString();
@@ -97,7 +97,7 @@ public class EncounterGeneratorCmd extends SubCommand implements TextCommand, Sl
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("generate", "Generate a random encounter for the given inputs.")
                 .addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
                         .setRequired(true)

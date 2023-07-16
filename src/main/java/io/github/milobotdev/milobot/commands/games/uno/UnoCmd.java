@@ -26,7 +26,7 @@ public class UnoCmd extends ParentCommand implements DefaultTextParentCommand, D
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("uno", "Play Uno with your friends!");
     }
 

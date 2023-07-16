@@ -22,7 +22,7 @@ public class BlackjackCmd extends ParentCommand implements DefaultTextParentComm
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("blackjack", "Blackjack brought to discord.");
     }
 

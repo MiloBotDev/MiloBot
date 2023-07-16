@@ -9,7 +9,7 @@ import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
 import io.github.milobotdev.milobot.games.PokerGame;
 import io.github.milobotdev.milobot.utility.lobby.Lobby;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -29,7 +29,7 @@ public class PokerPlayCmd extends SubCommand implements TextCommand, SlashComman
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("play", "Play a game of poker on discord.");
     }
 
@@ -47,7 +47,7 @@ public class PokerPlayCmd extends SubCommand implements TextCommand, SlashComman
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         try {
             new Lobby("Poker lobby", event.getUser(),
                     (players, message) -> {

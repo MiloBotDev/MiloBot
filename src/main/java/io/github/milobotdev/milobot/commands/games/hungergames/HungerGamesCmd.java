@@ -23,7 +23,7 @@ public class HungerGamesCmd extends ParentCommand implements DefaultTextParentCo
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("hungergames", "Hunger Games");
     }
 

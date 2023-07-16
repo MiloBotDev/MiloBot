@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
@@ -33,7 +33,7 @@ public class UserCmd extends ParentCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("user", "Shows information on the user you are using this command on.")
                 .addOptions(new OptionData(OptionType.USER, "user", "The user to show information on.")
                         .setRequired(false));
@@ -97,7 +97,7 @@ public class UserCmd extends ParentCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(SlashCommandInteractionEvent event) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         EmbedBuilder userEmbed = new EmbedBuilder();
         EmbedUtils.styleEmbed(userEmbed, event.getUser());

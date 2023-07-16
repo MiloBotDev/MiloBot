@@ -22,7 +22,7 @@ public class EncounterCmd extends ParentCommand implements DefaultTextParentComm
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new CommandData("encounter", "D&D 5e encounter generator.");
     }
 

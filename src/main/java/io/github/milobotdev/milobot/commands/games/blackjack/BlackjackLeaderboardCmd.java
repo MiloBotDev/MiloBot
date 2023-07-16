@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -49,7 +49,7 @@ public class BlackjackLeaderboardCmd extends SubCommand implements TextCommand, 
     }
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(SlashCommandInteractionEvent event) {
         SelectionMenu menu = SelectionMenu.create(event.getUser().getId() + ":blackjackLeaderboard")
                 .setPlaceholder("Select a leaderboard")
                 .addOption("Highest Streak", "highestStreak")
@@ -77,7 +77,7 @@ public class BlackjackLeaderboardCmd extends SubCommand implements TextCommand, 
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
+    public @NotNull CommandData getCommandData() {
         return new SubcommandData("leaderboard","View the blackjack leaderboards.");
     }
 
