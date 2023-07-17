@@ -11,8 +11,9 @@ import org.glassfish.jersey.process.internal.RequestScoped;
 
 import java.io.IOException;
 
-//@Provider
+@Provider
 //@Interceptor
+@AuthorizedAPIAnnotation
 public class AuthorizedAPI implements ContainerRequestFilter {
 
     //@AroundInvoke

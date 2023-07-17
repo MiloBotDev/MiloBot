@@ -12,7 +12,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 @Path("/json")
-@Interceptors(io.github.milobotdev.milobot.api.AuthorizedAPI.class)
+@AuthorizedAPIAnnotation
 public class App {
 
     //@Inject
