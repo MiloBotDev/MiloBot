@@ -10,14 +10,12 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 
-import java.io.IOException;
-
 @Provider
 @AuthorizedAPI
 public class AuthorizedAPIFilter implements ContainerRequestFilter {
 
     @Override
-    public void filter(ContainerRequestContext containerRequestContext) throws IOException {
+    public void filter(ContainerRequestContext containerRequestContext) {
         String authorization = containerRequestContext.getHeaderString("Authorization");
         if (authorization == null) {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());

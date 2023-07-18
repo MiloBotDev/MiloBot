@@ -8,7 +8,6 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.Date;
 

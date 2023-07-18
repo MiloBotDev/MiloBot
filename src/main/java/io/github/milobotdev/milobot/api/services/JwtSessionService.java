@@ -7,7 +7,7 @@ import jakarta.ws.rs.core.Context;
 public class JwtSessionService {
 
     @Context
-    ContainerRequestContext context;
+    private ContainerRequestContext context;
 
     public AccessJwtData getAccessJwtData() {
         return (AccessJwtData) context.getProperty("accessJwtData");

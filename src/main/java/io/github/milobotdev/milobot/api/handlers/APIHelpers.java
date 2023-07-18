@@ -6,12 +6,11 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 @Path("/")
 public class APIHelpers {
 
-    SecureRandom random = new SecureRandom();
+    private final SecureRandom random = new SecureRandom();
     private static final String ALPHANUMERIC_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     @GET

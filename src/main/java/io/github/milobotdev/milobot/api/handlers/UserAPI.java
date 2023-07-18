@@ -20,10 +20,10 @@ import java.io.IOException;
 @AuthorizedAPI
 public class UserAPI {
 
-    private Logger logger = LoggerFactory.getLogger(UserAPI.class);
+    private final Logger logger = LoggerFactory.getLogger(UserAPI.class);
 
     @Inject
-    JwtSessionService jwtSessionService;
+    private JwtSessionService jwtSessionService;
 
     public record GuildReturnData(String name, String id, String iconUrl) {
     }
