@@ -2,7 +2,8 @@ package io.github.milobotdev.milobot.api.handlers;
 
 import com.google.gson.Gson;
 import io.github.milobotdev.discordoauth2api.DiscordOAuth2API;
-import io.github.milobotdev.discordoauth2api.HttpException;
+import io.github.milobotdev.discordoauth2api.exceptions.HttpException;
+import io.github.milobotdev.discordoauth2api.exceptions.RateLimitExceededException;
 import io.github.milobotdev.discordoauth2api.models.AccessTokenResponse;
 import io.github.milobotdev.milobot.api.models.AccessJwtData;
 import io.github.milobotdev.milobot.api.models.LoginReturnData;
@@ -28,24 +29,35 @@ public class Login {
     @Produces(MediaType.APPLICATION_JSON)
     public LoginReturnData doLogin(@QueryParam("code") String code) {
         Date instantBeforeCodeExchange = new Date();
-        AccessTokenResponse resp;
-        try {
-            resp = DiscordOAuth2API.exchangeAccessToken(Config.getInstance().getBotClientId(),
-                    Config.getInstance().getBotSecret(), code, Config.getInstance().apiRedirectUri());
-
-        } catch (IOException e) {
-            logger.error("IOException thrown while exchanging access token", e);
-            throw new WebApplicationException();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            logger.error("InterruptedException thrown while exchanging access token", e);
-            throw new WebApplicationException();
-        } catch (HttpException e) {
-            if (e.getResponse().statusCode() == 400) {
-                throw new WebApplicationException(400);
-            } else {
-                logger.error("DiscordOAuth2API HttpException thrown while exchanging access token", e);
+        AccessTokenResponse resp = null;
+        boolean success = false;
+        while (!success) {
+            try {
+                resp = DiscordOAuth2API.exchangeAccessToken(Config.getInstance().getBotClientId(),
+                        Config.getInstance().getBotSecret(), code, Config.getInstance().apiRedirectUri());
+                success = true;
+            } catch (IOException e) {
+                logger.error("IOException thrown while exchanging access token", e);
                 throw new WebApplicationException();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("InterruptedException thrown while exchanging access token", e);
+                throw new WebApplicationException();
+            } catch (RateLimitExceededException e) {
+                try {
+                    Thread.sleep((long) Math.ceil(e.getRateLimitExceededResponse().retryAfter() * 1000));
+                } catch (InterruptedException interruptedException) {
+                    Thread.currentThread().interrupt();
+                    logger.error("InterruptedException thrown while sleeping to retry after rate limit exceeded", interruptedException);
+                    throw new WebApplicationException();
+                }
+            } catch (HttpException e) {
+                if (e.getResponse().statusCode() == 400) {
+                    throw new WebApplicationException(400);
+                } else {
+                    logger.error("DiscordOAuth2API HttpException thrown while exchanging access token", e);
+                    throw new WebApplicationException();
+                }
             }
         }
 
