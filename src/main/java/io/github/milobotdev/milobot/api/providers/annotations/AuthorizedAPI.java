@@ -1,4 +1,4 @@
-package io.github.milobotdev.milobot.api;
+package io.github.milobotdev.milobot.api.providers.annotations;
 
 import jakarta.ws.rs.NameBinding;
 
@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 @NameBinding
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AuthorizedAPIAnnotation {
+public @interface AuthorizedAPI {
 }

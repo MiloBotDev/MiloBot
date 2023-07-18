@@ -1,4 +1,4 @@
-package io.github.milobotdev.milobot.api;
+package io.github.milobotdev.milobot.api.providers;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;

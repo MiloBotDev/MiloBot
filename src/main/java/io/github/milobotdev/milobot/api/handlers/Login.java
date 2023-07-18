@@ -1,9 +1,11 @@
-package io.github.milobotdev.milobot.api;
+package io.github.milobotdev.milobot.api.handlers;
 
 import com.google.gson.Gson;
 import io.github.milobotdev.discordoauth2api.DiscordOAuth2API;
 import io.github.milobotdev.discordoauth2api.HttpException;
 import io.github.milobotdev.discordoauth2api.models.AccessTokenResponse;
+import io.github.milobotdev.milobot.api.models.AccessJwtData;
+import io.github.milobotdev.milobot.api.models.LoginReturnData;
 import io.github.milobotdev.milobot.api.session.JWTException;
 import io.github.milobotdev.milobot.api.session.JWTManager;
 import io.github.milobotdev.milobot.utility.Config;
@@ -25,7 +27,6 @@ public class Login {
     @Path("/do-login")
     @Produces(MediaType.APPLICATION_JSON)
     public LoginReturnData doLogin(@QueryParam("code") String code) {
-        //System.out.println("code: " + code);
         Date instantBeforeCodeExchange = new Date();
         AccessTokenResponse resp;
         try {
@@ -47,9 +48,6 @@ public class Login {
                 throw new WebApplicationException();
             }
         }
-        // split resp.scope() into a list of strings whitespaces
-        // check if the list contains "identify" and "guilds"
-        // if not, throw an exception
 
         List<String> scopes = List.of(resp.scope().split(" "));
         if (!scopes.contains("identify") || !scopes.contains("guilds")) {

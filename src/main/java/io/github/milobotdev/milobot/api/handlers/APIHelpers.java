@@ -1,4 +1,4 @@
-package io.github.milobotdev.milobot.api;
+package io.github.milobotdev.milobot.api.handlers;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

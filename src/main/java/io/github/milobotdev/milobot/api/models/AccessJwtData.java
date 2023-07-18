@@ -1,4 +1,4 @@
-package io.github.milobotdev.milobot.api;
+package io.github.milobotdev.milobot.api.models;
 
 import java.util.Date;
 

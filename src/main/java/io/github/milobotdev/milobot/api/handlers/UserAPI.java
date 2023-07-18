@@ -1,22 +1,23 @@
-package io.github.milobotdev.milobot.api;
+package io.github.milobotdev.milobot.api.handlers;
 
 import io.github.milobotdev.discordoauth2api.DiscordOAuth2API;
 import io.github.milobotdev.discordoauth2api.HttpException;
 import io.github.milobotdev.discordoauth2api.models.Guild;
+import io.github.milobotdev.milobot.api.providers.annotations.AuthorizedAPI;
+import io.github.milobotdev.milobot.api.services.JwtSessionService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 @Path("/")
-@AuthorizedAPIAnnotation
+@AuthorizedAPI
 public class UserAPI {
 
     private Logger logger = LoggerFactory.getLogger(UserAPI.class);
@@ -27,13 +28,10 @@ public class UserAPI {
     public record GuildReturnData(String name, String id, String iconUrl) {
     }
 
-
-
     @GET
     @Path("/guilds")
     @Produces(MediaType.APPLICATION_JSON)
     public GuildReturnData[] getGuilds() {
-        //return new Guild[] {new Guild()};
         Guild[] guilds;
         try {
             guilds = DiscordOAuth2API.fetchGuilds(jwtSessionService.getAccessJwtData().accessToken());
