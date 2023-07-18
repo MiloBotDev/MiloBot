@@ -16,6 +16,7 @@ public class Hk2Feature implements Feature {
             @Override
             protected void configure() {
                 bind(DependencyInjectionService.class).to(DependencyInjectionService.class);
+                bind(JwtSessionService.class).to(JwtSessionService.class);
             }
         });
 

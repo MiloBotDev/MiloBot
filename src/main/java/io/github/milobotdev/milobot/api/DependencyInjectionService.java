@@ -29,6 +29,10 @@ public class DependencyInjectionService implements PostConstruct {
         System.out.println(num++);
     }
 
+    public AccessJwtData getAccessJwtData() {
+        return (AccessJwtData) cc.getProperty("accessJwtData");
+    }
+
     @Override
     public void postConstruct() {
         System.out.println("Helloagain");
