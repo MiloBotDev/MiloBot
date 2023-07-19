@@ -16,6 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 @Path("/")
 @AuthorizedAPI
@@ -32,7 +35,7 @@ public class UserAPI {
     @GET
     @Path("/guilds")
     @Produces(MediaType.APPLICATION_JSON)
-    public GuildReturnData[] getGuilds() {
+    public List<GuildReturnData> getGuilds() {
         Guild[] guilds = new Guild[0];
         boolean success = false;
         while (!success) {
@@ -65,15 +68,19 @@ public class UserAPI {
             }
         }
 
-        GuildReturnData[] guildReturnData = new GuildReturnData[guilds.length];
-        for (int i = 0; i < guilds.length; i++) {
-            String iconUrl = null;
-            if (guilds[i].icon() != null) {
-                iconUrl = "https://cdn.discordapp.com/icons/" + guilds[i].id() + "/" + guilds[i].icon() + ".png";
+        List<GuildReturnData> guildReturnDataList = new ArrayList<>();
+        for (Guild guild : guilds) {
+            BigInteger permissions = new BigInteger(guild.permissions());
+            boolean manageGuildPermission = permissions.testBit(5);
+            if (manageGuildPermission) {
+                String iconUrl = null;
+                if (guild.icon() != null) {
+                    iconUrl = "https://cdn.discordapp.com/icons/" + guild.id() + "/" + guild.icon() + ".png";
+                }
+                guildReturnDataList.add(new GuildReturnData(guild.name(), guild.id(), iconUrl));
             }
-            guildReturnData[i] = new GuildReturnData(guilds[i].name(), guilds[i].id(), iconUrl);
         }
 
-        return guildReturnData;
+        return guildReturnDataList;
     }
 }
