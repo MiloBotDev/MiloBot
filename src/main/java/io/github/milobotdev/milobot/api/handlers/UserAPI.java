@@ -6,12 +6,14 @@ import io.github.milobotdev.discordoauth2api.exceptions.RateLimitExceededExcepti
 import io.github.milobotdev.discordoauth2api.models.Guild;
 import io.github.milobotdev.milobot.api.providers.annotations.AuthorizedAPI;
 import io.github.milobotdev.milobot.api.services.JwtSessionService;
+import io.github.milobotdev.milobot.main.JDAManager;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
+import net.dv8tion.jda.api.JDA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +31,7 @@ public class UserAPI {
     @Inject
     private JwtSessionService jwtSessionService;
 
-    public record GuildReturnData(String name, String id, String iconUrl) {
+    public record GuildReturnData(String name, String id, String iconUrl, boolean isBotInGuild) {
     }
 
     @GET
@@ -73,11 +75,13 @@ public class UserAPI {
             BigInteger permissions = new BigInteger(guild.permissions());
             boolean manageGuildPermission = permissions.testBit(5);
             if (manageGuildPermission) {
+                JDA jda = JDAManager.getInstance().getJDA();
+                boolean botIsInGuild = jda.getGuildById(guild.id()) != null;
                 String iconUrl = null;
                 if (guild.icon() != null) {
                     iconUrl = "https://cdn.discordapp.com/icons/" + guild.id() + "/" + guild.icon() + ".png";
                 }
-                guildReturnDataList.add(new GuildReturnData(guild.name(), guild.id(), iconUrl));
+                guildReturnDataList.add(new GuildReturnData(guild.name(), guild.id(), iconUrl, botIsInGuild));
             }
         }
 

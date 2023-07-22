@@ -24,6 +24,7 @@ public class JDAManager {
     private volatile boolean built = false;
     private List<Consumer<JDA>> jdaBuiltActions = new ArrayList<>();
     private List<Consumer<JDA>> jdaReadyActions = new ArrayList<>();
+    private JDA jda;
 
     private JDAManager() {
         jdaBuilder = JDABuilder.createDefault(Config.getInstance().getBotToken())
@@ -55,7 +56,6 @@ public class JDAManager {
     public synchronized void build() {
         if (!built) {
             built = true;
-            JDA jda;
             try {
                 jda = jdaBuilder.build();
             } catch (LoginException e) {
@@ -113,6 +113,18 @@ public class JDAManager {
             jdaReadyActions.add(action);
         } else {
             throw new IllegalStateException("JDA has already been built");
+        }
+    }
+
+    /**
+     * Returns the JDA.
+     * @return the JDA
+     */
+    public JDA getJDA() {
+        if (built) {
+            return jda;
+        } else {
+            throw new IllegalStateException("JDA has not been built");
         }
     }
 }
