@@ -65,7 +65,7 @@ public interface TextCommand extends ICommand {
      * @see ChannelType
      * @see DefaultChannelTypes
      */
-    Set<ChannelType> getAllowedChannelTypes();
+    @NotNull Set<ChannelType> getAllowedChannelTypes();
 
     /**
      * Generates and sends a standardized help message for the command this is called on.

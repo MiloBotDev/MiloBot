@@ -7,6 +7,7 @@ import io.github.milobotdev.milobot.commands.command.extensions.DefaultSlashPare
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultTextParentCommand;
 import io.github.milobotdev.milobot.commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.NotNull;

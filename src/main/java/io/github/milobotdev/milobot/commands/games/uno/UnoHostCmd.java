@@ -5,10 +5,10 @@ import io.github.milobotdev.milobot.commands.command.extensions.*;
 import io.github.milobotdev.milobot.commands.instance.model.*;
 import io.github.milobotdev.milobot.games.hungergames.model.LobbyEntry;
 import io.github.milobotdev.milobot.games.uno.UnoGame;
-import io.github.milobotdev.milobot.utility.datatypes.CircularLinkedList;
 import io.github.milobotdev.milobot.utility.lobby.BotLobby;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
         DefaultChannelTypes, Aliases, Instance {

@@ -1,6 +1,7 @@
 package io.github.milobotdev.milobot.commands.command.extensions;
 
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;

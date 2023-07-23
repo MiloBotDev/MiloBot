@@ -1,23 +1,23 @@
 package io.github.milobotdev.milobot.commands;
 
 import io.github.milobotdev.milobot.commands.command.Command;
+import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.Aliases;
 import io.github.milobotdev.milobot.commands.command.extensions.EventListeners;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
-import net.dv8tion.jda.api.hooks.EventListener;
-import io.github.milobotdev.milobot.commands.command.ParentCommand;
-import net.dv8tion.jda.api.entities.ChannelType;
+import io.github.milobotdev.milobot.main.JDAManager;
+import io.github.milobotdev.milobot.utility.Config;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.milobotdev.milobot.main.JDAManager;
-import io.github.milobotdev.milobot.utility.Config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +42,7 @@ public class CommandHandler {
             }
 
             @Override
-            public void onSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+            public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
                 handleSlashCommand(event);
             }
         });
@@ -92,7 +92,7 @@ public class CommandHandler {
         if (command instanceof SlashCommand slashCommand) {
             CommandData commandData;
             try {
-                commandData = (CommandData) slashCommand.getCommandData();
+                commandData = slashCommand.getCommandData();
             } catch (ClassCastException e) {
                 throw new ClassCastException("Slash command \"" + command.getFullCommandName() + "\" data type is not CommandData");
             }
