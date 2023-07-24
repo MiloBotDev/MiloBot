@@ -4,7 +4,6 @@ import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
 import io.github.milobotdev.milobot.commands.games.GamesCmd;
 import io.github.milobotdev.milobot.games.WordleGame;
-import io.github.milobotdev.milobot.games.uno.UnoGame;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;

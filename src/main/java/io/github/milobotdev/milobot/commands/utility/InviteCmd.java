@@ -7,8 +7,8 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -26,7 +26,12 @@ public class InviteCmd extends ParentCommand implements TextCommand, SlashComman
 
     @Override
     public @NotNull CommandData getCommandData() {
-        return new CommandData("invite", "Sends an invite link to add the bot to another server.");
+        return Commands.slash("invite", "Sends an invite link to add the bot to another server.");
+    }
+
+    @Override
+    public @NotNull String getCommandDescription() {
+        return "Sends an invite link to add the bot to another server.";
     }
 
     @Override
@@ -42,6 +47,7 @@ public class InviteCmd extends ParentCommand implements TextCommand, SlashComman
     private @NotNull String generateInviteUrl(@NotNull JDA jda) {
          return jda.getInviteUrl(Permission.ADMINISTRATOR);
     }
+
 
     @Override
     public @NotNull ExecutorService getExecutorService() {
