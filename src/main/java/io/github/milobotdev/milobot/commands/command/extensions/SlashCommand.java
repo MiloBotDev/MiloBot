@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public interface SlashCommand extends ICommand {
 
     void executeCommand(SlashCommandInteractionEvent event);
-    @NotNull CommandData getCommandData();
+    @NotNull CommonSlashCommandData getCommandData();
     default @NotNull String getCommandName() {
         return getCommandData().getName();
     }

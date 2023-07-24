@@ -8,7 +8,7 @@ import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
 import io.github.milobotdev.milobot.games.PokerGame;
 import io.github.milobotdev.milobot.utility.lobby.Lobby;
-import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;

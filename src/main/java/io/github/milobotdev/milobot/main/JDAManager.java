@@ -56,12 +56,13 @@ public class JDAManager {
         if (!built) {
             built = true;
             JDA jda;
-            try {
+            // TODO: figure out exception thrown when JDA login fails and handle it appropriately
+            //try {
                 jda = jdaBuilder.build();
-            } catch (LoginException e) {
-                logger.error("FATAL ERROR: JDA login failed. Bot cannot continue from this state.", e);
-                return;
-            }
+            //} //catch (LoginException e) {
+               // logger.error("FATAL ERROR: JDA login failed. Bot cannot continue from this state.", e);
+               // return;
+           // }
             logger.debug("JDA login successful.");
             jdaBuiltActions.forEach(action -> action.accept(jda));
             logger.trace("JDA build actions complete.");
