@@ -2,6 +2,8 @@ package io.github.milobotdev.milobot.commands.games.uno;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.UnoDao;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.model.Uno;
@@ -16,14 +18,14 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +60,7 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
 
     @Override
     public void executeCommand(@NotNull MessageReceivedEvent event, @NotNull List<String> args) {
-        SelectionMenu menu = SelectionMenu.create(event.getAuthor().getId() + ":unoLeaderboard")
+        StringSelectMenu menu = StringSelectMenu.create(event.getAuthor().getId() + ":unoLeaderboard")
                 .setPlaceholder("Select a leaderboard")
                 .addOption("Highest Streak", "highestStreak")
                 .addOption("Current Streak", "currentStreak")
@@ -72,7 +74,7 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
 
     @Override
     public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
-        SelectionMenu menu = SelectionMenu.create(event.getUser().getId() + ":unoLeaderboard")
+        StringSelectMenu menu = StringSelectMenu.create(event.getUser().getId() + ":unoLeaderboard")
                 .setPlaceholder("Select a leaderboard")
                 .addOption("Highest Streak", "highestStreak")
                 .addOption("Current Streak", "currentStreak")
@@ -85,8 +87,8 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("leaderboard", "View the uno leaderboards.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(new SubcommandData("leaderboard", "View the uno leaderboards."));
     }
 
     @Override
@@ -106,7 +108,7 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
 
     private final ListenerAdapter listener = new ListenerAdapter() {
         @Override
-        public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
+        public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
             String[] id = event.getComponentId().split(":");
             String authorId = id[0];
             String type = id[1];
@@ -149,7 +151,7 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
         }
     };
 
-    public static void buildUnoEmbeds(@NotNull SelectionMenuEvent event, @NotNull List<Uno> unos, String title, JDA jda)
+    public static void buildUnoEmbeds(@NotNull StringSelectInteractionEvent event, @NotNull List<Uno> unos, String title, JDA jda)
             throws IOException {
         List<MessageEmbed> embeds = new ArrayList<>();
         List<byte[]> charts = new ArrayList<>();
@@ -232,10 +234,10 @@ public class UnoLeaderboardCmd extends SubCommand implements TextCommand, SlashC
         }
 
         if (ran.get()) {
-            PaginatorWithImages paginator = new PaginatorWithImages(event.getUser(), embeds, (i, m) -> m.addFile(charts.get(i), "chart" + i + ".png"));
+            PaginatorWithImages paginator = new PaginatorWithImages(event.getUser(), embeds, (i, m) -> m.setFiles(FileUpload.fromData(charts.get(i), "chart" + i + ".png")));
 
-            event.getHook().sendMessageEmbeds(paginator.currentPage()).addFile(charts.get(0), "chart0.png")
-                    .addActionRows(paginator.getActionRows()).queue(paginator::initialize);
+            event.getHook().sendMessageEmbeds(paginator.currentPage()).addFiles(FileUpload.fromData(charts.get(0), "chart0.png"))
+                    .addComponents(paginator.getActionRows()).queue(paginator::initialize);
         } else {
             event.getHook().sendMessage("No uno games in database.").queue();
         }

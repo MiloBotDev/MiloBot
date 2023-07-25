@@ -11,7 +11,7 @@ public class PingEvent extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (event.getMessage().getMentionedUsers().contains(event.getJDA().getSelfUser())) {
+        if (event.getMessage().getMentions().getUsers().contains(event.getJDA().getSelfUser())) {
             if (event.getChannelType().equals(ChannelType.TEXT)) {
                 boolean isReplyToSelf = event.getMessage().getReferencedMessage() != null &&
                         event.getMessage().getReferencedMessage().getAuthor().equals(event.getJDA().getSelfUser());

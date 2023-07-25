@@ -2,6 +2,8 @@ package io.github.milobotdev.milobot.commands.games.minesweeper;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.games.Minesweeper;
@@ -11,8 +13,8 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +36,8 @@ public class MinesweeperPlayCmd extends SubCommand implements TextCommand, Slash
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("play", "Play a game of minesweeper");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(new SubcommandData("play", "Play a game of minesweeper"));
     }
 
     @Override
@@ -48,7 +50,7 @@ public class MinesweeperPlayCmd extends SubCommand implements TextCommand, Slash
                     EmbedBuilder embedBuilder = new EmbedBuilder();
                     embedBuilder.setTitle("Minesweeper");
                     embedBuilder.setImage("attachment://minesweeper.png");
-                    privateChannel.sendMessageEmbeds(embedBuilder.build()).addFile(minesweeper.boardToPng(), "minesweeper.png").queue();
+                    privateChannel.sendMessageEmbeds(embedBuilder.build()).addFiles(FileUpload.fromData(minesweeper.boardToPng(), "minesweeper.png")).queue();
                 } catch (IOException | URISyntaxException e) {
                     logger.error("Error starting minesweeper game ", e);
                 }
@@ -65,7 +67,7 @@ public class MinesweeperPlayCmd extends SubCommand implements TextCommand, Slash
                 EmbedBuilder embedBuilder = new EmbedBuilder();
                 embedBuilder.setTitle("Minesweeper");
                 embedBuilder.setImage("attachment://minesweeper.png");
-                privateChannel.sendMessageEmbeds(embedBuilder.build()).addFile(minesweeper.boardToPng(), "minesweeper.png").queue();
+                privateChannel.sendMessageEmbeds(embedBuilder.build()).addFiles(FileUpload.fromData(minesweeper.boardToPng(), "minesweeper.png")).queue();
             } catch (IOException | URISyntaxException e) {
                 logger.error("Error starting minesweeper game ", e);
             }

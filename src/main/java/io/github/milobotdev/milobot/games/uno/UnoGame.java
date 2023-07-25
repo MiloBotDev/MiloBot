@@ -10,6 +10,7 @@ import io.github.milobotdev.milobot.models.CustomEmojis;
 import io.github.milobotdev.milobot.models.cards.CardDeck;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

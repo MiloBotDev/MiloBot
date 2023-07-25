@@ -2,6 +2,8 @@ package io.github.milobotdev.milobot.commands.games.wordle;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.dao.WordleDao;
 import io.github.milobotdev.milobot.database.model.Wordle;
@@ -11,14 +13,14 @@ import io.github.milobotdev.milobot.utility.EmbedUtils;
 import io.github.milobotdev.milobot.utility.chart.PieChart;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -54,8 +56,8 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("stats", "View your own wordle statistics");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(new SubcommandData("stats", "View your own wordle statistics"));
     }
 
     private void generateEmbed(User user, MessageChannel channel) {
@@ -100,7 +102,7 @@ public class WordleStatsCmd extends SubCommand implements TextCommand, SlashComm
                 pieChart.addSection("Wins", totalWins, Color.GREEN);
                 pieChart.addSection("Losses", totalLosses, Color.RED);
                 embed.setImage("attachment://chart.png");
-                channel.sendMessageEmbeds(embed.build()).addFile(pieChart.createCircleDiagram(), "chart.png")
+                channel.sendMessageEmbeds(embed.build()).addFiles(FileUpload.fromData(pieChart.createCircleDiagram(), "chart.png"))
                         .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
             }
         } catch (SQLException | IOException e) {

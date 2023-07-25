@@ -4,12 +4,12 @@ import io.github.milobotdev.milobot.commands.GuildPrefixManager;
 import io.github.milobotdev.milobot.commands.command.ICommand;
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.SubCommand;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.CommonSlashCommandData;
 import io.github.milobotdev.milobot.utility.Config;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,9 @@ public interface SlashCommand extends ICommand {
     default @NotNull String getCommandName() {
         return getCommandData().getName();
     }
-    @NotNull String getCommandDescription();
+    default @NotNull String getCommandDescription() {
+        return getCommandData().getDescription();
+    }
 
     // this will be removed in the future, JDA 5 will support setting if a command is guild-only in the CommandData
     @NotNull Set<ChannelType> getAllowedChannelTypes();

@@ -3,9 +3,12 @@ package io.github.milobotdev.milobot.commands.games.hungergames;
 
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.commands.games.GamesCmd;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -22,8 +25,8 @@ public class HungerGamesCmd extends ParentCommand implements DefaultTextParentCo
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new CommandData("hungergames", "Hunger Games");
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(Commands.slash("hungergames", "Hunger Games"));
     }
 
     @Override

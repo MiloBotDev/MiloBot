@@ -1,14 +1,14 @@
 package io.github.milobotdev.milobot.events.guild;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.github.milobotdev.milobot.utility.Config;
 
-import javax.annotation.Nonnull;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,7 +23,7 @@ public class OnGuildLeaveEvent extends ListenerAdapter {
     final static Logger logger = LoggerFactory.getLogger(OnGuildLeaveEvent.class);
 
     @Override
-    public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
+    public void onGuildLeave(@NotNull GuildLeaveEvent event) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         Config config = Config.getInstance();
         TextChannel logs = Objects.requireNonNull(event.getJDA().getGuildById(config.getTestGuildId()))

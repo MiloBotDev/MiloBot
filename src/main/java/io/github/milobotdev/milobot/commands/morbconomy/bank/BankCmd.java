@@ -5,10 +5,12 @@ import io.github.milobotdev.milobot.commands.command.extensions.DefaultChannelTy
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultSlashParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultTextParentCommand;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.commands.morbconomy.MorbconomyCmd;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -24,8 +26,10 @@ public class BankCmd extends ParentCommand implements DefaultTextParentCommand, 
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new CommandData("bank", "All commands related to your virtual bank.");
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(
+                Commands.slash("bank", "All commands related to your virtual bank.")
+        );
     }
 
     @Override

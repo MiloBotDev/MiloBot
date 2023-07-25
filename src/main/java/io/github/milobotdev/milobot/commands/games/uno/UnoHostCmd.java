@@ -2,17 +2,18 @@ package io.github.milobotdev.milobot.commands.games.uno;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.commands.instance.model.*;
 import io.github.milobotdev.milobot.games.hungergames.model.LobbyEntry;
 import io.github.milobotdev.milobot.games.uno.UnoGame;
 import io.github.milobotdev.milobot.utility.lobby.BotLobby;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
@@ -32,10 +33,14 @@ public class UnoHostCmd extends SubCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("host", "Host a game of Uno!")
-                .addOptions(new OptionData(OptionType.INTEGER, "max-players", "Maximum number of players", false)
-                        .setRequiredRange(2, 8));
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("host", "Host a game of Uno!")
+                    .addOptions(
+                            new OptionData(OptionType.INTEGER, "max-players", "Maximum number of players", false)
+                                .setRequiredRange(2, 8)
+                    )
+        );
     }
 
     @Override

@@ -2,6 +2,8 @@ package io.github.milobotdev.milobot.commands.utility;
 
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -25,8 +27,10 @@ public class InviteCmd extends ParentCommand implements TextCommand, SlashComman
 
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return Commands.slash("invite", "Sends an invite link to add the bot to another server.");
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(
+                Commands.slash("invite", "Sends an invite link to add the bot to another server.")
+        );
     }
 
     @Override

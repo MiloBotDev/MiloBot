@@ -27,7 +27,8 @@ public class JDAManager {
 
     private JDAManager() {
         jdaBuilder = JDABuilder.createDefault(Config.getInstance().getBotToken())
-                .setActivity(Activity.listening("Ping bot for help")).enableIntents(GatewayIntent.GUILD_MEMBERS);
+                .setActivity(Activity.listening("Ping bot for help"))
+                .enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT);
     }
 
     public synchronized static JDAManager getInstance() {

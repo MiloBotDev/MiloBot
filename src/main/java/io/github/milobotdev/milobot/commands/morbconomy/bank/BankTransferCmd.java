@@ -5,6 +5,8 @@ import io.github.milobotdev.milobot.commands.command.extensions.DefaultChannelTy
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.model.User;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
@@ -16,7 +18,6 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
@@ -43,11 +44,13 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("transfer", "Send some morbcoins to another user.").addOptions(
-                new OptionData(OptionType.INTEGER, "amount", "The amount of morbcoins you want to send", true)
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("transfer", "Send some morbcoins to another user.").addOptions(
+                    new OptionData(OptionType.INTEGER, "amount", "The amount of morbcoins you want to send", true)
                         .setRequiredRange(1, 10000),
-                new OptionData(OptionType.USER, "user", "The user you want to send morbcoins to.", true)
+                    new OptionData(OptionType.USER, "user", "The user you want to send morbcoins to.", true)
+                )
         );
     }
 

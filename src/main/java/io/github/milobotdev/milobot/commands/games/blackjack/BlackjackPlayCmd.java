@@ -2,6 +2,8 @@ package io.github.milobotdev.milobot.commands.games.blackjack;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.games.BlackjackGame;
@@ -9,7 +11,6 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -42,10 +43,13 @@ public class BlackjackPlayCmd extends SubCommand implements TextCommand, SlashCo
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("play", "Play a game of blackjack on discord.")
-                .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
-                        .setRequiredRange(1, 10000));
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("play", "Play a game of blackjack on discord.")
+                    .addOptions(new OptionData(OptionType.INTEGER, "bet", "The amount of money you want to bet.", false)
+                        .setRequiredRange(1, 10000)
+                    )
+        );
     }
 
     @Override

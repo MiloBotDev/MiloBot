@@ -5,6 +5,8 @@ import io.github.milobotdev.milobot.commands.command.extensions.DefaultChannelTy
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.games.dnd.EncounterGenerator;
 import io.github.milobotdev.milobot.games.dnd.models.Encounter;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -12,12 +14,11 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -70,9 +71,9 @@ public class EncounterGeneratorCmd extends SubCommand implements TextCommand, Sl
                 args.get(2), environment);
         EmbedBuilder embed = (EmbedBuilder) embedBuilderEncounterMap.keySet().toArray()[0];
         MessageEmbed build = embed.build();
-        event.getChannel().sendMessageEmbeds(build).setActionRows(ActionRow.of(
+        event.getChannel().sendMessageEmbeds(build).setActionRow(
                 Button.primary(event.getAuthor().getId() + ":regenerate", "Regenerate"),
-                Button.secondary(event.getAuthor().getId() + ":delete", "Delete"))).queue();
+                Button.secondary(event.getAuthor().getId() + ":delete", "Delete")).queue();
         encounterCache.put(build.getFields().get(0).getValue(), embedBuilderEncounterMap.get(embed));
     }
 
@@ -91,37 +92,40 @@ public class EncounterGeneratorCmd extends SubCommand implements TextCommand, Sl
         EmbedBuilder embed = (EmbedBuilder) embedBuilderEncounterMap.keySet().toArray()[0];
         String id = event.getUser().getId();
         MessageEmbed build = embed.build();
-        event.replyEmbeds(build).addActionRows(
-                ActionRow.of(Button.primary(id + ":regenerate", "Regenerate"),
-                        Button.secondary(id + ":delete", "Delete"))).queue();
+        event.replyEmbeds(build).addActionRow(
+                Button.primary(id + ":regenerate", "Regenerate"),
+                Button.secondary(id + ":delete", "Delete")).queue();
         encounterCache.put(build.getFields().get(0).getValue(), embedBuilderEncounterMap.get(embed));
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("generate", "Generate a random encounter for the given inputs.")
-                .addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
-                        .setRequired(true)
-                        .setRequiredRange(1, 10))
-                .addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
-                        .setRequired(true)
-                        .setRequiredRange(1, 20))
-                .addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
-                        .setRequired(true)
-                        .addChoices(new Command.Choice("easy", "easy"),
-                                new Command.Choice("medium", "medium"),
-                                new Command.Choice("difficult", "difficult"),
-                                new Command.Choice("deadly", "deadly")))
-                .addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
-                        .setRequired(false)
-                        .addChoices(new net.dv8tion.jda.api.interactions.commands.Command.Choice("city", "city"),
-                                new Command.Choice("dungeon", "dungeon"),
-                                new Command.Choice("forest", "forest"),
-                                new Command.Choice("nature", "nature"),
-                                new Command.Choice("other plane", "other plane"),
-                                new Command.Choice("underground", "underground"),
-                                new Command.Choice("water", "water")
-                        ));
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("generate", "Generate a random encounter for the given inputs.")
+                    .addOptions(new OptionData(OptionType.INTEGER, "size", "The size of the party.")
+                            .setRequired(true)
+                            .setRequiredRange(1, 10))
+                    .addOptions(new OptionData(OptionType.INTEGER, "level", "The average level of the party.")
+                            .setRequired(true)
+                            .setRequiredRange(1, 20))
+                    .addOptions(new OptionData(OptionType.STRING, "difficulty", "The difficulty of the encounter.")
+                            .setRequired(true)
+                            .addChoices(new Command.Choice("easy", "easy"),
+                                    new Command.Choice("medium", "medium"),
+                                    new Command.Choice("difficult", "difficult"),
+                                    new Command.Choice("deadly", "deadly")))
+                    .addOptions(new OptionData(OptionType.STRING, "environment", "The environment the encounter takes place in.")
+                            .setRequired(false)
+                            .addChoices(new net.dv8tion.jda.api.interactions.commands.Command.Choice("city", "city"),
+                                    new Command.Choice("dungeon", "dungeon"),
+                                    new Command.Choice("forest", "forest"),
+                                    new Command.Choice("nature", "nature"),
+                                    new Command.Choice("other plane", "other plane"),
+                                    new Command.Choice("underground", "underground"),
+                                    new Command.Choice("water", "water")
+                        )
+                    )
+        );
     }
 
     @Override
@@ -203,7 +207,7 @@ public class EncounterGeneratorCmd extends SubCommand implements TextCommand, Sl
         return Map.of(embed, encounter);
     }
 
-    public void regenerateEncounter(@NotNull ButtonClickEvent event) {
+    public void regenerateEncounter(@NotNull ButtonInteractionEvent event) {
         MessageEmbed embed = event.getMessage().getEmbeds().get(0);
         EmbedBuilder newEmbed = new EmbedBuilder();
         EmbedUtils.styleEmbed(newEmbed, event.getUser());

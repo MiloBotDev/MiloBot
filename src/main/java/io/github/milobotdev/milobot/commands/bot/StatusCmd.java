@@ -51,7 +51,7 @@ public class StatusCmd extends ParentCommand implements TextCommand, DefaultFlag
         List<Guild> guilds = jda.getGuilds();
         int amountOfGuilds = guilds.size();
         int memberTotal = guilds.stream().mapToInt(Guild::getMemberCount).sum();
-        int emoteTotal = jda.getEmotes().size();
+        int emoteTotal = jda.getEmojis().size();
         long gatewayPing = jda.getGatewayPing();
         int categories = jda.getCategories().size();
         int textChannels = jda.getTextChannels().size();

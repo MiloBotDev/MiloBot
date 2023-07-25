@@ -3,9 +3,9 @@ package io.github.milobotdev.milobot.games;
 import io.github.milobotdev.milobot.commands.instance.GameInstanceManager;
 import io.github.milobotdev.milobot.utility.TimeTracker;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,12 +81,14 @@ public class Minesweeper {
                     EmbedBuilder embedBuilder = new EmbedBuilder();
                     embedBuilder.setTitle("Minesweeper");
                     embedBuilder.setImage("attachment://minesweeper.png");
-                    event.getChannel().sendMessageEmbeds(embedBuilder.build()).addFile(boardToPng(), "minesweeper.png").queue();
+                    event.getChannel().sendMessageEmbeds(embedBuilder.build())
+                            .addFiles(FileUpload.fromData(boardToPng(), "minesweeper.png")).queue();
                 } else {
                     EmbedBuilder embedBuilder = new EmbedBuilder();
                     embedBuilder.setTitle("Minesweeper");
                     embedBuilder.setImage("attachment://minesweeper.png");
-                    event.getChannel().sendMessageEmbeds(embedBuilder.build()).addFile(boardToPng(), "minesweeper.png").queue();
+                    event.getChannel().sendMessageEmbeds(embedBuilder.build())
+                            .addFiles(FileUpload.fromData(boardToPng(), "minesweeper.png")).queue();
                 }
             } catch (NumberFormatException | IOException e) {
                 event.getChannel().sendMessage("Invalid coordinates").queue();
@@ -100,7 +102,8 @@ public class Minesweeper {
                 EmbedBuilder embedBuilder = new EmbedBuilder();
                 embedBuilder.setTitle("Minesweeper");
                 embedBuilder.setImage("attachment://minesweeper.png");
-                event.getChannel().sendMessageEmbeds(embedBuilder.build()).addFile(boardToPng(), "minesweeper.png").queue();
+                event.getChannel().sendMessageEmbeds(embedBuilder.build())
+                        .addFiles(FileUpload.fromData(boardToPng(), "minesweeper.png")).queue();
             } catch (NumberFormatException | IOException e) {
                 event.getChannel().sendMessage("Invalid coordinates").queue();
             }

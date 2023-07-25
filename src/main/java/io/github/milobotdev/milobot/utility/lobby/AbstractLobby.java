@@ -1,9 +1,9 @@
 package io.github.milobotdev.milobot.utility.lobby;
 
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 
@@ -29,7 +29,7 @@ public abstract class AbstractLobby {
         if (initialized) {
             throw new IllegalStateException("Lobby already initialized.");
         }
-        channel.sendMessageEmbeds(getEmbed()).setActionRows(getEmbedActionsRows()).queue(this::initialize);
+        channel.sendMessageEmbeds(getEmbed()).setActionRow(getEmbedActionsRows().getComponents()).queue(this::initialize);
     }
 
     /**
@@ -42,7 +42,7 @@ public abstract class AbstractLobby {
         if (initialized) {
             throw new IllegalStateException("Lobby already initialized.");
         }
-        event.getHook().sendMessageEmbeds(getEmbed()).addActionRows(getEmbedActionsRows()).queue(this::initialize);
+        event.getHook().sendMessageEmbeds(getEmbed()).addActionRow(getEmbedActionsRows().getComponents()).queue(this::initialize);
     }
 
     private void initialize(Message message) {
@@ -90,9 +90,9 @@ public abstract class AbstractLobby {
     protected void editMessage() {
         ActionRow actionRow = getEmbedActionsRows();
         if (actionRow != null) {
-            message.editMessageEmbeds(getEmbed()).setActionRows(actionRow).queue();
+            message.editMessageEmbeds(getEmbed()).setActionRow(actionRow.getComponents()).queue();
         } else {
-            message.editMessageEmbeds(getEmbed()).setActionRows().queue();
+            message.editMessageEmbeds(getEmbed()).setComponents().queue();
         }
     }
 

@@ -2,6 +2,8 @@ package io.github.milobotdev.milobot.commands.games.poker;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.commands.instance.model.CantCreateLobbyException;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.games.PokerGame;
@@ -9,7 +11,6 @@ import io.github.milobotdev.milobot.utility.lobby.Lobby;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,8 +28,10 @@ public class PokerPlayCmd extends SubCommand implements TextCommand, SlashComman
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("play", "Play a game of poker on discord.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("play", "Play a game of poker on discord.")
+        );
     }
 
     @Override

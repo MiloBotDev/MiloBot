@@ -2,6 +2,8 @@ package io.github.milobotdev.milobot.commands.morbconomy.daily;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.DailyDao;
 import io.github.milobotdev.milobot.database.dao.DailyHistoryDao;
 import io.github.milobotdev.milobot.database.model.Daily;
@@ -12,14 +14,14 @@ import io.github.milobotdev.milobot.utility.EmbedUtils;
 import io.github.milobotdev.milobot.utility.chart.LineChart;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +49,10 @@ public class DailyStatsCmd extends SubCommand implements TextCommand, SlashComma
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("stats", "View your own daily statistics.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("stats", "View your own daily statistics.")
+        );
     }
 
     @Override
@@ -97,7 +101,7 @@ public class DailyStatsCmd extends SubCommand implements TextCommand, SlashComma
                             "Total Morbcoins Claimed",  formatter.format(dailyHistoryEntry.getTime())));
                     dailyStatsEmbed.setImage("attachment://dailyHistory.png");
                     channel.sendMessageEmbeds(dailyStatsEmbed.build())
-                            .addFile(lineChart.createLineChart(), "dailyHistory.png")
+                            .addFiles(FileUpload.fromData(lineChart.createLineChart(), "dailyHistory.png"))
                             .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
                     return;
                 }

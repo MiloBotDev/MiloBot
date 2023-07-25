@@ -2,6 +2,8 @@ package io.github.milobotdev.milobot.commands.games.hungergames;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.HungerGamesDao;
 import io.github.milobotdev.milobot.database.model.HungerGames;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
@@ -13,7 +15,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
@@ -38,8 +39,10 @@ public class HungerGamesStatsCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new SubcommandData("stats", "View your own hungergames statistics.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("stats", "View your own hungergames statistics.")
+        );
     }
 
     @Override

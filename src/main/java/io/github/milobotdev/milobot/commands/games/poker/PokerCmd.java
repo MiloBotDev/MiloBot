@@ -2,14 +2,16 @@ package io.github.milobotdev.milobot.commands.games.poker;
 
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.commands.games.GamesCmd;
 import io.github.milobotdev.milobot.games.PokerGame;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -26,8 +28,8 @@ public class PokerCmd extends ParentCommand implements DefaultTextParentCommand,
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new CommandData("poker", "5-card Poker brought to discord.");
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(Commands.slash("poker", "5-card Poker brought to discord."));
     }
 
     private final ListenerAdapter pokerListener = new ListenerAdapter() {

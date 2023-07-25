@@ -2,10 +2,12 @@ package io.github.milobotdev.milobot.commands.games.blackjack;
 
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.commands.games.GamesCmd;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -22,8 +24,10 @@ public class BlackjackCmd extends ParentCommand implements DefaultTextParentComm
     }
 
     @Override
-    public @NotNull CommandData getCommandData() {
-        return new CommandData("blackjack", "Blackjack brought to discord.");
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(
+                Commands.slash("blackjack", "Blackjack brought to discord.")
+        );
     }
 
     @Override

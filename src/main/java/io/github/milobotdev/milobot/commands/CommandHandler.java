@@ -6,6 +6,8 @@ import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.Aliases;
 import io.github.milobotdev.milobot.commands.command.extensions.EventListeners;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.main.JDAManager;
 import io.github.milobotdev.milobot.utility.Config;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -93,7 +95,7 @@ public class CommandHandler {
         if (command instanceof SlashCommand slashCommand) {
             SlashCommandData commandData;
             try {
-                commandData = slashCommand.getCommandData().getSlashCommandData();
+                commandData = ((ParentSlashCommandData) slashCommand.getCommandData()).getSlashCommandData();
             } catch (ClassCastException e) {
                 throw new ClassCastException("Slash command \"" + command.getFullCommandName() + "\" data type is not CommandData");
             }
@@ -101,7 +103,7 @@ public class CommandHandler {
                 if (subCommand instanceof SlashCommand subSlashCommand) {
                     SubcommandData subcommandData;
                     try {
-                        subcommandData = (SubcommandData) subSlashCommand.getCommandData().getSubcommandData();
+                        subcommandData = ((SubSlashCommandData) subSlashCommand.getCommandData()).getSubSlashCommandData();
                     } catch (ClassCastException e) {
                         throw new ClassCastException("Slash command \"" + subCommand.getFullCommandName() + "\" data type is not SubCommandData");
                     }
