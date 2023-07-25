@@ -4,6 +4,7 @@ import io.github.milobotdev.milobot.commands.command.extensions.*;
 import io.github.milobotdev.milobot.commands.instance.LobbyInstanceManager;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
+import io.github.milobotdev.milobot.utility.Users;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -11,10 +12,10 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.milobotdev.milobot.utility.Users;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 public abstract class Command implements ICommand {
 

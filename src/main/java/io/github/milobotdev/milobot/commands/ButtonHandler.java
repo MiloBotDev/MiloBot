@@ -1,13 +1,13 @@
 package io.github.milobotdev.milobot.commands;
 
 import io.github.milobotdev.milobot.main.JDAManager;
+import io.github.milobotdev.milobot.utility.Users;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.milobotdev.milobot.utility.Users;
 
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;

@@ -6,7 +6,6 @@ import io.github.milobotdev.milobot.commands.command.extensions.*;
 import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
 import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 

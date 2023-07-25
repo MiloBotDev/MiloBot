@@ -1,15 +1,17 @@
 package io.github.milobotdev.milobot.commands.bot.bug;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
-import io.github.milobotdev.milobot.commands.command.extensions.*;
-import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.CommonSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.DefaultChannelTypes;
+import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
+import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
+import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 import io.github.milobotdev.milobot.utility.GitHubBot;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
