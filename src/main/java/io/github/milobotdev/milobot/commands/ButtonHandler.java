@@ -1,13 +1,13 @@
 package io.github.milobotdev.milobot.commands;
 
 import io.github.milobotdev.milobot.main.JDAManager;
+import io.github.milobotdev.milobot.utility.Users;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.milobotdev.milobot.utility.Users;
 
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -19,7 +19,7 @@ public class ButtonHandler {
     public enum DeferType {
         NONE, REPLY, EDIT
     }
-    private record ButtonRecord(boolean onlyOnUserMatch, DeferType deferType, ExecutorService service, Consumer<ButtonClickEvent> action) {}
+    private record ButtonRecord(boolean onlyOnUserMatch, DeferType deferType, ExecutorService service, Consumer<ButtonInteractionEvent> action) {}
     private final HashMap<String, ButtonRecord> buttons = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(ButtonHandler.class);
 
@@ -35,14 +35,14 @@ public class ButtonHandler {
     }
 
     public void registerButton(String id, boolean onlyOnUserMatch, DeferType deferType,
-                               ExecutorService service, Consumer<ButtonClickEvent> action) {
+                               ExecutorService service, Consumer<ButtonInteractionEvent> action) {
         buttons.put(id, new ButtonRecord(onlyOnUserMatch, deferType, service, action));
     }
 
     public void initialize() {
         JDAManager.getInstance().getJDABuilder().addEventListeners(new ListenerAdapter() {
             @Override
-            public void onButtonClick(@NotNull ButtonClickEvent event) {
+            public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
                 String[] id = event.getComponentId().split(":");
                 if (id.length < 2) {
                     logger.warn("Button id is invalid: " + event.getComponentId());

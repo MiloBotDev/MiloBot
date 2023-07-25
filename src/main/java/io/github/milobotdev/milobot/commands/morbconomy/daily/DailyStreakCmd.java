@@ -2,14 +2,15 @@ package io.github.milobotdev.milobot.commands.morbconomy.daily;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.DailyDao;
 import io.github.milobotdev.milobot.database.model.Daily;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,8 +31,10 @@ public class DailyStreakCmd extends SubCommand implements TextCommand, SlashComm
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new SubcommandData("streak", "View your current streak.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("streak", "View your current streak.")
+        );
     }
 
     @Override
@@ -41,7 +44,7 @@ public class DailyStreakCmd extends SubCommand implements TextCommand, SlashComm
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         event.reply(String.format("You are on a streak of `%d` days.",
                 getStreak(event.getUser().getIdLong()))).queue();
     }

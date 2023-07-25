@@ -2,16 +2,17 @@ package io.github.milobotdev.milobot.commands.bot.bug;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 import io.github.milobotdev.milobot.utility.GitHubBot;
 import io.github.milobotdev.milobot.utility.paginator.Paginator;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.kohsuke.github.GHIssue;
@@ -37,8 +38,8 @@ public class BugListCmd extends SubCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new SubcommandData("list", "Shows a list of all reported bugs.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(new SubcommandData("list", "Shows a list of all reported bugs."));
     }
 
     @Override
@@ -48,20 +49,22 @@ public class BugListCmd extends SubCommand implements TextCommand, SlashCommand,
             event.getChannel().sendMessage("There are no reported bugs.").queue();
         } else {
             Paginator paginator = new Paginator(event.getAuthor(), pages);
-            event.getChannel().sendMessageEmbeds(paginator.currentPage()).setActionRows(paginator.getActionRows())
+            event.getChannel().sendMessageEmbeds(paginator.currentPage())
+                    .setComponents(paginator.getActionRows())
                     .queue(paginator::initialize);
         }
     }
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         ArrayList<MessageEmbed> pages = createPages(event.getUser());
         if (pages.size() == 0) {
             event.getChannel().sendMessage("There are no reported bugs.").queue();
         } else {
             Paginator paginator = new Paginator(event.getUser(), pages);
-            event.getHook().sendMessageEmbeds(paginator.currentPage()).addActionRows(paginator.getActionRows())
+            event.getHook().sendMessageEmbeds(paginator.currentPage())
+                    .addComponents(paginator.getActionRows())
                     .queue(paginator::initialize);
         }
     }

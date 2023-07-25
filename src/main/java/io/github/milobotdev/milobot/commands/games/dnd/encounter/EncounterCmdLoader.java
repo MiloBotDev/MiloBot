@@ -1,7 +1,7 @@
 package io.github.milobotdev.milobot.commands.games.dnd.encounter;
 
-import io.github.milobotdev.milobot.commands.CommandHandler;
 import io.github.milobotdev.milobot.commands.ButtonHandler;
+import io.github.milobotdev.milobot.commands.CommandHandler;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

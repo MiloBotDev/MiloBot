@@ -2,10 +2,9 @@ package io.github.milobotdev.milobot.commands.games.hungergames;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.commands.instance.model.CantCreateLobbyException;
-import io.github.milobotdev.milobot.commands.instance.model.GameType;
-import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
-import io.github.milobotdev.milobot.commands.instance.model.RemoveInstance;
 import io.github.milobotdev.milobot.database.dao.HungerGamesDao;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
@@ -16,14 +15,13 @@ import io.github.milobotdev.milobot.games.hungergames.model.LobbyEntry;
 import io.github.milobotdev.milobot.games.hungergames.model.Player;
 import io.github.milobotdev.milobot.utility.lobby.BotLobby;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.requests.RestAction;
@@ -51,10 +49,13 @@ public class HungerGamesStartCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new SubcommandData("start", "Starts the Hunger Games")
-                .addOptions(new OptionData(OptionType.INTEGER, "max-players", "Maximum number of players", false)
-                        .setRequiredRange(2, 8));
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("start", "Starts the Hunger Games")
+                    .addOptions(new OptionData(OptionType.INTEGER, "max-players", "Maximum number of players", false)
+                        .setRequiredRange(2, 8)
+                    )
+        );
     }
 
     @Override
@@ -116,7 +117,7 @@ public class HungerGamesStartCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         try {
             event.deferReply().queue();
             User author = event.getUser();

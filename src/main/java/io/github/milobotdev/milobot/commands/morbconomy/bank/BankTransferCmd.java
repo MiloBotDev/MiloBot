@@ -5,18 +5,18 @@ import io.github.milobotdev.milobot.commands.command.extensions.DefaultChannelTy
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.model.User;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.Event;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class BankTransferCmd extends SubCommand implements TextCommand, SlashCommand, DefaultFlags,
@@ -44,11 +43,13 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new SubcommandData("transfer", "Send some morbcoins to another user.").addOptions(
-                new OptionData(OptionType.INTEGER, "amount", "The amount of morbcoins you want to send", true)
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("transfer", "Send some morbcoins to another user.").addOptions(
+                    new OptionData(OptionType.INTEGER, "amount", "The amount of morbcoins you want to send", true)
                         .setRequiredRange(1, 10000),
-                new OptionData(OptionType.USER, "user", "The user you want to send morbcoins to.", true)
+                    new OptionData(OptionType.USER, "user", "The user you want to send morbcoins to.", true)
+                )
         );
     }
 
@@ -125,7 +126,7 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         int amount = (int) Objects.requireNonNull(event.getOption("amount")).getAsLong();
         net.dv8tion.jda.api.entities.User user = Objects.requireNonNull(event.getOption("user")).getAsUser();
         try (Connection con = DatabaseConnection.getConnection()) {
@@ -149,8 +150,8 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
         if (userToTransferTo == null) {
             if (event instanceof MessageReceivedEvent) {
                 ((MessageReceivedEvent) event).getChannel().sendMessage("Unable to find user to transfer to.").queue();
-            } else if (event instanceof SlashCommandEvent) {
-                ((SlashCommandEvent) event).reply("Unable to find user to transfer to.").queue();
+            } else if (event instanceof SlashCommandInteractionEvent) {
+                ((SlashCommandInteractionEvent) event).reply("Unable to find user to transfer to.").queue();
             }
         } else {
             User userToTransferFrom = userDao.getUserByDiscordId(con, user.getIdLong(), RowLockType.FOR_UPDATE);
@@ -170,8 +171,8 @@ public class BankTransferCmd extends SubCommand implements TextCommand, SlashCom
             if(event instanceof MessageReceivedEvent) {
                 ((MessageReceivedEvent) event).getChannel().sendMessage("Attempting to transfer morbcoins.").queue(
                         sentMorbcoinsConsumer);
-            } else if(event instanceof SlashCommandEvent) {
-                ((SlashCommandEvent) event).getHook().sendMessage("Attempting to transfer morbcoins.").queue(
+            } else if(event instanceof SlashCommandInteractionEvent) {
+                ((SlashCommandInteractionEvent) event).getHook().sendMessage("Attempting to transfer morbcoins.").queue(
                         sentMorbcoinsConsumer);
             }
 

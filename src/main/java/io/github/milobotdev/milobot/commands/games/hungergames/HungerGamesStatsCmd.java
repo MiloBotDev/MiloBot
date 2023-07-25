@@ -2,19 +2,20 @@ package io.github.milobotdev.milobot.commands.games.hungergames;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.HungerGamesDao;
 import io.github.milobotdev.milobot.database.model.HungerGames;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +38,10 @@ public class HungerGamesStatsCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new SubcommandData("stats", "View your own hungergames statistics.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("stats", "View your own hungergames statistics.")
+        );
     }
 
     @Override
@@ -53,7 +56,7 @@ public class HungerGamesStatsCmd extends SubCommand implements TextCommand, Slas
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         try {
             EmbedBuilder embedBuilder = generateEmbed(event.getUser());
             event.replyEmbeds(embedBuilder.build()).addActionRow(

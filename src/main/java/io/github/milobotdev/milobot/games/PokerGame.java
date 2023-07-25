@@ -3,12 +3,12 @@ package io.github.milobotdev.milobot.games;
 import io.github.milobotdev.milobot.models.cards.CardDeck;
 import io.github.milobotdev.milobot.models.cards.PlayingCard;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 
@@ -115,10 +115,10 @@ public class PokerGame {
                                             channel.sendMessageEmbeds(generatePlayerEmbed(player).build())
                                                     .queue(message -> playerData.get(player).embed = message)));
                     user.openPrivateChannel().queue(channel ->
-                            channel.sendMessageEmbeds(eb.build()).setActionRows(actionRow)
+                            channel.sendMessageEmbeds(eb.build()).setComponents(actionRow)
                                     .queue(message -> playerData.get(user).embed = message));
                 } else {
-                    playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
+                    playerData.get(user).embed.editMessageEmbeds(eb.build()).setComponents(actionRow).queue();
                 }
             }
         } else if (state == PokerState.REPLACING_CARDS) {
@@ -175,7 +175,7 @@ public class PokerGame {
                 User user = players.get(nextPlayerIndex);
                 ActionRow actionRow = getUserActions();
                 EmbedBuilder eb = generatePlayerEmbed(user);
-                playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows(actionRow).queue();
+                playerData.get(user).embed.editMessageEmbeds(eb.build()).setComponents( actionRow).queue();
             }
         }
     }
@@ -184,7 +184,7 @@ public class PokerGame {
         if (nextPlayerIndex >= 0) {
             User user = players.get(nextPlayerIndex);
             EmbedBuilder eb = generatePlayerEmbed(user);
-            playerData.get(user).embed.editMessageEmbeds(eb.build()).setActionRows().queue();
+            playerData.get(user).embed.editMessageEmbeds(eb.build()).setComponents().queue();
         }
     }
 

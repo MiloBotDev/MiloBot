@@ -4,10 +4,13 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -67,8 +70,8 @@ public class Paginator {
         return currentPage;
     }
 
-    protected MessageAction getUpdateMessageAction() {
-        return message.editMessageEmbeds(pages.get(currentPage)).setActionRows(getActionRows());
+    protected MessageEditAction getUpdateMessageAction() {
+        return message.editMessageEmbeds(pages.get(currentPage)).setActionRow(getActionRows().getComponents());
     }
 
     public void nextPage() {

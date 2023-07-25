@@ -5,11 +5,11 @@ import io.github.milobotdev.milobot.database.model.Prefix;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.main.JDAManager;
+import io.github.milobotdev.milobot.utility.Config;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
-import io.github.milobotdev.milobot.utility.Config;
 
 import java.sql.Connection;
 import java.sql.SQLException;

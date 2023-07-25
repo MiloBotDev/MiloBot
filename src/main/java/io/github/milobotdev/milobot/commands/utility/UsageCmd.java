@@ -2,16 +2,17 @@ package io.github.milobotdev.milobot.commands.utility;
 
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
 import io.github.milobotdev.milobot.database.model.CommandTracker;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +36,14 @@ public class UsageCmd extends ParentCommand implements TextCommand, SlashCommand
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new CommandData("usage", "Shows command usage statistics.");
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(
+                Commands.slash("usage", "Shows command usage statistics.")
+        );
     }
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(SlashCommandInteractionEvent event) {
         try {
             EmbedBuilder embed = generateUsageEmbed(event.getUser());
             event.replyEmbeds(embed.build()).queue();

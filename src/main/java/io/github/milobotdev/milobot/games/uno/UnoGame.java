@@ -6,10 +6,11 @@ import io.github.milobotdev.milobot.database.model.Uno;
 import io.github.milobotdev.milobot.games.hungergames.model.LobbyEntry;
 import io.github.milobotdev.milobot.games.uno.model.UnoCard;
 import io.github.milobotdev.milobot.games.uno.model.UnoPlayerData;
-import io.github.milobotdev.milobot.models.CustomEmoji;
+import io.github.milobotdev.milobot.models.CustomEmojis;
 import io.github.milobotdev.milobot.models.cards.CardDeck;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 public class UnoGame {
 
@@ -298,7 +298,7 @@ public class UnoGame {
                                 this.playCard(cardToPlay, null, authorEntry);
                             }
                             this.totalCardsPlayed++;
-                            CustomEmoji emoji = cardToPlay.getEmoji();
+                            CustomEmojis emoji = cardToPlay.getEmoji();
                             EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", author.getAsMention(), emoji.getEmoji()));
                             generateCardPlayedEmbed(emoji, statusEmbed);
                             checkForBotMove();
@@ -327,7 +327,7 @@ public class UnoGame {
                 return;
             }
             this.nextRound();
-            CustomEmoji emoji = lastPlayedCard.getEmoji();
+            CustomEmojis emoji = lastPlayedCard.getEmoji();
             MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
                     author.getAsMention(), lastPlayedCard.getEmoji().getEmoji())).setThumbnail(emoji.getCustomEmojiUrl()).build();
             sendEmbedToPlayers(build);
@@ -338,7 +338,7 @@ public class UnoGame {
             }
             this.awaitingSkipResponse = false;
             this.nextRound();
-            CustomEmoji emoji = lastPlayedCard.getEmoji();
+            CustomEmojis emoji = lastPlayedCard.getEmoji();
             EmbedBuilder build = generateStatusEmbed(String.format("%s skipped their turn.\n\n The last played card was %s",
                     author.getAsMention(), emoji.getEmoji()));
             sendEmbedToPlayers(build.setThumbnail(emoji.getCustomEmojiUrl()).build());
@@ -362,7 +362,7 @@ public class UnoGame {
 
             this.playCard(UnoCard.UNO_WILD_DRAW_FOUR, color.get(), authorEntry);
             this.totalCardsPlayed++;
-            CustomEmoji emoji = lastPlayedCard.getEmoji();
+            CustomEmojis emoji = lastPlayedCard.getEmoji();
             EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", author.getAsMention(), emoji.getEmoji()));
             generateCardPlayedEmbed(emoji, statusEmbed);
             checkForBotMove();
@@ -446,7 +446,7 @@ public class UnoGame {
             this.playerToMove = playerList.get();
             this.totalTurnsPassed++;
             this.turnTimeTracker.start();
-            CustomEmoji emoji = this.lastPlayedCard.getEmoji();
+            CustomEmojis emoji = this.lastPlayedCard.getEmoji();
             sendEmbedToPlayers(generateStatusEmbed(String.format("%s took too long to play their turn. They have been skipped.",
                     removedPlayer.getMention())).setThumbnail(emoji.getCustomEmojiUrl()).build());
             if (this.playerList.size() == 1) {
@@ -546,14 +546,14 @@ public class UnoGame {
                 drawCard(bot);
             } catch (IllegalStateException e) {
                 this.nextRound();
-                CustomEmoji emoji = lastPlayedCard.getEmoji();
+                CustomEmojis emoji = lastPlayedCard.getEmoji();
                 EmbedBuilder build = generateStatusEmbed(String.format("%s skipped their turn.\n\n The last played card was %s",
                         bot.getMention(), emoji.getEmoji()));
                 sendEmbedToPlayers(build.setThumbnail(emoji.getCustomEmojiUrl()).build());
                 return;
             }
             this.nextRound();
-            CustomEmoji emoji = lastPlayedCard.getEmoji();
+            CustomEmojis emoji = lastPlayedCard.getEmoji();
             MessageEmbed build = generateStatusEmbed(String.format("%s drew 1 card.\n\n The last played card was %s",
                     bot.getMention(), emoji.getEmoji())).setThumbnail(lastPlayedCard.getEmoji().getCustomEmojiUrl()).build();
             sendEmbedToPlayers(build);
@@ -566,14 +566,14 @@ public class UnoGame {
                 playCard(cardToPlay, null, bot);
             }
             this.totalCardsPlayed++;
-            CustomEmoji emoji = cardToPlay.getEmoji();
+            CustomEmojis emoji = cardToPlay.getEmoji();
             EmbedBuilder statusEmbed = generateStatusEmbed(String.format("%s played %s", bot.getMention(), emoji.getEmoji()));
             generateCardPlayedEmbed(emoji, statusEmbed);
         }
         checkForBotMove();
     }
 
-    private void generateCardPlayedEmbed(@NotNull CustomEmoji emoji, @NotNull EmbedBuilder statusEmbed) {
+    private void generateCardPlayedEmbed(@NotNull CustomEmojis emoji, @NotNull EmbedBuilder statusEmbed) {
         statusEmbed.setThumbnail(emoji.getCustomEmojiUrl());
         this.channel.sendMessageEmbeds(statusEmbed.build()).queue();
         playerList.toList().forEach(lobbyEntry -> {

@@ -2,15 +2,15 @@ package io.github.milobotdev.milobot.commands.games.wordle;
 
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.commands.games.GamesCmd;
 import io.github.milobotdev.milobot.games.WordleGame;
-import io.github.milobotdev.milobot.games.uno.UnoGame;
-import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -27,8 +27,10 @@ public class WordleCmd extends ParentCommand implements DefaultTextParentCommand
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new CommandData("wordle", "Wordle brought to discord.");
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(
+                Commands.slash("wordle", "Wordle brought to discord.")
+        );
     }
 
     @Override

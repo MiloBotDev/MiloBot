@@ -4,17 +4,18 @@ import io.github.milobotdev.milobot.commands.command.extensions.*;
 import io.github.milobotdev.milobot.commands.instance.LobbyInstanceManager;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
-import net.dv8tion.jda.api.entities.MessageChannel;
+import io.github.milobotdev.milobot.utility.Users;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.milobotdev.milobot.utility.Users;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 public abstract class Command implements ICommand {
 
@@ -68,7 +69,7 @@ public abstract class Command implements ICommand {
         }
     }
 
-    public final void onCommand(@NotNull SlashCommandEvent event) {
+    public final void onCommand(@NotNull SlashCommandInteractionEvent event) {
         if (this instanceof SlashCommand slashCommand) {
             if (!slashCommand.getAllowedChannelTypes().contains(event.getChannelType())) {
                 slashCommand.sendInvalidChannelMessage(event);

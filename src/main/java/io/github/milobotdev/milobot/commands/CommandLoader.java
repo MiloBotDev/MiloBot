@@ -1,20 +1,20 @@
 package io.github.milobotdev.milobot.commands;
 
 import io.github.milobotdev.milobot.commands.bot.BotCmdLoader;
+import io.github.milobotdev.milobot.commands.games.blackjack.BlackjackCmdLoader;
+import io.github.milobotdev.milobot.commands.games.dnd.encounter.EncounterCmdLoader;
+import io.github.milobotdev.milobot.commands.games.hungergames.HungerGamesCmdLoader;
 import io.github.milobotdev.milobot.commands.games.minesweeper.MinesweeperCmdLoader;
+import io.github.milobotdev.milobot.commands.games.poker.PokerCmdLoader;
+import io.github.milobotdev.milobot.commands.games.uno.UnoCmdLoader;
 import io.github.milobotdev.milobot.commands.games.wordle.WordleCmdLoader;
 import io.github.milobotdev.milobot.commands.loaders.CommonLoader;
+import io.github.milobotdev.milobot.commands.morbconomy.MorbconomyCmdLoader;
+import io.github.milobotdev.milobot.commands.morbconomy.bank.BankCmdLoader;
 import io.github.milobotdev.milobot.commands.morbconomy.daily.DailyCmdLoader;
 import io.github.milobotdev.milobot.commands.utility.UtilityCmdLoader;
 import io.github.milobotdev.milobot.utility.lobby.LobbyLoader;
 import io.github.milobotdev.milobot.utility.paginator.PaginatorLoader;
-import io.github.milobotdev.milobot.commands.games.blackjack.BlackjackCmdLoader;
-import io.github.milobotdev.milobot.commands.games.dnd.encounter.EncounterCmdLoader;
-import io.github.milobotdev.milobot.commands.games.hungergames.HungerGamesCmdLoader;
-import io.github.milobotdev.milobot.commands.games.poker.PokerCmdLoader;
-import io.github.milobotdev.milobot.commands.games.uno.UnoCmdLoader;
-import io.github.milobotdev.milobot.commands.morbconomy.MorbconomyCmdLoader;
-import io.github.milobotdev.milobot.commands.morbconomy.bank.BankCmdLoader;
 
 /**
  * This class is responsible for loading all commands.

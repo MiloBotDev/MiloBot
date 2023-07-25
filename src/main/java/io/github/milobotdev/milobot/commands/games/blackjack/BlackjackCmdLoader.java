@@ -1,7 +1,7 @@
 package io.github.milobotdev.milobot.commands.games.blackjack;
 
-import io.github.milobotdev.milobot.commands.CommandHandler;
 import io.github.milobotdev.milobot.commands.ButtonHandler;
+import io.github.milobotdev.milobot.commands.CommandHandler;
 import io.github.milobotdev.milobot.games.BlackjackGame;
 
 import java.util.concurrent.ExecutorService;

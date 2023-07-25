@@ -28,7 +28,8 @@ public class JDAManager {
 
     private JDAManager() {
         jdaBuilder = JDABuilder.createDefault(Config.getInstance().getBotToken())
-                .setActivity(Activity.listening("Ping bot for help")).enableIntents(GatewayIntent.GUILD_MEMBERS);
+                .setActivity(Activity.listening("Ping bot for help"))
+                .enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT);
     }
 
     public synchronized static JDAManager getInstance() {
@@ -56,12 +57,13 @@ public class JDAManager {
     public synchronized void build() {
         if (!built) {
             built = true;
-            try {
+            // TODO: figure out exception thrown when JDA login fails and handle it appropriately
+            //try {
                 jda = jdaBuilder.build();
-            } catch (LoginException e) {
-                logger.error("FATAL ERROR: JDA login failed. Bot cannot continue from this state.", e);
-                return;
-            }
+            //} //catch (LoginException e) {
+               // logger.error("FATAL ERROR: JDA login failed. Bot cannot continue from this state.", e);
+               // return;
+           // }
             logger.debug("JDA login successful.");
             jdaBuiltActions.forEach(action -> action.accept(jda));
             logger.trace("JDA build actions complete.");

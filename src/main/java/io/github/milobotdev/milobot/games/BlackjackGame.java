@@ -13,11 +13,11 @@ import io.github.milobotdev.milobot.utility.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -132,16 +132,16 @@ public class BlackjackGame {
             blackjack.dealerStand = true;
             blackjackStates = blackjack.checkWin(true);
             embed = blackjack.generateBlackjackEmbed(event.getAuthor(), blackjackStates);
-            event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
+            event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
                     Button.primary(authorId + ":replayBlackjack", "Replay"),
                     Button.secondary(authorId + ":delete", "Delete")
-            )).queue();
+            ).queue();
         } else {
             embed = blackjack.generateBlackjackEmbed(event.getAuthor(), null);
-            event.getChannel().sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
+            event.getChannel().sendMessageEmbeds(embed.build()).setActionRow(
                     Button.primary(authorId + ":stand", "Stand"),
                     Button.primary(authorId + ":hit", "Hit")
-            )).queue(msg -> {
+            ).queue(msg -> {
                 blackjack.message = msg;
                 blackjack.setIdleInstanceCleanup();
                 blackjackGames.put(authorIdLong, blackjack);
@@ -149,7 +149,7 @@ public class BlackjackGame {
         }
     }
 
-    public static void newGame(@NotNull SlashCommandEvent event, int instanceDuration) {
+    public static void newGame(@NotNull SlashCommandInteractionEvent event, int instanceDuration) {
         duration = instanceDuration;
         long authorIdLong = event.getUser().getIdLong();
         String authorId = event.getUser().getId();
@@ -203,16 +203,16 @@ public class BlackjackGame {
             blackjack.dealerStand = true;
             blackjackStates = blackjack.checkWin(true);
             embed = blackjack.generateBlackjackEmbed(event.getUser(), blackjackStates);
-            event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
+            event.getHook().sendMessageEmbeds(embed.build()).addActionRow(
                     Button.primary(authorId + ":replayBlackjack", "Replay"),
                     Button.secondary(authorId + ":delete", "Delete")
-            )).queue();
+            ).queue();
         } else {
             embed = blackjack.generateBlackjackEmbed(event.getUser(), null);
-            event.getHook().sendMessageEmbeds(embed.build()).addActionRows(ActionRow.of(
+            event.getHook().sendMessageEmbeds(embed.build()).addActionRow(
                     Button.primary(authorId + ":stand", "Stand"),
                     Button.primary(authorId + ":hit", "Hit")
-            )).queue(msg -> {
+            ).queue(msg -> {
                 blackjack.message = msg;
                 blackjack.setIdleInstanceCleanup();
                 blackjackGames.put(authorIdLong, blackjack);
@@ -220,7 +220,7 @@ public class BlackjackGame {
         }
     }
 
-    public static void replayBlackjack(@NotNull ButtonClickEvent event) {
+    public static void replayBlackjack(@NotNull ButtonInteractionEvent event) {
         String authorId = event.getUser().getId();
         if (blackjackGames.containsKey(event.getUser().getIdLong())) {
             return;
@@ -261,16 +261,16 @@ public class BlackjackGame {
             blackjack.dealerStand = true;
             BlackjackStates blackjackStates = blackjack.checkWin(true);
             embed = blackjack.generateBlackjackEmbed(event.getUser(), blackjackStates);
-            event.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
+            event.editMessageEmbeds(embed.build()).setActionRow(
                     Button.primary(authorId + ":replayBlackjack", "Replay"),
                     Button.secondary(authorId + ":delete", "Delete")
-            )).queue();
+            ).queue();
         } else {
             embed = blackjack.generateBlackjackEmbed(event.getUser(), null);
-            event.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(
+            event.editMessageEmbeds(embed.build()).setActionRow(
                     Button.primary(authorId + ":stand", "Stand"),
                     Button.primary(authorId + ":hit", "Hit")
-            )).queue();
+            ).queue();
             blackjack.message = event.getMessage();
             blackjack.setIdleInstanceCleanup();
             blackjackGames.put(event.getUser().getIdLong(), blackjack);
@@ -510,7 +510,7 @@ public class BlackjackGame {
         return blackjackGames.get(authorId);
     }
 
-    public void hit(ButtonClickEvent event) {
+    public void hit(ButtonInteractionEvent event) {
         if (!cancelIdleInstanceCleanup()) {
             return;
         }
@@ -524,9 +524,9 @@ public class BlackjackGame {
         if (blackjackStates.equals(BlackjackGame.BlackjackStates.DEALER_WIN)) {
             checkWin(true);
             newEmbed = generateBlackjackEmbed(event.getUser(), blackjackStates);
-            event.editMessageEmbeds(newEmbed.build()).setActionRows(ActionRow.of(
+            event.editMessageEmbeds(newEmbed.build()).setActionRow(
                     Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
-                    Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
+                    Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
             blackjackGames.remove(event.getUser().getIdLong());
         } else {
             setIdleInstanceCleanup();
@@ -535,7 +535,7 @@ public class BlackjackGame {
         }
     }
 
-    public void stand(ButtonClickEvent event) {
+    public void stand(ButtonInteractionEvent event) {
         if (!cancelIdleInstanceCleanup()) {
             return;
         }
@@ -548,9 +548,9 @@ public class BlackjackGame {
         dealerStand = true;
         BlackjackGame.BlackjackStates blackjackStates = checkWin(true);
         EmbedBuilder embedBuilder = generateBlackjackEmbed(event.getUser(), blackjackStates);
-        event.editMessageEmbeds(embedBuilder.build()).setActionRows(ActionRow.of(
+        event.editMessageEmbeds(embedBuilder.build()).setActionRow(
                 Button.primary(event.getUser().getId() + ":replayBlackjack", "Replay"),
-                Button.secondary(event.getUser().getId() + ":delete", "Delete"))).queue();
+                Button.secondary(event.getUser().getId() + ":delete", "Delete")).queue();
         blackjackGames.remove(event.getUser().getIdLong());
     }
 

@@ -2,17 +2,18 @@ package io.github.milobotdev.milobot.commands.utility;
 
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,10 +34,13 @@ public class UserCmd extends ParentCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new CommandData("user", "Shows information on the user you are using this command on.")
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(
+                Commands.slash("user", "Shows information on the user you are using this command on.")
                 .addOptions(new OptionData(OptionType.USER, "user", "The user to show information on.")
-                        .setRequired(false));
+                        .setRequired(false)
+                )
+        );
     }
 
     @Override
@@ -97,7 +101,7 @@ public class UserCmd extends ParentCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public void executeCommand(SlashCommandEvent event) {
+    public void executeCommand(SlashCommandInteractionEvent event) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         EmbedBuilder userEmbed = new EmbedBuilder();
         EmbedUtils.styleEmbed(userEmbed, event.getUser());

@@ -6,8 +6,8 @@ import io.github.milobotdev.milobot.commands.instance.model.GameInstanceData;
 import io.github.milobotdev.milobot.commands.instance.model.GameType;
 import io.github.milobotdev.milobot.commands.instance.model.InstanceData;
 import io.github.milobotdev.milobot.utility.TimeTracker;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

@@ -2,29 +2,30 @@ package io.github.milobotdev.milobot.commands.utility;
 
 import io.github.milobotdev.milobot.commands.CommandHandler;
 import io.github.milobotdev.milobot.commands.GuildPrefixManager;
+import io.github.milobotdev.milobot.commands.bot.BotCmd;
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultChannelTypes;
 import io.github.milobotdev.milobot.commands.command.extensions.DefaultFlags;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.TextCommand;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.Event;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import io.github.milobotdev.milobot.commands.bot.BotCmd;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.commands.games.GamesCmd;
 import io.github.milobotdev.milobot.commands.morbconomy.MorbconomyCmd;
 import io.github.milobotdev.milobot.utility.Config;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -44,10 +45,10 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new CommandData("help", "Shows the user an overview of every command, or detailed information on a specific command.")
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(Commands.slash("help", "Shows the user an overview of every command, or detailed information on a specific command.")
                 .addOptions(new OptionData(OptionType.STRING, "command", "The command to get help for.")
-                        .setRequired(false));
+                        .setRequired(false)));
     }
 
     @Override
@@ -70,7 +71,7 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         if(event.getOption("command") != null) {
             sendCommandSpecificHelpEmbed(event.getOption("command").getAsString(), event);
         } else {
@@ -84,8 +85,8 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
             if (command.getFullCommandName().equalsIgnoreCase(commandName)) {
                 if(event instanceof MessageReceivedEvent) {
                     ((TextCommand) command).generateHelp((MessageReceivedEvent) event);
-                } else if(event instanceof SlashCommandEvent) {
-                    ((SlashCommand) command).generateHelp((SlashCommandEvent) event);
+                } else if(event instanceof SlashCommandInteractionEvent) {
+                    ((SlashCommand) command).generateHelp((SlashCommandInteractionEvent) event);
                 }
                 foundCommand[0] = true;
             } else {
@@ -93,8 +94,8 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
                     if (subCommand.getFullCommandName().equalsIgnoreCase(commandName)) {
                         if(event instanceof MessageReceivedEvent) {
                             ((TextCommand) subCommand).generateHelp((MessageReceivedEvent) event);
-                        } else if(event instanceof SlashCommandEvent) {
-                            ((SlashCommand) subCommand).generateHelp((SlashCommandEvent) event);
+                        } else if(event instanceof SlashCommandInteractionEvent) {
+                            ((SlashCommand) subCommand).generateHelp((SlashCommandInteractionEvent) event);
                         }
                         foundCommand[0] = true;
                     }
@@ -104,8 +105,8 @@ public class HelpCmd extends ParentCommand implements TextCommand, SlashCommand,
         if(!foundCommand[0]) {
             if(event instanceof MessageReceivedEvent) {
                 ((MessageReceivedEvent) event).getChannel().sendMessage(String.format("Command `%s` not found.", commandName)).queue();
-            } else if(event instanceof SlashCommandEvent) {
-                ((SlashCommandEvent) event).reply(String.format("Command `%s` not found.", commandName)).setEphemeral(true).queue();
+            } else if(event instanceof SlashCommandInteractionEvent) {
+                ((SlashCommandInteractionEvent) event).reply(String.format("Command `%s` not found.", commandName)).setEphemeral(true).queue();
             }
         }
     }

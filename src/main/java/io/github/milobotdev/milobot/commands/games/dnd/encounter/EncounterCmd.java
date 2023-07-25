@@ -2,10 +2,11 @@ package io.github.milobotdev.milobot.commands.games.dnd.encounter;
 
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
 import io.github.milobotdev.milobot.commands.games.GamesCmd;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -22,8 +23,8 @@ public class EncounterCmd extends ParentCommand implements DefaultTextParentComm
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new CommandData("encounter", "D&D 5e encounter generator.");
+    public @NotNull ParentSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSlashCommandData(Commands.slash("encounter", "D&D 5e encounter generator."));
     }
 
     @Override

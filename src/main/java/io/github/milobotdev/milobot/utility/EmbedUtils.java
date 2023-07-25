@@ -3,6 +3,7 @@ package io.github.milobotdev.milobot.utility;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -27,13 +28,13 @@ public class EmbedUtils {
     @Deprecated(since = "4-7-2022, migrating to using buttons instead.")
     public static Consumer<Message> deleteEmbedButton(@NotNull MessageReceivedEvent event, String consumerId) {
         return (message) -> {
-            message.addReaction("⏹").queue();
+            message.addReaction(Emoji.fromUnicode("⏹")).queue();
             ListenerAdapter listener = new ListenerAdapter() {
                 @Override
                 public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
                     String messageId = event.getMessageId();
                     if (Objects.requireNonNull(event.getUser()).getId().equals(consumerId) &&
-                            event.getReactionEmote().getAsReactionCode().equals("⏹") && message.getId().equals(messageId)) {
+                            event.getReaction().getEmoji().getAsReactionCode().equals("⏹") && message.getId().equals(messageId)) {
                         event.getChannel().deleteMessageById(messageId).queue();
                         event.getJDA().removeEventListener(this);
                     }
@@ -67,31 +68,31 @@ public class EmbedUtils {
         message.editMessageEmbeds(embedBuilder.build()).queue(message1 -> {
                     final int[] currentPage = {0};
                     if (pages.size() > 1) {
-                        message.addReaction("⏮").queue();
-                        message.addReaction("◀").queue();
-                        message.addReaction("⏹ ").queue();
-                        message.addReaction("▶").queue();
-                        message.addReaction("⏭").queue();
+                        message.addReaction(Emoji.fromUnicode("⏮")).queue();
+                        message.addReaction(Emoji.fromUnicode("◀")).queue();
+                        message.addReaction(Emoji.fromUnicode("⏹ ")).queue();
+                        message.addReaction(Emoji.fromUnicode("▶")).queue();
+                        message.addReaction(Emoji.fromUnicode("⏭")).queue();
                     } else {
-                        message.addReaction("⏹").queue();
+                        message.addReaction(Emoji.fromUnicode("⏹")).queue();
                     }
                     ListenerAdapter totalGames = new ListenerAdapter() {
                         @Override
                         public void onMessageReactionAdd(@NotNull MessageReactionAddEvent eventReaction2) {
                             if (Objects.requireNonNull(eventReaction2.getUser()).getId().equals(consumerId)
                                     && message.getId().equals(message1.getId())) {
-                                String asReactionCode = eventReaction2.getReactionEmote().getAsReactionCode();
+                                String asReactionCode = eventReaction2.getReaction().getEmoji().getAsReactionCode();
                                 EmbedBuilder newEmbed = new EmbedBuilder();
                                 newEmbed.setTitle(title);
                                 EmbedUtils.styleEmbed(newEmbed, event.getAuthor());
                                 switch (asReactionCode) {
                                     case "⏮":
-                                        message.removeReaction(asReactionCode, eventReaction2.getUser()).queue();
+                                        message.removeReaction(Emoji.fromUnicode(asReactionCode), eventReaction2.getUser()).queue();
                                         currentPage[0] = 0;
                                         newEmbed.setDescription(pages.get(currentPage[0]).getDescriptionBuilder());
                                         message.editMessageEmbeds(newEmbed.build()).queue();
                                     case "◀":
-                                        message.removeReaction(asReactionCode, eventReaction2.getUser()).queue();
+                                        message.removeReaction(Emoji.fromUnicode(asReactionCode), eventReaction2.getUser()).queue();
                                         if (!(currentPage[0] - 1 < 0)) {
                                             currentPage[0]--;
                                             newEmbed.setDescription(pages.get(currentPage[0]).getDescriptionBuilder());
@@ -103,7 +104,7 @@ public class EmbedUtils {
                                         event.getChannel().deleteMessageById(message.getId()).queue();
                                         break;
                                     case "▶":
-                                        message.removeReaction(asReactionCode, eventReaction2.getUser()).queue();
+                                        message.removeReaction(Emoji.fromUnicode(asReactionCode), eventReaction2.getUser()).queue();
                                         if (!(currentPage[0] + 1 == pages.size())) {
                                             currentPage[0]++;
                                             newEmbed.setDescription(pages.get(currentPage[0]).getDescriptionBuilder());
@@ -111,7 +112,7 @@ public class EmbedUtils {
                                         }
                                         break;
                                     case "⏭":
-                                        message.removeReaction(asReactionCode, eventReaction2.getUser()).queue();
+                                        message.removeReaction(Emoji.fromUnicode(asReactionCode), eventReaction2.getUser()).queue();
                                         currentPage[0] = pages.size() - 1;
                                         newEmbed.setDescription(pages.get(currentPage[0]).getDescriptionBuilder());
                                         message.editMessageEmbeds(newEmbed.build()).queue();

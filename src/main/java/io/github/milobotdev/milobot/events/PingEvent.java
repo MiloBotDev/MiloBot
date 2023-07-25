@@ -1,6 +1,6 @@
 package io.github.milobotdev.milobot.events;
 
-import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +11,7 @@ public class PingEvent extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (event.getMessage().getMentionedUsers().contains(event.getJDA().getSelfUser())) {
+        if (event.getMessage().getMentions().getUsers().contains(event.getJDA().getSelfUser())) {
             if (event.getChannelType().equals(ChannelType.TEXT)) {
                 boolean isReplyToSelf = event.getMessage().getReferencedMessage() != null &&
                         event.getMessage().getReferencedMessage().getAuthor().equals(event.getJDA().getSelfUser());

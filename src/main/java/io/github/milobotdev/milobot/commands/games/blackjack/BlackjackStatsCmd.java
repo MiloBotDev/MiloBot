@@ -2,28 +2,29 @@ package io.github.milobotdev.milobot.commands.games.blackjack;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.BlackjackDao;
 import io.github.milobotdev.milobot.database.model.Blackjack;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
-import io.github.milobotdev.milobot.utility.chart.PieChart;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
+import io.github.milobotdev.milobot.utility.chart.PieChart;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -42,7 +43,7 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         try {
             generateEmbed(event.getUser(), event.getChannel());
         } catch (SQLException e) {
@@ -68,8 +69,8 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new SubcommandData("stats", "View your own blackjack statistics.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(new SubcommandData("stats", "View your own blackjack statistics."));
     }
 
     @Override
@@ -118,7 +119,7 @@ public class BlackjackStatsCmd extends SubCommand implements TextCommand, SlashC
             pieChart.addSection("Draws", totalDraws, Color.YELLOW);
             pieChart.addSection("Losses", totalLosses, Color.RED);
             embed.setImage("attachment://chart.png");
-            channel.sendMessageEmbeds(embed.build()).addFile(pieChart.createCircleDiagram(), "chart.png")
+            channel.sendMessageEmbeds(embed.build()).addFiles(FileUpload.fromData(pieChart.createCircleDiagram(), "chart.png"))
                     .setActionRow(Button.secondary(user.getId() + ":delete", "Delete")).queue();
         } else {
             embed.setDescription("No blackjack statistics on record.");

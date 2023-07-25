@@ -2,14 +2,15 @@ package io.github.milobotdev.milobot.commands.morbconomy.bank;
 
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.*;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SlashCommandDataUtils;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
 import io.github.milobotdev.milobot.database.dao.UserDao;
 import io.github.milobotdev.milobot.database.model.User;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.BaseCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -34,8 +35,10 @@ public class BankBalanceCmd extends SubCommand implements TextCommand, SlashComm
     }
 
     @Override
-    public @NotNull BaseCommand<?> getCommandData() {
-        return new SubcommandData("balance", "Check your bank balance.");
+    public @NotNull SubSlashCommandData getCommandData() {
+        return SlashCommandDataUtils.fromSubCommandData(
+                new SubcommandData("balance", "Check your bank balance.")
+        );
     }
 
     @Override
@@ -54,7 +57,7 @@ public class BankBalanceCmd extends SubCommand implements TextCommand, SlashComm
     }
 
     @Override
-    public void executeCommand(@NotNull SlashCommandEvent event) {
+    public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         User user;
         try(Connection con = DatabaseConnection.getConnection()) {
             con.setAutoCommit(false);

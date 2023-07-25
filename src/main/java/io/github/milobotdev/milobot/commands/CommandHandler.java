@@ -1,23 +1,26 @@
 package io.github.milobotdev.milobot.commands;
 
 import io.github.milobotdev.milobot.commands.command.Command;
+import io.github.milobotdev.milobot.commands.command.ParentCommand;
 import io.github.milobotdev.milobot.commands.command.SubCommand;
 import io.github.milobotdev.milobot.commands.command.extensions.Aliases;
 import io.github.milobotdev.milobot.commands.command.extensions.EventListeners;
 import io.github.milobotdev.milobot.commands.command.extensions.SlashCommand;
-import net.dv8tion.jda.api.hooks.EventListener;
-import io.github.milobotdev.milobot.commands.command.ParentCommand;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.ParentSlashCommandData;
+import io.github.milobotdev.milobot.commands.command.extensions.slashcommands.SubSlashCommandData;
+import io.github.milobotdev.milobot.main.JDAManager;
+import io.github.milobotdev.milobot.utility.Config;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.milobotdev.milobot.main.JDAManager;
-import io.github.milobotdev.milobot.utility.Config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +45,7 @@ public class CommandHandler {
             }
 
             @Override
-            public void onSlashCommand(@NotNull SlashCommandEvent event) {
+            public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
                 handleSlashCommand(event);
             }
         });
@@ -90,9 +93,9 @@ public class CommandHandler {
         // If the command is a slash command, build its JDA CommandData. This is necessary to register it on Discord
         // as a slash command.
         if (command instanceof SlashCommand slashCommand) {
-            CommandData commandData;
+            SlashCommandData commandData;
             try {
-                commandData = (CommandData) slashCommand.getCommandData();
+                commandData = ((ParentSlashCommandData) slashCommand.getCommandData()).getSlashCommandData();
             } catch (ClassCastException e) {
                 throw new ClassCastException("Slash command \"" + command.getFullCommandName() + "\" data type is not CommandData");
             }
@@ -100,10 +103,11 @@ public class CommandHandler {
                 if (subCommand instanceof SlashCommand subSlashCommand) {
                     SubcommandData subcommandData;
                     try {
-                        subcommandData = (SubcommandData) subSlashCommand.getCommandData();
+                        subcommandData = ((SubSlashCommandData) subSlashCommand.getCommandData()).getSubSlashCommandData();
                     } catch (ClassCastException e) {
                         throw new ClassCastException("Slash command \"" + subCommand.getFullCommandName() + "\" data type is not SubCommandData");
                     }
+
                     commandData.addSubcommands(subcommandData);
                 }
             }
@@ -187,7 +191,7 @@ public class CommandHandler {
      *
      * @param event the event that triggered this handler.
      */
-    private void handleSlashCommand(@NotNull SlashCommandEvent event) {
+    private void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
         if (event.getUser().isBot()) {
             return;
         }
@@ -208,7 +212,7 @@ public class CommandHandler {
      * @param command the command to be executed.
      * @param event the event that triggered this command.
      */
-    private void executeCommand(@NotNull Command command, @NotNull SlashCommandEvent event) {
+    private void executeCommand(@NotNull Command command, @NotNull SlashCommandInteractionEvent event) {
         command.getExecutorService().execute(() -> {
             try {
                 command.onCommand(event);

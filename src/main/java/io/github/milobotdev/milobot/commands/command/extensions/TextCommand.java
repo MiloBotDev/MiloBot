@@ -1,21 +1,21 @@
 package io.github.milobotdev.milobot.commands.command.extensions;
 
-import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
-import io.github.milobotdev.milobot.database.dao.UserDao;
-import io.github.milobotdev.milobot.database.model.User;
 import io.github.milobotdev.milobot.commands.GuildPrefixManager;
 import io.github.milobotdev.milobot.commands.command.ICommand;
 import io.github.milobotdev.milobot.commands.command.ParentCommand;
+import io.github.milobotdev.milobot.database.dao.CommandTrackerDao;
+import io.github.milobotdev.milobot.database.dao.UserDao;
+import io.github.milobotdev.milobot.database.model.User;
 import io.github.milobotdev.milobot.database.util.DatabaseConnection;
 import io.github.milobotdev.milobot.database.util.RowLockType;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.components.Button;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.LoggerFactory;
 import io.github.milobotdev.milobot.utility.Config;
 import io.github.milobotdev.milobot.utility.EmbedUtils;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -65,7 +65,7 @@ public interface TextCommand extends ICommand {
      * @see ChannelType
      * @see DefaultChannelTypes
      */
-    Set<ChannelType> getAllowedChannelTypes();
+    @NotNull Set<ChannelType> getAllowedChannelTypes();
 
     /**
      * Generates and sends a standardized help message for the command this is called on.

@@ -1,9 +1,9 @@
 package io.github.milobotdev.milobot.commands.bot;
 
-import io.github.milobotdev.milobot.commands.bot.bug.BugListCmd;
-import io.github.milobotdev.milobot.commands.bot.bug.BugReportCmd;
 import io.github.milobotdev.milobot.commands.CommandHandler;
 import io.github.milobotdev.milobot.commands.bot.bug.BugCmd;
+import io.github.milobotdev.milobot.commands.bot.bug.BugListCmd;
+import io.github.milobotdev.milobot.commands.bot.bug.BugReportCmd;
 import io.github.milobotdev.milobot.commands.bot.bug.BugViewCmd;
 
 import java.util.concurrent.ExecutorService;

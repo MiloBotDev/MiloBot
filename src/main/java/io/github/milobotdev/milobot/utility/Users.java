@@ -11,8 +11,8 @@ import io.github.milobotdev.milobot.database.util.RowLockType;
 import io.github.milobotdev.milobot.games.hungergames.HungerGames;
 import io.github.milobotdev.milobot.models.UserNameTag;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
