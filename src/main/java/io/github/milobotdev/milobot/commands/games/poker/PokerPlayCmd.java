@@ -50,6 +50,7 @@ public class PokerPlayCmd extends SubCommand implements TextCommand, SlashComman
     @Override
     public void executeCommand(@NotNull SlashCommandInteractionEvent event) {
         try {
+            event.deferReply().queue();
             new Lobby("Poker lobby", event.getUser(),
                     (players, message) -> {
                         PokerGame pokerGame = new PokerGame(players);
