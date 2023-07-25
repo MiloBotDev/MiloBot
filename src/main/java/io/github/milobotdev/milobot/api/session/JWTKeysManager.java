@@ -6,8 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -21,13 +19,13 @@ public class JWTKeysManager {
     private static final Logger logger = LoggerFactory.getLogger(JWTKeysManager.class);
 
     private static JWTKeysManager instance = null;
-    private final JWTKeysDao dao = JWTKeysDao.getInstance();
     private final JWTKeys keys;
     private final JWTRSAKeys rsaKeys;
 
     private JWTKeysManager() {
+        JWTKeysDao dao = JWTKeysDao.getInstance();
         keys = dao.getKeys();
-        KeyFactory kf = null; // or "EC" or whatever
+        KeyFactory kf;
         RSAPrivateKey signaturePrivateKey;
         RSAPublicKey signaturePublicKey;
         RSAPublicKey encryptionPublicKey;
